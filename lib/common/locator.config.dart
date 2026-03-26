@@ -19,6 +19,11 @@ import 'package:uniun/data/repositories/user_repository_impl.dart' as _i582;
 import 'package:uniun/domain/repositories/note_repository.dart' as _i47;
 import 'package:uniun/domain/repositories/profile_repository.dart' as _i967;
 import 'package:uniun/domain/repositories/user_repository.dart' as _i103;
+import 'package:uniun/domain/usecases/get_feed_usecase.dart' as _i666;
+import 'package:uniun/domain/usecases/get_note_by_id_usecase.dart' as _i1024;
+import 'package:uniun/domain/usecases/get_replies_usecase.dart' as _i22;
+import 'package:uniun/domain/usecases/mark_seen_usecase.dart' as _i871;
+import 'package:uniun/domain/usecases/save_note_usecase.dart' as _i955;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -40,6 +45,21 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i103.UserRepository>(
       () => _i582.UserRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
+    gh.lazySingleton<_i666.GetFeedUseCase>(
+      () => _i666.GetFeedUseCase(gh<_i47.NoteRepository>()),
+    );
+    gh.lazySingleton<_i1024.GetNoteByIdUseCase>(
+      () => _i1024.GetNoteByIdUseCase(gh<_i47.NoteRepository>()),
+    );
+    gh.lazySingleton<_i22.GetRepliesUseCase>(
+      () => _i22.GetRepliesUseCase(gh<_i47.NoteRepository>()),
+    );
+    gh.lazySingleton<_i871.MarkSeenUseCase>(
+      () => _i871.MarkSeenUseCase(gh<_i47.NoteRepository>()),
+    );
+    gh.lazySingleton<_i955.SaveNoteUseCase>(
+      () => _i955.SaveNoteUseCase(gh<_i47.NoteRepository>()),
     );
     return this;
   }
