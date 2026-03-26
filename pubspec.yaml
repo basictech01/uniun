@@ -26,6 +26,8 @@ dependencies:
   isar_community_flutter_libs: 3.3.2
   dartz: ^0.10.1
   path_provider: ^2.0.15
+  nostr_core_dart: ^1.0.1
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
@@ -36,6 +38,7 @@ dev_dependencies:
   freezed: ^3.0.0
   isar_community_generator: 3.3.2
   injectable_generator: ^2.4.1
+  json_serializable: ^6.9.0
 
 flutter:
   uses-material-design: true

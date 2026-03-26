@@ -11,6 +11,7 @@ part of 'profile_entity.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$ProfileEntity {
 
@@ -21,6 +22,8 @@ mixin _$ProfileEntity {
 @pragma('vm:prefer-inline')
 $ProfileEntityCopyWith<ProfileEntity> get copyWith => _$ProfileEntityCopyWithImpl<ProfileEntity>(this as ProfileEntity, _$identity);
 
+  /// Serializes this ProfileEntity to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileEntity&&(identical(other.pubkey, pubkey) || other.pubkey == pubkey)&&(identical(other.name, name) || other.name == name)&&(identical(other.username, username) || other.username == username)&&(identical(other.about, about) || other.about == about)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.nip05, nip05) || other.nip05 == nip05)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,pubkey,name,username,about,avatarUrl,nip05,updatedAt);
 
@@ -209,11 +212,11 @@ return $default(_that.pubkey,_that.name,_that.username,_that.about,_that.avatarU
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _ProfileEntity implements ProfileEntity {
   const _ProfileEntity({required this.pubkey, this.name, this.username, this.about, this.avatarUrl, this.nip05, required this.updatedAt});
-  
+  factory _ProfileEntity.fromJson(Map<String, dynamic> json) => _$ProfileEntityFromJson(json);
 
 @override final  String pubkey;
 @override final  String? name;
@@ -229,14 +232,17 @@ class _ProfileEntity implements ProfileEntity {
 @pragma('vm:prefer-inline')
 _$ProfileEntityCopyWith<_ProfileEntity> get copyWith => __$ProfileEntityCopyWithImpl<_ProfileEntity>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$ProfileEntityToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileEntity&&(identical(other.pubkey, pubkey) || other.pubkey == pubkey)&&(identical(other.name, name) || other.name == name)&&(identical(other.username, username) || other.username == username)&&(identical(other.about, about) || other.about == about)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.nip05, nip05) || other.nip05 == nip05)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,pubkey,name,username,about,avatarUrl,nip05,updatedAt);
 

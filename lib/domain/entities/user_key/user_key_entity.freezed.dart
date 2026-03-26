@@ -11,6 +11,7 @@ part of 'user_key_entity.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+
 /// @nodoc
 mixin _$UserKeyEntity {
 
@@ -21,6 +22,8 @@ mixin _$UserKeyEntity {
 @pragma('vm:prefer-inline')
 $UserKeyEntityCopyWith<UserKeyEntity> get copyWith => _$UserKeyEntityCopyWithImpl<UserKeyEntity>(this as UserKeyEntity, _$identity);
 
+  /// Serializes this UserKeyEntity to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -28,7 +31,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is UserKeyEntity&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,nsec,npub,createdAt);
 
@@ -205,11 +208,11 @@ return $default(_that.nsec,_that.npub,_that.createdAt);case _:
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _UserKeyEntity implements UserKeyEntity {
   const _UserKeyEntity({required this.nsec, required this.npub, required this.createdAt});
-  
+  factory _UserKeyEntity.fromJson(Map<String, dynamic> json) => _$UserKeyEntityFromJson(json);
 
 @override final  String nsec;
 @override final  String npub;
@@ -221,14 +224,17 @@ class _UserKeyEntity implements UserKeyEntity {
 @pragma('vm:prefer-inline')
 _$UserKeyEntityCopyWith<_UserKeyEntity> get copyWith => __$UserKeyEntityCopyWithImpl<_UserKeyEntity>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$UserKeyEntityToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserKeyEntity&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,nsec,npub,createdAt);
 

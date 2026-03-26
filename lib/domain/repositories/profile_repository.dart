@@ -9,6 +9,6 @@ abstract class ProfileRepository {
   /// Save or update a profile in Isar (idempotent — upsert by pubkey).
   Future<Either<Failure, ProfileEntity>> saveProfile(ProfileEntity profile);
 
-  /// Get the local user's own profile by their npub. Null if not yet fetched from relay.
-  Future<Either<Failure, ProfileEntity?>> getLocalUserProfile(String npub);
+  /// Get the logged-in user's own profile by their npub. Null if not yet fetched from relay.
+  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String npub);
 }

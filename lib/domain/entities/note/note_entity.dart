@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uniun/core/enum/note_type.dart';
 
 part 'note_entity.freezed.dart';
+part 'note_entity.g.dart';
 
 @freezed
 abstract class NoteEntity with _$NoteEntity {
@@ -14,8 +15,10 @@ abstract class NoteEntity with _$NoteEntity {
     required List<String> eTagRefs,
     required List<String> pTagRefs,
     required List<String> tTags,
-    required int cachedReactionCount,
     required DateTime created,
     required bool isSeen,
   }) = _NoteEntity;
+
+  factory NoteEntity.fromJson(Map<String, dynamic> json) =>
+      _$NoteEntityFromJson(json);
 }

@@ -91,7 +91,6 @@ class NoteRepositoryImpl extends NoteRepository {
         eTagRefs: note.eTagRefs,
         pTagRefs: note.pTagRefs,
         tTags: note.tTags,
-        cachedReactionCount: note.cachedReactionCount,
         created: note.created,
         isSeen: note.isSeen,
       );
@@ -125,23 +124,4 @@ class NoteRepositoryImpl extends NoteRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, Unit>> updateReactionCount(
-      String eventId, int count) async {
-    try {
-      await isar.writeTxn(() async {
-        final note = await isar.noteModels
-            .where()
-            .eventIdEqualTo(eventId)
-            .findFirst();
-        if (note != null) {
-          note.cachedReactionCount = count;
-          await isar.noteModels.put(note);
-        }
-      });
-      return const Right(unit);
-    } catch (e) {
-      return Left(Failure.errorFailure(e.toString()));
-    }
-  }
 }

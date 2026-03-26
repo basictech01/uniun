@@ -41,6 +41,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  base58check:
+    dependency: transitive
+    description:
+      name: base58check
+      sha256: "6c300dfc33e598d2fe26319e13f6243fea81eaf8204cb4c6b69ef20a625319a5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  bech32:
+    dependency: transitive
+    description:
+      name: bech32
+      sha256: "156cbace936f7720c79a79d16a03efad343b1ef17106716e04b8b8e39f99f7f7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2"
+  bip340:
+    dependency: transitive
+    description:
+      name: bip340
+      sha256: "9a2f454d3f5e2d67a1b21494203132786d95bde8784e7ada74adac00df3ddc11"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   bloc:
     dependency: "direct main"
     description:
@@ -315,6 +339,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hex:
+    dependency: transitive
+    description:
+      name: hex
+      sha256: "4e7cd54e4b59ba026432a6be2dd9d96e4c5205725194997193bf871703b82c4a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   hooks:
     dependency: transitive
     description:
@@ -331,6 +363,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.3.0"
+  http:
+    dependency: transitive
+    description:
+      name: http
+      sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.6"
   http_multi_server:
     dependency: transitive
     description:
@@ -404,13 +444,29 @@ packages:
     source: hosted
     version: "0.7.2"
   json_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_annotation
       sha256: cb09e7dac6210041fad964ed7fbee004f14258b4eca4040f72d1234062ace4c8
       url: "https://pub.dev"
     source: hosted
     version: "4.11.0"
+  json_serializable:
+    dependency: "direct dev"
+    description:
+      name: json_serializable
+      sha256: fbcf404b03520e6e795f6b9b39badb2b788407dfc0a50cf39158a6ae1ca78925
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.13.1"
+  kepler:
+    dependency: transitive
+    description:
+      name: kepler
+      sha256: "8cf9f7df525bd4e5b192d91e52f1c75832b1fefb27fb4f4a09b1412b0f4f23d0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   leak_tracker:
     dependency: transitive
     description:
@@ -507,6 +563,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  nostr_core_dart:
+    dependency: "direct main"
+    description:
+      name: nostr_core_dart
+      sha256: "686a3985adbf58f8d0d6405c3ad44c7f8d8173ee23cca3d775e4c5e126ca4a5f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   objective_c:
     dependency: transitive
     description:
@@ -595,6 +659,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.1"
   pool:
     dependency: transitive
     description:
@@ -664,6 +736,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.2"
+  source_helper:
+    dependency: transitive
+    description:
+      name: source_helper
+      sha256: "1d3b229b2934034fb2e691fbb3d53e0f75a4af7b1407f88425ed8f209bcb1b8f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.11"
   source_span:
     dependency: transitive
     description:

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_key_entity.freezed.dart';
+part 'user_key_entity.g.dart';
 
 @freezed
 abstract class UserKeyEntity with _$UserKeyEntity {
@@ -9,4 +10,7 @@ abstract class UserKeyEntity with _$UserKeyEntity {
     required String npub,
     required DateTime createdAt,
   }) = _UserKeyEntity;
+
+  factory UserKeyEntity.fromJson(Map<String, dynamic> json) =>
+      _$UserKeyEntityFromJson(json);
 }

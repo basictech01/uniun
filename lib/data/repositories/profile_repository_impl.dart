@@ -55,7 +55,7 @@ class ProfileRepositoryImpl extends ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, ProfileEntity?>> getLocalUserProfile(String npub) async {
+  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String npub) async {
     try {
       final profile = await isar.profileModels
           .where()

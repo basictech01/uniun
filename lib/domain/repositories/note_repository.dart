@@ -20,7 +20,4 @@ abstract class NoteRepository {
 
   /// Mark a note as seen (updates isSeen flag)
   Future<Either<Failure, Unit>> markAsSeen(String eventId);
-
-  /// Update the cached reaction count for a note
-  Future<Either<Failure, Unit>> updateReactionCount(String eventId, int count);
 }
