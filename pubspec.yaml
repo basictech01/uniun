@@ -39,6 +39,32 @@ dev_dependencies:
   isar_community_generator: 3.3.2
   injectable_generator: ^2.4.1
   json_serializable: ^6.9.0
+  flutter_native_splash: ^2.3.10
+  flutter_launcher_icons: ^0.14.3
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/images/splash.png
+
+  android_12:
+    image: assets/images/splash.png
+    color: "#ffffff"
+
+  ios: true
+  ios_content_mode: center
+
+  web: false
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/uniun-logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/uniun-logo.png"
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
