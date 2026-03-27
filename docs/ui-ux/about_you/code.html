@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UNIUN — Profile Setup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error": "#ffffff",
+              "surface-bright": "#f8f9fb",
+              "on-error-container": "#93000a",
+              "on-tertiary-fixed-variant": "#733600",
+              "secondary-fixed": "#d7e3ff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#f2f4f6",
+              "background": "#f8f9fb",
+              "surface-container-highest": "#e1e2e4",
+              "on-primary-fixed-variant": "#00458e",
+              "on-background": "#191c1e",
+              "surface-container-high": "#e7e8ea",
+              "tertiary-fixed-dim": "#ffb688",
+              "on-tertiary-container": "#fffbff",
+              "primary-fixed-dim": "#abc7ff",
+              "error-container": "#ffdad6",
+              "secondary": "#475f89",
+              "on-surface": "#191c1e",
+              "primary-fixed": "#d7e3ff",
+              "on-tertiary-fixed": "#311300",
+              "primary-container": "#1672df",
+              "outline-variant": "#c1c6d5",
+              "on-primary-container": "#fefcff",
+              "on-secondary-container": "#415882",
+              "tertiary": "#934700",
+              "inverse-on-surface": "#f0f1f3",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#414753",
+              "surface-dim": "#d9dadc",
+              "tertiary-fixed": "#ffdbc7",
+              "on-secondary": "#ffffff",
+              "surface-variant": "#e1e2e4",
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed": "#001b3f",
+              "on-secondary-fixed-variant": "#2f476f",
+              "secondary-fixed-dim": "#afc7f7",
+              "surface-tint": "#005cba",
+              "tertiary-container": "#b85a00",
+              "outline": "#727785",
+              "on-secondary-fixed": "#001b3f",
+              "surface-container": "#edeef0",
+              "inverse-surface": "#2e3132",
+              "surface": "#f8f9fb",
+              "secondary-container": "#b8cfff",
+              "primary": "#005ab6",
+              "inverse-primary": "#abc7ff",
+              "on-primary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #ffffff; /* Overriding base background as per task "White background" */
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-background antialiased overflow-x-hidden">
+<!-- TopAppBar (Transactional: Leading Icon Only) -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(47,128,237,0.06)]">
+<div class="flex items-center justify-between px-6 py-4 w-full max-w-screen-xl mx-auto">
+<button class="text-blue-600 dark:text-blue-400 hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Inter'] font-bold text-lg tracking-tight text-on-background">UNIUN</h1>
+<div class="w-6"></div> <!-- Spacer for center alignment -->
+</div>
+</header>
+<main class="min-h-screen pt-24 pb-12 px-8 max-w-lg mx-auto flex flex-col items-center">
+<!-- Header Section -->
+<div class="w-full mb-12 text-center">
+<h2 class="text-[2.75rem] font-black tracking-tight leading-tight text-on-background mb-4">About You</h2>
+<p class="text-on-surface-variant text-lg font-medium leading-relaxed">
+                Let’s set up your profile. This is how the community will see you.
+            </p>
+</div>
+<!-- Profile Photo Upload (Content Halo Signature) -->
+<div class="relative mb-12">
+<div class="absolute inset-0 bg-secondary-container/30 rounded-full blur-3xl -z-10 scale-150"></div>
+<div class="relative w-32 h-32 rounded-full bg-surface-container flex items-center justify-center group cursor-pointer overflow-hidden shadow-[0px_12px_32px_rgba(0,90,182,0.06)] ring-4 ring-white">
+<span class="material-symbols-outlined text-4xl text-outline-variant group-hover:scale-110 transition-transform duration-300" data-icon="add_a_photo">add_a_photo</span>
+<!-- Hidden input for realism -->
+<input class="absolute inset-0 opacity-0 cursor-pointer" type="file"/>
+</div>
+<div class="mt-4 text-center">
+<span class="text-sm font-semibold text-primary">Upload Photo</span>
+</div>
+</div>
+<!-- Form Section -->
+<form class="w-full space-y-8">
+<!-- Display Name -->
+<div class="group">
+<label class="block text-sm font-bold text-on-surface-variant mb-2 ml-1 tracking-wide uppercase" style="font-size: 0.75rem;">Display Name</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/20 transition-all outline-none text-base" placeholder="What should we call you?" type="text"/>
+</div>
+</div>
+<!-- Username / Handle -->
+<div class="group">
+<label class="block text-sm font-bold text-on-surface-variant mb-2 ml-1 tracking-wide uppercase" style="font-size: 0.75rem;">Username</label>
+<div class="relative flex items-center">
+<span class="absolute left-5 text-outline font-bold text-lg">@</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl pl-11 pr-5 py-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/20 transition-all outline-none text-base font-medium" placeholder="username" type="text"/>
+</div>
+<p class="mt-2 ml-1 text-xs text-on-surface-variant/70 italic leading-relaxed">Unique handle for mentions and search.</p>
+</div>
+<!-- Bio Section -->
+<div class="group">
+<label class="block text-sm font-bold text-on-surface-variant mb-2 ml-1 tracking-wide uppercase" style="font-size: 0.75rem;">Bio (Optional)</label>
+<div class="relative">
+<textarea class="w-full bg-surface-container-low border-none rounded-xl px-5 py-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/20 transition-all outline-none text-base resize-none" placeholder="Tell us a bit about yourself..." rows="3"></textarea>
+</div>
+</div>
+<!-- Spacer for visual breathing room -->
+<div class="py-4"></div>
+<!-- Primary Action -->
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold py-5 rounded-full shadow-[0px_12px_32px_rgba(0,90,182,0.15)] hover:opacity-90 active:scale-[0.98] transition-all text-lg tracking-tight" type="submit">
+                Continue
+            </button>
+<!-- Secondary/Bail Action -->
+<div class="text-center pt-2">
+<button class="text-primary font-bold text-sm tracking-widest hover:opacity-70 transition-opacity" type="button">
+                    SET UP LATER
+                </button>
+</div>
+</form>
+<!-- Informational Footer (Editorial Style) -->
+<footer class="mt-20 w-full text-center">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined text-[18px] text-blue-600" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-xs font-semibold text-on-surface-variant">Your data is encrypted and private.</span>
+</div>
+</footer>
+</main>
+<!-- Background Decoration (Subtle Atmosphere) -->
+<div class="fixed top-0 right-0 -z-20 opacity-20 pointer-events-none">
+<div class="w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-100 to-transparent blur-3xl"></div>
+</div>
+<div class="fixed bottom-0 left-0 -z-20 opacity-10 pointer-events-none">
+<div class="w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-blue-200 to-transparent blur-3xl"></div>
+</div>
+</body></html>

@@ -206,7 +206,7 @@ class _AboutYouPageState extends State<AboutYouPage> {
                           width: double.infinity,
                           height: 56,
                           decoration: BoxDecoration(
-                            gradient: AppColors.gradientPrimary,
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(

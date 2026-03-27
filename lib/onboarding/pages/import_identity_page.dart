@@ -203,7 +203,7 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                             width: double.infinity,
                             height: 52,
                             decoration: BoxDecoration(
-                              gradient: AppColors.gradientPrimary,
+                              color: AppColors.primary,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(

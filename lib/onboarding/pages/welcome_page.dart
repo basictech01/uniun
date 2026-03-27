@@ -160,7 +160,7 @@ class WelcomePage extends StatelessWidget {
 
 // ── Button widgets ────────────────────────────────────────────────────────────
 
-/// Blue gradient — primary action.
+/// Solid primary — primary action.
 class _PrimaryButton extends StatelessWidget {
   const _PrimaryButton({required this.onPressed, required this.child});
 
@@ -175,11 +175,11 @@ class _PrimaryButton extends StatelessWidget {
         width: double.infinity,
         height: 64,
         decoration: BoxDecoration(
-          gradient: AppColors.gradientPrimary,
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF005AB6).withValues(alpha: 0.22),
+              color: AppColors.primary.withValues(alpha: 0.28),
               blurRadius: 32,
               offset: const Offset(0, 12),
             ),

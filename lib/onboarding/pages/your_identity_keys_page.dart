@@ -180,11 +180,8 @@ class _YourIdentityKeysPageState extends State<YourIdentityKeysPage> {
                             width: double.infinity,
                             height: 52,
                             decoration: BoxDecoration(
-                              gradient: canContinue
-                                  ? AppColors.gradientPrimary
-                                  : null,
                               color: canContinue
-                                  ? null
+                                  ? AppColors.primary
                                   : AppColors.surfaceContainerHigh,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: canContinue

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// UNIUN design system colors — sourced directly from the design HTML.
+///
+/// PRIMARY: #319BED — the single brand blue used on all buttons, active states,
+/// icons, and text highlights. Change only this const to retheme the entire app.
 abstract class AppColors {
-  static const primary = Color(0xFF005AB6);
-  static const primaryContainer = Color(0xFF1672DF);
+  static const primary = Color(0xFF319BED);
+  static const primaryContainer = Color(0xFF1A7EC8);
   static const onPrimary = Color(0xFFFFFFFF);
   static const onPrimaryContainer = Color(0xFFFEFCFF);
 
@@ -39,12 +42,6 @@ abstract class AppColors {
   static const inverseOnSurface = Color(0xFFF0F1F3);
   static const inversePrimary = Color(0xFFABC7FF);
 
-  // Gradient used on primary action buttons
-  static const gradientPrimary = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [primary, primaryContainer],
-  );
 }
 
 class AppTheme {
