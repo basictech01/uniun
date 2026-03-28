@@ -109,3 +109,48 @@ These are user-asserted edges — more reliable than LLM-extracted ones.
 **v1 approach:** Start with standard vector RAG (already designed). Add graph traversal as a second pass on top — seed from vector, expand via graph. No community detection or heavy infrastructure needed for basic GraphRAG.
 
 **Full technical details:** See `docs/graphrag.md`
+
+---
+
+## Finding 005 — User Identity Storage: Secure Storage + Isar Split
+
+**Context:** Deciding where to store the user's Nostr keypair (nsec + npub) and profile data, and how to handle profile caching for other users seen in the feed.
+
+**Problem with naive approach:** Storing nsec in Isar (a plain file on disk) means the private key is accessible to anyone who can read app storage — no different from a text file. On rooted Android devices this is trivially readable.
+
+**Decided approach:** Split storage by sensitivity:
+
+| Data | Storage | Why |
+|------|---------|-----|
+| nsec (bech32 private key) | `flutter_secure_storage` → Android Keystore / iOS Keychain | Hardware-backed encryption, survives app updates, wiped on uninstall |
+| pubkeyHex + npub | Isar `UserKeyModel` | Public data — safe to store anywhere |
+| Own profile (Kind 0) | Isar `ProfileModel` with `isOwn = true` | Never evicted, own identity must always be available offline |
+
+On launch, `SplashPage` calls `UserRepository.getActiveUser()`:
+- Reads `pubkeyHex` + `npub` from Isar
+- Reads `nsec` from secure storage
+- If both exist → `Right(UserKeyEntity)` → navigate to `HomePage` (no login needed)
+- If either missing → `Left(notFoundFailure)` → navigate to `WelcomePage`
+- On reinstall: Isar wiped + secure storage cleared → user must log in again ✅
+
+**Other users' profile caching strategy:**
+
+```
+Own user          → isOwn = true   → kept forever
+DM / Channel      → isOwn = false  → kept forever (explicit relationship)
+Feed users        → isOwn = false  → evicted after 30 days from lastSeenAt
+Random/unseen     → not stored at all
+```
+
+`ProfileModel.lastSeenAt` is updated every time a profile appears in the UI. `CleanupManager` (EmbeddedServer) evicts profiles where `lastSeenAt < now - 30 days AND isOwn = false`.
+
+**No backend needed for auth:** Nostr identity is purely cryptographic — a keypair generated on device. The relay (Khatru/Go) validates event signatures but has no concept of "accounts" or "sessions". Login = having the private key. Logout = deleting it from secure storage + Isar.
+
+**Future — Following / Followers (Kind 3):**
+
+Not implemented in v1. When built:
+- Follow list = Kind 3 event you publish (list of `["p", pubkey]` tags, replaceable)
+- Store in `FollowModel` (Isar) — one row per followed pubkey
+- Followed users' `ProfileModel`: `isOwn = false`, never evicted (kept like own profile)
+- Follower count (who follows YOU) = queried from relay on demand via `{"kinds": [3], "#p": ["<myPubkeyHex>"]}` — never stored locally
+- Following drives the Vishnu feed subscription: `{"kinds": [1], "authors": [<followed pubkeys>]}`

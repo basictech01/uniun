@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/domain/repositories/user_repository.dart';
 
 /// Flutter splash screen — shown immediately after native splash.
 /// Runs DI (Isar open) in parallel with a 1.2s minimum display.
@@ -39,10 +40,14 @@ class _SplashPageState extends State<SplashPage>
 
     if (!mounted) return;
 
-    // TODO: check UserRepository.getActiveUser()
-    // → if Right(user) → AppRoutes.home
-    // → else → AppRoutes.welcome
-    Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+    // Auth check: if a user key exists → go straight to home
+    final result = await getIt<UserRepository>().getActiveUser();
+    if (!mounted) return;
+
+    result.fold(
+      (_) => Navigator.pushReplacementNamed(context, AppRoutes.welcome),
+      (_) => Navigator.pushReplacementNamed(context, AppRoutes.home),
+    );
   }
 
   @override

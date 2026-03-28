@@ -8,14 +8,16 @@ part of 'user_key_entity.dart';
 
 _UserKeyEntity _$UserKeyEntityFromJson(Map<String, dynamic> json) =>
     _UserKeyEntity(
-      nsec: json['nsec'] as String,
+      pubkeyHex: json['pubkeyHex'] as String,
       npub: json['npub'] as String,
+      nsec: json['nsec'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
 Map<String, dynamic> _$UserKeyEntityToJson(_UserKeyEntity instance) =>
     <String, dynamic>{
-      'nsec': instance.nsec,
+      'pubkeyHex': instance.pubkeyHex,
       'npub': instance.npub,
+      'nsec': instance.nsec,
       'createdAt': instance.createdAt.toIso8601String(),
     };

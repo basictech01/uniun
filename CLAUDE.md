@@ -582,6 +582,48 @@ abstract class IsarModule {
 
 ---
 
+## User Storage Strategy
+
+### Own User (the logged-in identity)
+
+| What | Where | Retention |
+|------|-------|-----------|
+| Private key (nsec bech32) | `flutter_secure_storage` (Android Keystore / iOS Keychain) | Until logout |
+| Public key (hex) + npub | Isar `UserKeyModel` | Until logout |
+| Profile (Kind 0) | Isar `ProfileModel` with `isOwn = true` | Forever — never evicted |
+
+The private key is **never** written to Isar. `UserKeyModel` holds only the public identity.
+
+On app launch, `SplashPage` calls `UserRepository.getActiveUser()`:
+- `Right(user)` → skip onboarding, go to `HomePage`
+- `Left(notFound)` → show `WelcomePage`
+
+On reinstall, Isar is wiped but `flutter_secure_storage` may survive on Android (depends on backup settings). If Isar is empty but secure storage has the key, the user will be asked to log in again — the private key alone is insufficient without the Isar row.
+
+### Other Users (feed / DM / channel participants)
+
+| Category | Profile stored? | Retention |
+|----------|----------------|-----------|
+| Own user | ✅ Yes, `isOwn = true` | Forever |
+| Followed users | ✅ Yes (future — Kind 3) | Forever |
+| DM / Channel participants | ✅ Yes | Forever |
+| Feed users (not followed) | Temporarily, `isOwn = false` | 30 days from `lastSeenAt` |
+| Random unseen users | ❌ Not stored | — |
+
+`ProfileModel.lastSeenAt` is updated each time the profile appears in the UI. The `CleanupManager` (EmbeddedServer) evicts profiles where `lastSeenAt < now - 30 days` and `isOwn == false`.
+
+### Following / Followers (Future — Kind 3)
+
+Not yet implemented. Tracked as a GitHub issue.
+
+When built:
+- Your follow list = Kind 3 event you publish (list of `["p", pubkey]` tags)
+- Stored in `FollowModel` (Isar) — one row per followed pubkey
+- Their profiles: fetched on follow, `isOwn = false`, never evicted
+- Followers (who follows YOU) = queried from relay on demand, not stored locally
+
+---
+
 ## Current Implementation Status
 
 ### Done
@@ -590,23 +632,60 @@ abstract class IsarModule {
 |------|-------------|
 | `lib/core/enum/note_type.dart` | `NoteType` enum: `text`, `image`, `link`, `reference` |
 | `lib/core/error/failures.dart` | `Failure` freezed union type |
-| `lib/core/error/failures.freezed.dart` | Generated (do not edit) |
 | `lib/core/usecases/usecase.dart` | `UseCase<T,P>` and `NoParamsUseCase<T>` base classes |
-| `lib/data/models/note_model.dart` | `NoteModel` Isar collection + `toDomain()` extension |
-| `lib/data/models/note_model.g.dart` | Generated Isar schema (do not edit) |
-| `lib/domain/entities/note/note_entity.dart` | `NoteEntity` freezed domain entity |
-| `lib/domain/entities/note/note_entity.freezed.dart` | Generated (do not edit) |
-| `lib/domain/repositories/note_repository.dart` | `NoteRepository` abstract interface |
-| `lib/data/repositories/note_repository_impl.dart` | `NoteRepositoryImpl` with Isar queries |
+| `lib/data/models/note_model.dart` | `NoteModel` Isar collection + `NoteModel.fromEvent()` |
+| `lib/data/models/profile_model.dart` | `ProfileModel` Isar + `ProfileModel.fromEvent()`, `isOwn`, `lastSeenAt` |
+| `lib/data/models/user_key_model.dart` | `UserKeyModel` — pubkeyHex + npub only (nsec NOT stored here) |
+| `lib/data/datasources/isar_module.dart` | Isar singleton — all schemas registered |
+| `lib/data/repositories/note_repository_impl.dart` | Full Isar CRUD for notes |
+| `lib/data/repositories/profile_repository_impl.dart` | Full Isar CRUD for profiles |
+| `lib/data/repositories/user_repository_impl.dart` | Key generation, import, secure storage, auth check |
+| `lib/domain/entities/note/note_entity.dart` | `NoteEntity` freezed + `fromJson` |
+| `lib/domain/entities/profile/profile_entity.dart` | `ProfileEntity` freezed + `isOwn` + `lastSeenAt` |
+| `lib/domain/entities/user_key/user_key_entity.dart` | `UserKeyEntity` — pubkeyHex + npub + nsec (runtime only) |
+| `lib/domain/repositories/note_repository.dart` | `NoteRepository` interface |
+| `lib/domain/repositories/profile_repository.dart` | `ProfileRepository` interface |
+| `lib/domain/repositories/user_repository.dart` | `UserRepository` interface |
+| `lib/domain/usecases/` | GetFeed, GetNoteById, GetReplies, SaveNote, MarkSeen |
+| `lib/common/locator.dart` | get_it + injectable DI setup |
+| `lib/core/router/app_routes.dart` | Named route constants |
+| `lib/core/theme/app_theme.dart` | UNIUN design system — primary `#319BED` |
+| `lib/onboarding/pages/splash_page.dart` | DI init + auth check → home or welcome |
+| `lib/onboarding/pages/welcome_page.dart` | Landing — create identity or import key |
+| `lib/onboarding/pages/about_you_page.dart` | Profile setup after key generation |
+| `lib/onboarding/pages/your_identity_keys_page.dart` | Step-based key reveal + download backup |
+| `lib/onboarding/pages/import_identity_page.dart` | nsec / hex import + validation |
+| `lib/home/pages/home_page.dart` | Shell — floating pill nav (Vishnu / Brahma / Shiv) |
 
 ### Pending
 
-**User Identity + Profile**
-- `lib/data/datasources/isar_module.dart` — Isar singleton, registers all schemas
-- `UserKeyModel` — stores user's nsec + npub locally (never synced to relay)
-- `UserKeyEntity` + `UserRepository` + `UserRepositoryImpl`
-- `NostrProfileModel` — Isar collection for Kind 0 (name, about, avatarUrl, nip05)
-- `ProfileEntity` + `ProfileRepository` + `ProfileRepositoryImpl`
+**User Identity — nsec in secure storage**
+- `flutter_secure_storage` is wired ✅ — but `WelcomePage` and `ImportIdentityPage` still generate/validate keys locally and navigate without calling `UserRepository`. Wire `UserRepository.generateKey()` / `importKey()` via BLoC.
+
+**SavedNote + DraftNote**
+- `SavedNoteModel` (noteId, savedAt, embedding `List<double>?`) + entity + repository
+- `DraftNoteModel` (localId, content, referenceIds, imageUrl) + entity + repository
+
+**Channels + Messages (Kind 40/42)**
+- `ChannelModel`, `MessageModel`, `ChannelReadStateModel` + entities + repositories
+
+**DMs (Kind 14/1059)**
+- `DMModel`, `DMReadStateModel` + entities + repositories
+
+**AI Conversations (local only — never synced)**
+- `AIConversationModel`, `AIMessageModel` + entities + `AIRepository`
+
+**Following / Followers (Kind 3)**
+- `FollowModel` + entity + repository — tracked as GitHub issue
+
+**Vishnu Feed**
+- `VishnuFeedBloc`, `NoteCard` widget, `VishnuFeedPage`
+
+**Brahma Create Note**
+- `BrahmaCreateBloc`, compose note page
+
+**Shiv AI**
+- `EmbeddingService`, `VectorSearchService`, `ShivAIBloc`, `flutter_gemma` integration
 
 **Note Use Cases**
 - `GetFeedUseCase`, `SaveNoteUseCase`, `GetNoteByIdUseCase`, `GetRepliesUseCase`, `MarkSeenUseCase`

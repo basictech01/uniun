@@ -3,20 +3,28 @@ import 'package:uniun/domain/entities/user_key/user_key_entity.dart';
 
 part 'user_key_model.g.dart';
 
+/// Stores the logged-in user's public identity in Isar.
+///
+/// The private key (nsec) is NEVER stored here — it lives in
+/// flutter_secure_storage (Android Keystore / iOS Keychain).
 @Collection(ignore: {'copyWith'})
 @Name('UserKey')
 class UserKeyModel {
   Id id = Isar.autoIncrement;
 
-  late String nsec;       // private key hex — used to sign all events
-  late String npub;       // public key hex — the user's Nostr identity
+  @Index(unique: true)
+  late String pubkeyHex; // secp256k1 hex public key — used in all Nostr events
+
+  late String npub;      // bech32 display form of pubkeyHex (npub1...)
   late DateTime createdAt;
 }
 
 extension UserKeyModelExtension on UserKeyModel {
-  UserKeyEntity toDomain() => UserKeyEntity(
-        nsec: nsec,
+  /// [nsec] is passed in from secure storage — never read from this model.
+  UserKeyEntity toDomain({required String nsec}) => UserKeyEntity(
+        pubkeyHex: pubkeyHex,
         npub: npub,
+        nsec: nsec,
         createdAt: createdAt,
       );
 }

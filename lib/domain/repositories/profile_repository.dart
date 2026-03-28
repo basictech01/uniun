@@ -10,5 +10,6 @@ abstract class ProfileRepository {
   Future<Either<Failure, ProfileEntity>> saveProfile(ProfileEntity profile);
 
   /// Get the logged-in user's own profile by their npub. Null if not yet fetched from relay.
-  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String npub);
+  /// Get the logged-in user's own profile by their hex pubkey.
+  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String pubkeyHex);
 }

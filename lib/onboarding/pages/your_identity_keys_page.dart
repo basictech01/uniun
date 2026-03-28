@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/domain/repositories/user_repository.dart';
 
 /// Shows the generated npub + nsec after profile setup.
 /// Route args: Map{'npub': String, 'nsec': String}
@@ -24,6 +26,21 @@ class _YourIdentityKeysPageState extends State<YourIdentityKeysPage> {
   bool _pubKeyCopied = false;
   bool _privKeyCopied = false;
   bool _nsecVisible = false;
+
+  Future<void> _saveAndContinue(String nsec) async {
+    final result = await getIt<UserRepository>().importKey(nsec);
+    if (!mounted) return;
+    result.fold(
+      (failure) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save keys: \${failure.toString()}')),
+      ),
+      (_) => Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (r) => false,
+      ),
+    );
+  }
 
   void _copyPub(String value) {
     Clipboard.setData(ClipboardData(text: value));
@@ -168,13 +185,7 @@ class _YourIdentityKeysPageState extends State<YourIdentityKeysPage> {
 
                         // ── Save & Continue ──────────────────────────────
                         GestureDetector(
-                          onTap: canContinue
-                              ? () => Navigator.pushNamedAndRemoveUntil(
-                                    context,
-                                    AppRoutes.home,
-                                    (r) => false,
-                                  )
-                              : null,
+                          onTap: canContinue ? () => _saveAndContinue(nsec) : null,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             width: double.infinity,

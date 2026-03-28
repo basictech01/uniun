@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nostr_core_dart/nostr.dart';
+import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
+import 'package:uniun/domain/repositories/user_repository.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
 /// Login screen — "I Already Have a Key".
@@ -29,7 +31,7 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
     }
   }
 
-  void _onContinue() {
+  Future<void> _onContinue() async {
     final input = _controller.text.trim();
     if (input.isEmpty) {
       _showError('Please paste your private key first.');
@@ -48,17 +50,17 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
         throw Exception('Unrecognised key format');
       }
 
-      // Derive public key — throws if privkey is invalid
-      final keychain = Keychain(hexPriv);
-      final npub = Nip19.encodePubkey(keychain.public);
-
-      // TODO: call UserRepository.importKey(hexPriv, npub) via BLoC
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.home,
-        (route) => false,
-        arguments: {'npub': npub},
+      final result = await getIt<UserRepository>().importKey(input);
+      if (!mounted) return;
+      result.fold(
+        (failure) => _showError('Failed to import key. Please try again.'),
+        (_) => Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.home,
+          (route) => false,
+        ),
       );
+      return;
     } catch (_) {
       _showError('Invalid key. Please check and try again.');
     }

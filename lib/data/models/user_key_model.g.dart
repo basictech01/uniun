@@ -23,7 +23,11 @@ const UserKeyModelSchema = CollectionSchema(
       type: IsarType.dateTime,
     ),
     r'npub': PropertySchema(id: 1, name: r'npub', type: IsarType.string),
-    r'nsec': PropertySchema(id: 2, name: r'nsec', type: IsarType.string),
+    r'pubkeyHex': PropertySchema(
+      id: 2,
+      name: r'pubkeyHex',
+      type: IsarType.string,
+    ),
   },
 
   estimateSize: _userKeyModelEstimateSize,
@@ -31,7 +35,21 @@ const UserKeyModelSchema = CollectionSchema(
   deserialize: _userKeyModelDeserialize,
   deserializeProp: _userKeyModelDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'pubkeyHex': IndexSchema(
+      id: 5838006650964594011,
+      name: r'pubkeyHex',
+      unique: true,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'pubkeyHex',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
+  },
   links: {},
   embeddedSchemas: {},
 
@@ -48,7 +66,7 @@ int _userKeyModelEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.npub.length * 3;
-  bytesCount += 3 + object.nsec.length * 3;
+  bytesCount += 3 + object.pubkeyHex.length * 3;
   return bytesCount;
 }
 
@@ -60,7 +78,7 @@ void _userKeyModelSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.npub);
-  writer.writeString(offsets[2], object.nsec);
+  writer.writeString(offsets[2], object.pubkeyHex);
 }
 
 UserKeyModel _userKeyModelDeserialize(
@@ -73,7 +91,7 @@ UserKeyModel _userKeyModelDeserialize(
   object.createdAt = reader.readDateTime(offsets[0]);
   object.id = id;
   object.npub = reader.readString(offsets[1]);
-  object.nsec = reader.readString(offsets[2]);
+  object.pubkeyHex = reader.readString(offsets[2]);
   return object;
 }
 
@@ -109,6 +127,63 @@ void _userKeyModelAttach(
   UserKeyModel object,
 ) {
   object.id = id;
+}
+
+extension UserKeyModelByIndex on IsarCollection<UserKeyModel> {
+  Future<UserKeyModel?> getByPubkeyHex(String pubkeyHex) {
+    return getByIndex(r'pubkeyHex', [pubkeyHex]);
+  }
+
+  UserKeyModel? getByPubkeyHexSync(String pubkeyHex) {
+    return getByIndexSync(r'pubkeyHex', [pubkeyHex]);
+  }
+
+  Future<bool> deleteByPubkeyHex(String pubkeyHex) {
+    return deleteByIndex(r'pubkeyHex', [pubkeyHex]);
+  }
+
+  bool deleteByPubkeyHexSync(String pubkeyHex) {
+    return deleteByIndexSync(r'pubkeyHex', [pubkeyHex]);
+  }
+
+  Future<List<UserKeyModel?>> getAllByPubkeyHex(List<String> pubkeyHexValues) {
+    final values = pubkeyHexValues.map((e) => [e]).toList();
+    return getAllByIndex(r'pubkeyHex', values);
+  }
+
+  List<UserKeyModel?> getAllByPubkeyHexSync(List<String> pubkeyHexValues) {
+    final values = pubkeyHexValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'pubkeyHex', values);
+  }
+
+  Future<int> deleteAllByPubkeyHex(List<String> pubkeyHexValues) {
+    final values = pubkeyHexValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'pubkeyHex', values);
+  }
+
+  int deleteAllByPubkeyHexSync(List<String> pubkeyHexValues) {
+    final values = pubkeyHexValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'pubkeyHex', values);
+  }
+
+  Future<Id> putByPubkeyHex(UserKeyModel object) {
+    return putByIndex(r'pubkeyHex', object);
+  }
+
+  Id putByPubkeyHexSync(UserKeyModel object, {bool saveLinks = true}) {
+    return putByIndexSync(r'pubkeyHex', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllByPubkeyHex(List<UserKeyModel> objects) {
+    return putAllByIndex(r'pubkeyHex', objects);
+  }
+
+  List<Id> putAllByPubkeyHexSync(
+    List<UserKeyModel> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(r'pubkeyHex', objects, saveLinks: saveLinks);
+  }
 }
 
 extension UserKeyModelQueryWhereSort
@@ -189,6 +264,59 @@ extension UserKeyModelQueryWhere
           includeUpper: includeUpper,
         ),
       );
+    });
+  }
+
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterWhereClause> pubkeyHexEqualTo(
+    String pubkeyHex,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'pubkeyHex', value: [pubkeyHex]),
+      );
+    });
+  }
+
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterWhereClause>
+  pubkeyHexNotEqualTo(String pubkeyHex) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'pubkeyHex',
+                lower: [],
+                upper: [pubkeyHex],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'pubkeyHex',
+                lower: [pubkeyHex],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'pubkeyHex',
+                lower: [pubkeyHex],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'pubkeyHex',
+                lower: [],
+                upper: [pubkeyHex],
+                includeUpper: false,
+              ),
+            );
+      }
     });
   }
 }
@@ -456,14 +584,12 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -472,7 +598,7 @@ extension UserKeyModelQueryFilter
   }
 
   QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
-  nsecGreaterThan(
+  pubkeyHexGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -481,7 +607,7 @@ extension UserKeyModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -489,7 +615,8 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecLessThan(
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -498,7 +625,7 @@ extension UserKeyModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -506,7 +633,8 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecBetween(
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -516,7 +644,7 @@ extension UserKeyModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'nsec',
+          property: r'pubkeyHex',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -528,11 +656,11 @@ extension UserKeyModelQueryFilter
   }
 
   QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
-  nsecStartsWith(String value, {bool caseSensitive = true}) {
+  pubkeyHexStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.startsWith(
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -540,14 +668,12 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.endsWith(
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -555,14 +681,12 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecContains(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.contains(
-          property: r'nsec',
+          property: r'pubkeyHex',
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -570,14 +694,12 @@ extension UserKeyModelQueryFilter
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition> nsecMatches(
-    String pattern, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
+  pubkeyHexMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.matches(
-          property: r'nsec',
+          property: r'pubkeyHex',
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -586,19 +708,19 @@ extension UserKeyModelQueryFilter
   }
 
   QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
-  nsecIsEmpty() {
+  pubkeyHexIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'nsec', value: ''),
+        FilterCondition.equalTo(property: r'pubkeyHex', value: ''),
       );
     });
   }
 
   QueryBuilder<UserKeyModel, UserKeyModel, QAfterFilterCondition>
-  nsecIsNotEmpty() {
+  pubkeyHexIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'nsec', value: ''),
+        FilterCondition.greaterThan(property: r'pubkeyHex', value: ''),
       );
     });
   }
@@ -636,15 +758,15 @@ extension UserKeyModelQuerySortBy
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> sortByNsec() {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> sortByPubkeyHex() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nsec', Sort.asc);
+      return query.addSortBy(r'pubkeyHex', Sort.asc);
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> sortByNsecDesc() {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> sortByPubkeyHexDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nsec', Sort.desc);
+      return query.addSortBy(r'pubkeyHex', Sort.desc);
     });
   }
 }
@@ -687,15 +809,15 @@ extension UserKeyModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> thenByNsec() {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> thenByPubkeyHex() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nsec', Sort.asc);
+      return query.addSortBy(r'pubkeyHex', Sort.asc);
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> thenByNsecDesc() {
+  QueryBuilder<UserKeyModel, UserKeyModel, QAfterSortBy> thenByPubkeyHexDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nsec', Sort.desc);
+      return query.addSortBy(r'pubkeyHex', Sort.desc);
     });
   }
 }
@@ -716,11 +838,11 @@ extension UserKeyModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<UserKeyModel, UserKeyModel, QDistinct> distinctByNsec({
+  QueryBuilder<UserKeyModel, UserKeyModel, QDistinct> distinctByPubkeyHex({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'nsec', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'pubkeyHex', caseSensitive: caseSensitive);
     });
   }
 }
@@ -745,9 +867,9 @@ extension UserKeyModelQueryProperty
     });
   }
 
-  QueryBuilder<UserKeyModel, String, QQueryOperations> nsecProperty() {
+  QueryBuilder<UserKeyModel, String, QQueryOperations> pubkeyHexProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'nsec');
+      return query.addPropertyName(r'pubkeyHex');
     });
   }
 }

@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.0.15
   nostr_core_dart: ^1.0.1
   json_annotation: ^4.9.0
+  flutter_secure_storage: ^9.0.0
 
 dev_dependencies:
   flutter_test:
