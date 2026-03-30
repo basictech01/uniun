@@ -871,45 +871,160 @@ class GetSomethingUseCase extends UseCase<Either<Failure, SomeEntity>, String> {
 
 ## Folder Structure Reference
 
+Every feature module MUST follow this exact folder pattern (derived from the established codebase convention):
+
+```
+feature_name/
+├── bloc/        # BLoC classes (bloc, event, state) + .freezed.dart generated files
+├── cubit/       # Cubit classes (cubit, state) — use when no events are needed
+├── pages/       # Full-screen widgets (one file per screen/page)
+├── widgets/     # Reusable UI components scoped to this feature
+└── utils/       # Feature-specific helpers, extensions, formatters
+```
+
+**Rules:**
+- Never put widgets directly in `pages/` and vice versa — keep them separated.
+- `bloc/` and `cubit/` are separate folders. Use BLoC when you need events; use Cubit when state transitions are simple.
+- Each file does ONE thing. A 500-line page file should be split into page + widgets.
+- `utils/` only exists if there are actual helper functions. Don't create it empty.
+
 ```
 lib/
 ├── main.dart
+│
+├── common/                        # Shared across the whole app
+│   ├── locator.dart               # get_it DI setup
+│   ├── locator.config.dart        # Generated injectable config
+│   ├── snackbar.dart              # Global snackbar helpers
+│   └── widgets/                   # Truly shared widgets (used by 2+ features)
+│       └── user_avatar.dart
+│
 ├── core/
-│   ├── api/                      # HTTP client (Dio) — legacy from old Reddit architecture
-│   ├── bloc/                     # Global BLoC states (auth, theme)
+│   ├── api/                       # HTTP client (Dio) — legacy, not used for Nostr
+│   ├── bloc/                      # Global app-level BLoCs
+│   ├── constants/                 # App-wide constants, endpoints, keys
 │   ├── enum/
-│   │   └── note_type.dart        # NoteType enum — text | image | link | reference
+│   │   └── note_type.dart         # NoteType: text | image | link | reference
 │   ├── error/
-│   │   ├── failures.dart         # Failure freezed union
-│   │   └── failures.freezed.dart # Generated
-│   ├── theme/                    # App theming
-│   ├── usecases/
-│   │   └── usecase.dart          # UseCase<T,P> and NoParamsUseCase<T> base classes
-│   └── extensions/
+│   │   ├── failures.dart          # Failure freezed union
+│   │   └── failures.freezed.dart  # Generated
+│   ├── extensions/                # Dart extension methods (String, List, DateTime…)
+│   ├── router/
+│   │   └── app_routes.dart        # Named route constants
+│   ├── theme/
+│   │   └── app_theme.dart         # AppColors, AppTextStyles, ThemeData
+│   └── usecases/
+│       └── usecase.dart           # UseCase<T,P> and NoParamsUseCase<T> base classes
 │
 ├── data/
-│   ├── models/
-│   │   ├── note_model.dart       # NoteModel Isar collection
-│   │   └── note_model.g.dart     # Generated Isar schema
-│   └── repositories/
-│       └── note_repository_impl.dart  # NoteRepositoryImpl
+│   ├── datasources/
+│   │   └── isar_module.dart       # Isar singleton — all schemas registered here
+│   ├── models/                    # Isar @Collection models (mutable, no @freezed)
+│   │   ├── note_model.dart
+│   │   ├── note_model.g.dart      # Generated
+│   │   ├── profile_model.dart
+│   │   ├── profile_model.g.dart   # Generated
+│   │   └── user_key_model.dart
+│   └── repositories/              # Repository implementations (@Injectable)
+│       ├── note_repository_impl.dart
+│       ├── profile_repository_impl.dart
+│       └── user_repository_impl.dart
 │
 ├── domain/
-│   ├── entities/
-│   │   └── note/
-│   │       ├── note_entity.dart         # NoteEntity (freezed)
-│   │       └── note_entity.freezed.dart # Generated
-│   ├── repositories/
-│   │   └── note_repository.dart   # NoteRepository interface
-│   ├── usecases/                  # (next: GetFeedUseCase, SaveNoteUseCase, etc.)
-│   └── inputs/                    # Input parameter classes for use cases
+│   ├── entities/                  # Freezed domain entities (immutable)
+│   │   ├── note/
+│   │   │   ├── note_entity.dart
+│   │   │   └── note_entity.freezed.dart
+│   │   ├── profile/
+│   │   │   ├── profile_entity.dart
+│   │   │   └── profile_entity.freezed.dart
+│   │   └── user_key/
+│   │       ├── user_key_entity.dart
+│   │       └── user_key_entity.freezed.dart
+│   ├── inputs/                    # Input parameter classes for use cases
+│   ├── repositories/              # Abstract repository interfaces
+│   │   ├── note_repository.dart
+│   │   ├── profile_repository.dart
+│   │   └── user_repository.dart
+│   └── usecases/                  # Business logic (@lazySingleton)
+│       ├── get_feed_usecase.dart
+│       ├── get_note_by_id_usecase.dart
+│       ├── get_replies_usecase.dart
+│       ├── save_note_usecase.dart
+│       └── mark_seen_usecase.dart
 │
-├── l10n/                          # Auto-generated localization files
+├── l10n/                          # Auto-generated localization
 │
-└── [feature folders]/             # search/, community/, posts/, user/
-    ├── bloc/                      # BLoC, Event, State
-    ├── pages/                     # UI pages
-    └── widgets/                   # UI components
+│ ── ── ── FEATURE MODULES ── ── ──
+│
+├── onboarding/                    # Auth + identity setup flow
+│   └── pages/
+│       ├── splash_page.dart
+│       ├── welcome_page.dart
+│       ├── about_you_page.dart
+│       ├── your_identity_keys_page.dart
+│       └── import_identity_page.dart
+│
+├── home/                          # App shell (ZoomDrawer + tab nav)
+│   └── pages/
+│       └── home_page.dart
+│
+├── drawer/                        # Slide-out drawer (channels, DMs, settings nav)
+│   ├── bloc/
+│   │   ├── drawer_bloc.dart
+│   │   ├── drawer_event.dart      # (if separate)
+│   │   └── drawer_state.dart
+│   └── widgets/
+│       └── vishnu_drawer.dart
+│
+├── vishnu/                        # Feed tab (Kind 1 notes, chronological)
+│   ├── bloc/
+│   │   ├── vishnu_feed_bloc.dart
+│   │   ├── vishnu_feed_event.dart
+│   │   └── vishnu_feed_state.dart
+│   ├── pages/
+│   │   └── vishnu_feed_page.dart
+│   └── widgets/
+│       └── note_card.dart
+│
+├── brahma/                        # Create Note tab
+│   ├── bloc/
+│   │   ├── brahma_create_bloc.dart
+│   │   ├── brahma_create_event.dart
+│   │   └── brahma_create_state.dart
+│   ├── pages/
+│   │   └── brahma_create_page.dart
+│   └── widgets/
+│
+├── shiv/                          # AI Assistant tab
+│   ├── bloc/
+│   │   ├── shiv_ai_bloc.dart
+│   │   ├── shiv_ai_event.dart
+│   │   └── shiv_ai_state.dart
+│   ├── pages/
+│   │   └── shiv_page.dart
+│   └── widgets/
+│
+├── channels/                      # Public channels (NIP-28)
+│   ├── bloc/
+│   ├── pages/
+│   └── widgets/
+│
+├── dms/                           # Direct messages (NIP-17)
+│   ├── bloc/
+│   ├── pages/
+│   └── widgets/
+│
+└── settings/                      # User settings + profile edit
+    ├── cubit/
+    │   ├── settings_cubit.dart
+    │   ├── settings_state.dart
+    │   ├── edit_profile_cubit.dart
+    │   └── edit_profile_state.dart
+    └── pages/
+        ├── settings_page.dart
+        ├── edit_profile_page.dart
+        └── privacy_policy_page.dart
 ```
 
 ---

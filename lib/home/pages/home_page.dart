@@ -1,9 +1,12 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/drawer/bloc/drawer_bloc.dart' as app_drawer;
+import 'package:uniun/drawer/widgets/vishnu_drawer.dart';
+import 'package:uniun/home/widgets/floating_nav.dart';
 
-/// App shell — floating glassmorphism pill nav with three tabs:
+/// App shell — standard Flutter Scaffold + Drawer + floating pill nav.
 ///   0 = Vishnu (feed)
 ///   1 = Brahma (create note)
 ///   2 = Shiv   (AI assistant)
@@ -15,164 +18,53 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  late final app_drawer.DrawerBloc _drawerBloc;
   int _currentIndex = 0;
 
-  static const _tabs = [
-    _VishnuPlaceholder(),
-    _BrahmaPlaceholder(),
-    _ShivPlaceholder(),
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      // No bottomNavigationBar — we use a Stack overlay instead
-      body: Stack(
-        children: [
-          // ── Tab body ────────────────────────────────────────────────────
-          // Add bottom padding so content clears the floating nav
-          Padding(
-            padding: const EdgeInsets.only(bottom: 88),
-            child: _tabs[_currentIndex],
-          ),
-
-          // ── Floating pill nav ───────────────────────────────────────────
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: _FloatingNav(
-              currentIndex: _currentIndex,
-              onTap: (i) => setState(() => _currentIndex = i),
-            ),
-          ),
-        ],
-      ),
-    );
+  void initState() {
+    super.initState();
+    _drawerBloc = app_drawer.DrawerBloc()..add(app_drawer.DrawerLoadEvent());
   }
-}
-
-// ── Floating glassmorphism nav ─────────────────────────────────────────────────
-
-class _FloatingNav extends StatelessWidget {
-  const _FloatingNav({required this.currentIndex, required this.onTap});
-
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  static const _items = [
-    _NavItem(icon: Icons.visibility_outlined, activeIcon: Icons.visibility_rounded, label: 'VISHNU'),
-    _NavItem(icon: Icons.add_circle_outline_rounded, activeIcon: Icons.add_circle_rounded, label: 'BRAHMA'),
-    _NavItem(icon: Icons.content_cut_outlined, activeIcon: Icons.content_cut_rounded, label: 'SHIV'),
-  ];
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.4),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 32,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(
-              _items.length,
-              (i) => _NavTab(
-                item: _items[i],
-                selected: currentIndex == i,
-                onTap: () => onTap(i),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  void dispose() {
+    _drawerBloc.close();
+    super.dispose();
   }
-}
 
-// ── Single tab in the nav ─────────────────────────────────────────────────────
-
-class _NavItem {
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
-
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-}
-
-class _NavTab extends StatelessWidget {
-  const _NavTab({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final _NavItem item;
-  final bool selected;
-  final VoidCallback onTap;
+  void _switchTab(int i) => setState(() => _currentIndex = i);
+  void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.onSurfaceVariant;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: selected ? 20 : 16,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withValues(alpha: 0.10)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return BlocProvider<app_drawer.DrawerBloc>.value(
+      value: _drawerBloc,
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppColors.surface,
+        drawer: VishnuDrawer(onSwitchTab: _switchTab),
+        body: Stack(
           children: [
-            Icon(
-              selected ? item.activeIcon : item.icon,
-              color: color,
-              size: 22,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 88),
+              child: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  _VishnuPlaceholder(onOpenDrawer: _openDrawer),
+                  const _BrahmaPlaceholder(),
+                  const _ShivPlaceholder(),
+                ],
+              ),
             ),
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight:
-                    selected ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-                letterSpacing: 1.2,
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: FloatingNav(
+                currentIndex: _currentIndex,
+                onTap: _switchTab,
               ),
             ),
           ],
@@ -182,40 +74,42 @@ class _NavTab extends StatelessWidget {
   }
 }
 
-// ── Tab placeholder bodies ─────────────────────────────────────────────────────
+// ── Vishnu tab top bar ────────────────────────────────────────────────────────
 
 class _VishnuPlaceholder extends StatelessWidget {
-  const _VishnuPlaceholder();
+  const _VishnuPlaceholder({required this.onOpenDrawer});
+  final VoidCallback onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
         children: [
-          // Top bar
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Row(
               children: [
-                const Row(
-                  children: [
-                    Image(
-                      image: AssetImage('assets/images/uniun-logo.png'),
-                      height: 28,
-                      width: 28,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'UNIUN',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.8,
+                GestureDetector(
+                  onTap: onOpenDrawer,
+                  child: const Row(
+                    children: [
+                      Image(
+                        image: AssetImage('assets/images/uniun-logo.png'),
+                        height: 28,
+                        width: 28,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 8),
+                      Text(
+                        'UNIUN',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.8,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -224,16 +118,24 @@ class _VishnuPlaceholder extends StatelessWidget {
                   onPressed: () {},
                 ),
                 const SizedBox(width: 4),
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppColors.secondaryContainer,
-                  child: const Icon(Icons.person_rounded,
-                      size: 20, color: AppColors.secondary),
+                BlocBuilder<app_drawer.DrawerBloc, app_drawer.DrawerState>(
+                  builder: (context, state) {
+                    final loaded =
+                        state is app_drawer.DrawerLoaded ? state : null;
+                    return GestureDetector(
+                      onTap: onOpenDrawer,
+                      child: UserAvatar(
+                        seed: loaded?.pubkeyHex ?? '',
+                        photoUrl: loaded?.avatarUrl,
+                        size: 36,
+                        borderRadius: 10,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
-
           const Expanded(
             child: Center(
               child: Column(
@@ -281,22 +183,15 @@ class _BrahmaPlaceholder extends StatelessWidget {
             Icon(Icons.add_circle_rounded,
                 size: 48, color: AppColors.outlineVariant),
             SizedBox(height: 16),
-            Text(
-              'Brahma — Create Notes',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
+            Text('Brahma — Create Notes',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurface)),
             SizedBox(height: 8),
-            Text(
-              'Note composition coming soon.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
+            Text('Note composition coming soon.',
+                style:
+                    TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant)),
           ],
         ),
       ),
@@ -317,22 +212,15 @@ class _ShivPlaceholder extends StatelessWidget {
             Icon(Icons.content_cut_rounded,
                 size: 48, color: AppColors.outlineVariant),
             SizedBox(height: 16),
-            Text(
-              'Shiv — AI Assistant',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
+            Text('Shiv — AI Assistant',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurface)),
             SizedBox(height: 8),
-            Text(
-              'On-device AI coming soon.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
+            Text('On-device AI coming soon.',
+                style:
+                    TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant)),
           ],
         ),
       ),

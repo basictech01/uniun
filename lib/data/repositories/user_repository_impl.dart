@@ -41,12 +41,12 @@ class UserRepositoryImpl extends UserRepository {
       if (nsecOrHex.startsWith('nsec1')) {
         privkeyHex = Nip19.decodePrivkey(nsecOrHex);
         if (privkeyHex.isEmpty) {
-          return Left(Failure.errorFailure('Invalid nsec — decoding failed'));
+          return const Left(Failure.errorFailure('Invalid nsec — decoding failed'));
         }
       } else if (nsecOrHex.length == 64) {
         privkeyHex = nsecOrHex; // raw 32-byte hex
       } else {
-        return Left(Failure.errorFailure('Unrecognised key format'));
+        return const Left(Failure.errorFailure('Unrecognised key format'));
       }
 
       final keychain = Keychain(privkeyHex);
@@ -64,7 +64,7 @@ class UserRepositoryImpl extends UserRepository {
     try {
       final model = await isar.userKeyModels.where().findFirst();
       if (model == null) {
-        return Left(Failure.notFoundFailure('No active user'));
+        return const Left(Failure.notFoundFailure('No active user'));
       }
 
       final nsec = await _secureStorage.read(key: _nsecStorageKey);
@@ -72,7 +72,7 @@ class UserRepositoryImpl extends UserRepository {
         // Isar has a key row but secure storage is cleared (e.g. app re-install
         // on Android without backup). Treat as logged-out.
         await isar.writeTxn(() async => isar.userKeyModels.clear());
-        return Left(Failure.notFoundFailure('Private key missing — please log in again'));
+        return const Left(Failure.notFoundFailure('Private key missing — please log in again'));
       }
 
       return Right(model.toDomain(nsec: nsec));
@@ -86,7 +86,7 @@ class UserRepositoryImpl extends UserRepository {
     try {
       await _secureStorage.delete(key: _nsecStorageKey);
       await isar.writeTxn(() async => isar.userKeyModels.clear());
-      return Right(unit);
+      return const Right(unit);
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
     }

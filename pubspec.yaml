@@ -29,6 +29,9 @@ dependencies:
   nostr_core_dart: ^1.0.1
   json_annotation: ^4.9.0
   flutter_secure_storage: ^9.0.0
+  avatar_plus: ^0.0.5
+  image_picker: ^1.2.1
+  flutter_native_splash: ^2.3.10
 
 dev_dependencies:
   flutter_test:
@@ -40,7 +43,6 @@ dev_dependencies:
   isar_community_generator: 3.3.2
   injectable_generator: ^2.4.1
   json_serializable: ^6.9.0
-  flutter_native_splash: ^2.3.10
   flutter_launcher_icons: ^0.14.3
 
 flutter_native_splash:

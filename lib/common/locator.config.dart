@@ -24,6 +24,7 @@ import 'package:uniun/domain/usecases/get_note_by_id_usecase.dart' as _i1024;
 import 'package:uniun/domain/usecases/get_replies_usecase.dart' as _i22;
 import 'package:uniun/domain/usecases/mark_seen_usecase.dart' as _i871;
 import 'package:uniun/domain/usecases/save_note_usecase.dart' as _i955;
+import 'package:uniun/drawer/bloc/drawer_bloc.dart' as _i987;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -33,6 +34,7 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final isarModule = _$IsarModule();
+    gh.factory<_i987.DrawerBloc>(() => _i987.DrawerBloc());
     await gh.singletonAsync<_i214.Isar>(
       () => isarModule.createIsar(),
       preResolve: true,

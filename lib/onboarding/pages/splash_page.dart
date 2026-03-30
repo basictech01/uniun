@@ -32,12 +32,9 @@ class _SplashPageState extends State<SplashPage>
   }
 
   Future<void> _boot() async {
-    // DI + minimum splash time run in parallel
-    await Future.wait([
-      configureDependencies(),
-      Future.delayed(const Duration(milliseconds: 1200)),
-    ]);
-
+    // Wait only for DI to complete — the native splash already covered startup.
+    // Adding an extra delay here causes a visible "second splash" for returning users.
+    await configureDependencies();
     if (!mounted) return;
 
     // Auth check: if a user key exists → go straight to home

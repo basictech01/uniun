@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
-import 'package:uniun/domain/repositories/user_repository.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/domain/repositories/user_repository.dart';
+import 'package:uniun/onboarding/widgets/onboarding_app_bar.dart';
 
 /// Login screen — "I Already Have a Key".
-/// Compact one-page layout matching signup style.
 class ImportIdentityPage extends StatefulWidget {
   const ImportIdentityPage({super.key});
 
@@ -19,10 +19,18 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
   final _controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() => setState(() {}));
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
+
+  bool get _canContinue => _controller.text.trim().isNotEmpty;
 
   Future<void> _pasteFromClipboard() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -39,13 +47,12 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
     }
 
     try {
-      // Resolve hex private key — accept both nsec1 bech32 and raw hex
       final String hexPriv;
       if (input.startsWith('nsec1')) {
         hexPriv = Nip19.decodePrivkey(input);
         if (hexPriv.isEmpty) throw Exception('Invalid nsec');
       } else if (input.length == 64) {
-        hexPriv = input; // raw 32-byte hex
+        hexPriv = input;
       } else {
         throw Exception('Unrecognised key format');
       }
@@ -84,7 +91,7 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _OnboardingAppBar(onBack: () => Navigator.pop(context)),
+                OnboardingAppBar(onBack: () => Navigator.pop(context)),
 
                 Expanded(
                   child: Padding(
@@ -94,7 +101,6 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                       children: [
                         SizedBox(height: topGap),
 
-                        // ── Heading ────────────────────────────────────
                         const Text(
                           'Import Your Identity',
                           style: TextStyle(
@@ -116,7 +122,6 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
 
                         SizedBox(height: topGap + 8),
 
-                        // ── Label + paste ──────────────────────────────
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -152,7 +157,6 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
 
                         const SizedBox(height: 8),
 
-                        // ── nsec textarea ──────────────────────────────
                         TextField(
                           controller: _controller,
                           maxLines: 4,
@@ -169,7 +173,6 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
 
                         const Spacer(),
 
-                        // ── Security note ──────────────────────────────
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -198,31 +201,36 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
 
                         const SizedBox(height: 12),
 
-                        // ── Continue button ────────────────────────────
-                        GestureDetector(
-                          onTap: _onContinue,
-                          child: Container(
-                            width: double.infinity,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.22),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'Import & Continue',
-                                style: TextStyle(
-                                  color: AppColors.onPrimary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
+                        AnimatedOpacity(
+                          opacity: _canContinue ? 1.0 : 0.45,
+                          duration: const Duration(milliseconds: 150),
+                          child: GestureDetector(
+                            onTap: _canContinue ? _onContinue : null,
+                            child: Container(
+                              width: double.infinity,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: _canContinue
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primary
+                                              .withValues(alpha: 0.22),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Import & Continue',
+                                  style: TextStyle(
+                                    color: AppColors.onPrimary,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ),
@@ -238,52 +246,6 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _OnboardingAppBar extends StatelessWidget {
-  const _OnboardingAppBar({required this.onBack});
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_rounded,
-                color: AppColors.primary),
-            onPressed: onBack,
-          ),
-          const Expanded(
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/uniun-logo.png'),
-                    height: 24,
-                    width: 24,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'UNIUN',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
       ),
     );
   }
