@@ -8,12 +8,13 @@ import 'package:uniun/domain/repositories/user_repository.dart';
 part 'edit_profile_state.dart';
 
 class EditProfileCubit extends Cubit<EditProfileState> {
-  EditProfileCubit() : super(const EditProfileState()) {
+  // Start in loading state so controllers are only initialised after data arrives.
+  EditProfileCubit()
+      : super(const EditProfileState(status: EditProfileStatus.loading)) {
     _load();
   }
 
   Future<void> _load() async {
-    emit(state.copyWith(status: EditProfileStatus.loading));
     try {
       final userResult = await getIt<UserRepository>().getActiveUser();
       final user = userResult.fold((_) => null, (u) => u);
@@ -35,7 +36,6 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         about: profile?.about ?? '',
         avatarUrl: profile?.avatarUrl ?? '',
         nip05: profile?.nip05 ?? '',
-        isOwn: true,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -63,12 +63,11 @@ class EditProfileCubit extends Cubit<EditProfileState> {
             state.avatarUrl.trim().isEmpty ? null : state.avatarUrl.trim(),
         nip05: state.nip05.trim().isEmpty ? null : state.nip05.trim(),
         updatedAt: DateTime.now(),
-        isOwn: true,
-        lastSeenAt: DateTime.now(),
+        // Own profile never evicted — lastSeenAt set far in the future.
+        lastSeenAt: DateTime(3000, 6, 1),
       );
 
-      final result =
-          await getIt<ProfileRepository>().saveProfile(entity);
+      final result = await getIt<ProfileRepository>().saveProfile(entity);
       return result.fold(
         (failure) {
           emit(state.copyWith(

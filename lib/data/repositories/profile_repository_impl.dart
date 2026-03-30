@@ -43,7 +43,6 @@ class ProfileRepositoryImpl extends ProfileRepository {
       model.avatarUrl = profile.avatarUrl;
       model.nip05 = profile.nip05;
       model.updatedAt = profile.updatedAt;
-      model.isOwn = profile.isOwn;
       model.lastSeenAt = profile.lastSeenAt;
 
       await isar.writeTxn(() async {

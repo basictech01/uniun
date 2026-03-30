@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/drawer/bloc/drawer_bloc.dart' as app_drawer;
 
-/// Left-side navigation drawer — standard Flutter Drawer inside Scaffold.
-///
-/// Sections:
-///   Header   — user avatar + name + workspace
-///   Nav      — Home, Saved Notes
-///   Channels — public channels (Kind 40/42) — placeholder
-///   DMs      — direct messages (Kind 14)    — placeholder
-///   Apps     — AI Assistant shortcut
-///   Footer   — Settings
 class VishnuDrawer extends StatelessWidget {
   const VishnuDrawer({super.key, required this.onSwitchTab});
 
@@ -41,7 +34,6 @@ class VishnuDrawer extends StatelessWidget {
           final loaded = state is app_drawer.DrawerLoaded ? state : null;
           return Column(
             children: [
-              // ── Header ─────────────────────────────────────────────────────
               _DrawerHeader(
                 name: loaded?.userName ?? '...',
                 npub: loaded?.npub ?? '',
@@ -49,7 +41,6 @@ class VishnuDrawer extends StatelessWidget {
                 avatarUrl: loaded?.avatarUrl,
               ),
 
-              // ── Scrollable body ─────────────────────────────────────────────
               Expanded(
                 child: ListView(
                   padding:
@@ -70,6 +61,22 @@ class VishnuDrawer extends StatelessWidget {
                         _showComingSoon(context, 'Saved Notes');
                       },
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // ── Following ─────────────────────────────────────────
+                    const _SectionHeader(label: 'Following'),
+                    const SizedBox(height: 4),
+                    if ((loaded?.following ?? []).isEmpty)
+                      const _EmptyHint('No one followed yet')
+                    else
+                      ...loaded!.following.map((f) => _FollowRow(
+                            item: f,
+                            onTap: () {
+                              _close(context);
+                              _showComingSoon(context, f.name);
+                            },
+                          )),
 
                     const SizedBox(height: 16),
 
@@ -131,7 +138,6 @@ class VishnuDrawer extends StatelessWidget {
                 ),
               ),
 
-              // ── Footer / Settings ───────────────────────────────────────────
               _DrawerFooter(
                 onSettings: () {
                   _close(context);
@@ -161,74 +167,144 @@ class _DrawerHeader extends StatelessWidget {
   final String pubkeyHex;
   final String? avatarUrl;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.of(context).padding.top + 16, 16, 16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.outlineVariant.withValues(alpha: 0.4),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Stack(
+  void _showQr(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              UserAvatar(
-                seed: pubkeyHex,
-                photoUrl: avatarUrl,
-                size: 40,
-                borderRadius: 10,
-              ),
-              Positioned(
-                bottom: -1,
-                right: -1,
-                child: Container(
-                  width: 11,
-                  height: 11,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF22C55E),
-                    border: Border.all(color: AppColors.surface, width: 2),
-                  ),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.onSurface,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                npub,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              QrImageView(
+                data: pubkeyHex.isEmpty ? 'uniun' : 'nostr:$npub',
+                version: QrVersions.auto,
+                size: 200,
+                backgroundColor: Colors.white,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Colors.black,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: npub));
+                  Navigator.pop(context);
+                  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                    const SnackBar(
+                      content: Text('npub copied'),
+                      behavior: SnackBarBehavior.floating,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy_rounded, size: 16),
+                label: const Text('Copy npub'),
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showQr(context),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+            16, MediaQuery.of(context).padding.top + 16, 16, 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: AppColors.outlineVariant.withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Stack(
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                UserAvatar(
+                  seed: pubkeyHex,
+                  photoUrl: avatarUrl,
+                  size: 40,
+                  borderRadius: 10,
                 ),
-                const Text(
-                  'UNIUN Workspace',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.onSurfaceVariant,
+                Positioned(
+                  bottom: -1,
+                  right: -1,
+                  child: Container(
+                    width: 11,
+                    height: 11,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF22C55E),
+                      border: Border.all(color: AppColors.surface, width: 2),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          const Icon(
-            Icons.expand_more_rounded,
-            color: AppColors.onSurfaceVariant,
-            size: 18,
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const Text(
+                    'UNIUN Workspace',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.qr_code_rounded,
+              color: AppColors.onSurfaceVariant,
+              size: 18,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -313,6 +389,41 @@ class _NavItem extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 color: active ? AppColors.primary : AppColors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Follow row ─────────────────────────────────────────────────────────────────
+
+class _FollowRow extends StatelessWidget {
+  const _FollowRow({required this.item, required this.onTap});
+  final app_drawer.DrawerFollowItem item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: Row(
+          children: [
+            UserAvatar(seed: item.pubkey, photoUrl: item.avatarUrl, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                item.name,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.onSurfaceVariant,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

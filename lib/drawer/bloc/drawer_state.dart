@@ -17,14 +17,16 @@ final class DrawerLoaded extends DrawerState {
     this.avatarUrl,
     required this.channels,
     required this.dms,
+    required this.following,
   });
 
   final String userName;
-  final String npub;        // short display (first 12 chars + …)
-  final String pubkeyHex;   // full hex key — used as avatar seed
+  final String npub;
+  final String pubkeyHex;
   final String? avatarUrl;
   final List<DrawerChannelItem> channels;
   final List<DrawerDmItem> dms;
+  final List<DrawerFollowItem> following;
 }
 
 final class DrawerError extends DrawerState {
@@ -32,7 +34,7 @@ final class DrawerError extends DrawerState {
   final String message;
 }
 
-// ── Lightweight data classes (no Isar — channels/DMs not built yet) ──────────
+// ── Lightweight data classes ──────────────────────────────────────────────────
 
 class DrawerChannelItem {
   const DrawerChannelItem({
@@ -58,4 +60,17 @@ class DrawerDmItem {
   final String name;
   final String? avatarUrl;
   final int unreadCount;
+}
+
+/// A user the logged-in user is following (Kind 3 — future scope).
+class DrawerFollowItem {
+  const DrawerFollowItem({
+    required this.pubkey,
+    required this.name,
+    this.avatarUrl,
+  });
+
+  final String pubkey;
+  final String name;
+  final String? avatarUrl;
 }

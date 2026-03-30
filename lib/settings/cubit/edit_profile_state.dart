@@ -12,7 +12,6 @@ class EditProfileState {
     this.avatarUrl = '',
     this.nip05 = '',
     this.pubkeyHex = '',
-    this.isOwn = true,
     this.error,
   });
 
@@ -23,7 +22,6 @@ class EditProfileState {
   final String avatarUrl;
   final String nip05;
   final String pubkeyHex;
-  final bool isOwn;
   final String? error;
 
   EditProfileState copyWith({
@@ -34,7 +32,6 @@ class EditProfileState {
     String? avatarUrl,
     String? nip05,
     String? pubkeyHex,
-    bool? isOwn,
     String? error,
   }) {
     return EditProfileState(
@@ -45,7 +42,6 @@ class EditProfileState {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       nip05: nip05 ?? this.nip05,
       pubkeyHex: pubkeyHex ?? this.pubkeyHex,
-      isOwn: isOwn ?? this.isOwn,
       error: error ?? this.error,
     );
   }

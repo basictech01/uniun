@@ -12,36 +12,28 @@ class ProfileModel {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
-  late String pubkey;     // secp256k1 public key — the Nostr identity
+  late String pubkey;
 
   String? name;
   String? username;
   String? about;
   String? avatarUrl;
-  String? nip05;          // verified internet identifier (user@domain.com)
+  String? nip05;
 
-  late DateTime updatedAt; // last time this Kind 0 was received/updated
+  late DateTime updatedAt;
 
-  /// true = this is the logged-in user's own profile → never evicted by CleanupManager.
-  late bool isOwn;
-
-  /// Last time this profile appeared in feed/UI.
-  /// CleanupManager evicts non-own, non-followed profiles not seen in 30 days.
+  /// CleanupManager evicts profiles where lastSeenAt < now - 30 days.
+  /// Own profile is never evicted: set lastSeenAt = DateTime(3000, 6, 1).
+  /// Null = never evict (safe default).
   DateTime? lastSeenAt;
 
   ProfileModel();
 
-  /// Parse a Kind 0 (User Metadata) Nostr event into a ProfileModel.
-  ///
-  /// Kind 0 content is a JSON string: {"name": "...", "about": "...", "picture": "...", "nip05": "..."}
-  /// Silently ignores unknown or malformed content fields.
   factory ProfileModel.fromEvent(Event event) {
     Map<String, dynamic> meta = {};
     try {
       meta = jsonDecode(event.content) as Map<String, dynamic>;
-    } catch (_) {
-      // malformed JSON — treat as empty profile metadata
-    }
+    } catch (_) {}
 
     final model = ProfileModel();
     model.pubkey = event.pubkey;
@@ -50,8 +42,8 @@ class ProfileModel {
     model.about = meta['about'] as String?;
     model.avatarUrl = meta['picture'] as String?;
     model.nip05 = meta['nip05'] as String?;
-    model.updatedAt = DateTime.fromMillisecondsSinceEpoch(event.createdAt * 1000);
-    model.isOwn = false; // caller must set true for the logged-in user
+    model.updatedAt =
+        DateTime.fromMillisecondsSinceEpoch(event.createdAt * 1000);
     model.lastSeenAt = null;
     return model;
   }
@@ -66,7 +58,6 @@ extension ProfileModelExtension on ProfileModel {
         avatarUrl: avatarUrl,
         nip05: nip05,
         updatedAt: updatedAt,
-        isOwn: isOwn,
         lastSeenAt: lastSeenAt,
       );
 }

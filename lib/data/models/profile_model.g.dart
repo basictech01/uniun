@@ -23,22 +23,21 @@ const ProfileModelSchema = CollectionSchema(
       name: r'avatarUrl',
       type: IsarType.string,
     ),
-    r'isOwn': PropertySchema(id: 2, name: r'isOwn', type: IsarType.bool),
     r'lastSeenAt': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'lastSeenAt',
       type: IsarType.dateTime,
     ),
-    r'name': PropertySchema(id: 4, name: r'name', type: IsarType.string),
-    r'nip05': PropertySchema(id: 5, name: r'nip05', type: IsarType.string),
-    r'pubkey': PropertySchema(id: 6, name: r'pubkey', type: IsarType.string),
+    r'name': PropertySchema(id: 3, name: r'name', type: IsarType.string),
+    r'nip05': PropertySchema(id: 4, name: r'nip05', type: IsarType.string),
+    r'pubkey': PropertySchema(id: 5, name: r'pubkey', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'username': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'username',
       type: IsarType.string,
     ),
@@ -121,13 +120,12 @@ void _profileModelSerialize(
 ) {
   writer.writeString(offsets[0], object.about);
   writer.writeString(offsets[1], object.avatarUrl);
-  writer.writeBool(offsets[2], object.isOwn);
-  writer.writeDateTime(offsets[3], object.lastSeenAt);
-  writer.writeString(offsets[4], object.name);
-  writer.writeString(offsets[5], object.nip05);
-  writer.writeString(offsets[6], object.pubkey);
-  writer.writeDateTime(offsets[7], object.updatedAt);
-  writer.writeString(offsets[8], object.username);
+  writer.writeDateTime(offsets[2], object.lastSeenAt);
+  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[4], object.nip05);
+  writer.writeString(offsets[5], object.pubkey);
+  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeString(offsets[7], object.username);
 }
 
 ProfileModel _profileModelDeserialize(
@@ -140,13 +138,12 @@ ProfileModel _profileModelDeserialize(
   object.about = reader.readStringOrNull(offsets[0]);
   object.avatarUrl = reader.readStringOrNull(offsets[1]);
   object.id = id;
-  object.isOwn = reader.readBool(offsets[2]);
-  object.lastSeenAt = reader.readDateTimeOrNull(offsets[3]);
-  object.name = reader.readStringOrNull(offsets[4]);
-  object.nip05 = reader.readStringOrNull(offsets[5]);
-  object.pubkey = reader.readString(offsets[6]);
-  object.updatedAt = reader.readDateTime(offsets[7]);
-  object.username = reader.readStringOrNull(offsets[8]);
+  object.lastSeenAt = reader.readDateTimeOrNull(offsets[2]);
+  object.name = reader.readStringOrNull(offsets[3]);
+  object.nip05 = reader.readStringOrNull(offsets[4]);
+  object.pubkey = reader.readString(offsets[5]);
+  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.username = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -162,18 +159,16 @@ P _profileModelDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
       return (reader.readString(offset)) as P;
-    case 7:
+    case 6:
       return (reader.readDateTime(offset)) as P;
-    case 8:
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -770,16 +765,6 @@ extension ProfileModelQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
-      );
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition> isOwnEqualTo(
-    bool value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isOwn', value: value),
       );
     });
   }
@@ -1577,18 +1562,6 @@ extension ProfileModelQuerySortBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByIsOwn() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOwn', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByIsOwnDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOwn', Sort.desc);
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByLastSeenAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastSeenAt', Sort.asc);
@@ -1701,18 +1674,6 @@ extension ProfileModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByIsOwn() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOwn', Sort.asc);
-    });
-  }
-
-  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByIsOwnDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isOwn', Sort.desc);
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByLastSeenAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastSeenAt', Sort.asc);
@@ -1805,12 +1766,6 @@ extension ProfileModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByIsOwn() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isOwn');
-    });
-  }
-
   QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByLastSeenAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastSeenAt');
@@ -1873,12 +1828,6 @@ extension ProfileModelQueryProperty
   QueryBuilder<ProfileModel, String?, QQueryOperations> avatarUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatarUrl');
-    });
-  }
-
-  QueryBuilder<ProfileModel, bool, QQueryOperations> isOwnProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isOwn');
     });
   }
 

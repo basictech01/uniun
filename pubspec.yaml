@@ -32,6 +32,7 @@ dependencies:
   avatar_plus: ^0.0.5
   image_picker: ^1.2.1
   flutter_native_splash: ^2.3.10
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

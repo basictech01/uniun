@@ -21,7 +21,6 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
     emit(DrawerLoading());
 
     try {
-      // Load the active user's keypair
       final userResult = await getIt<UserRepository>().getActiveUser();
       final user = userResult.fold((_) => null, (u) => u);
 
@@ -34,9 +33,8 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
             ? '${user.npub.substring(0, 12)}...'
             : user.npub;
 
-        // Load own profile for display name + avatar
-        final profileResult = await getIt<ProfileRepository>()
-            .getOwnProfile(user.pubkeyHex);
+        final profileResult =
+            await getIt<ProfileRepository>().getOwnProfile(user.pubkeyHex);
         final profile = profileResult.fold((_) => null, (p) => p);
 
         if (profile != null) {
@@ -45,9 +43,8 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
         }
       }
 
-      // Channels + DMs: sample placeholder data until ChannelModel / DMModel
-      // repositories are built. Will be replaced with live Isar queries when
-      // Kind 40/42 and Kind 14 repositories are implemented.
+      // Placeholder data — replaced with live Isar queries when
+      // ChannelModel / DMModel / FollowModel repositories are built.
       const channels = <DrawerChannelItem>[
         DrawerChannelItem(id: 'ch_general', name: 'general', hasUnread: true),
         DrawerChannelItem(id: 'ch_nostr', name: 'nostr-dev'),
@@ -57,6 +54,8 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
         DrawerDmItem(pubkey: 'dm1', name: 'Alice', unreadCount: 3),
         DrawerDmItem(pubkey: 'dm2', name: 'Bob'),
       ];
+      // Kind 3 follow list — empty until FollowModel repository is built.
+      const following = <DrawerFollowItem>[];
 
       emit(DrawerLoaded(
         userName: displayName,
@@ -65,6 +64,7 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
         avatarUrl: avatarUrl,
         channels: channels,
         dms: dms,
+        following: following,
       ));
     } catch (e) {
       emit(DrawerError(e.toString()));
