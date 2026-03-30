@@ -22,6 +22,13 @@ class ProfileModel {
 
   late DateTime updatedAt; // last time this Kind 0 was received/updated
 
+  /// true = this is the logged-in user's own profile → never evicted by CleanupManager.
+  late bool isOwn;
+
+  /// Last time this profile appeared in feed/UI.
+  /// CleanupManager evicts non-own, non-followed profiles not seen in 30 days.
+  DateTime? lastSeenAt;
+
   ProfileModel();
 
   /// Parse a Kind 0 (User Metadata) Nostr event into a ProfileModel.
@@ -44,6 +51,8 @@ class ProfileModel {
     model.avatarUrl = meta['picture'] as String?;
     model.nip05 = meta['nip05'] as String?;
     model.updatedAt = DateTime.fromMillisecondsSinceEpoch(event.createdAt * 1000);
+    model.isOwn = false; // caller must set true for the logged-in user
+    model.lastSeenAt = null;
     return model;
   }
 }
@@ -57,5 +66,7 @@ extension ProfileModelExtension on ProfileModel {
         avatarUrl: avatarUrl,
         nip05: nip05,
         updatedAt: updatedAt,
+        isOwn: isOwn,
+        lastSeenAt: lastSeenAt,
       );
 }

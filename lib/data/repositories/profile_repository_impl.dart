@@ -12,14 +12,14 @@ class ProfileRepositoryImpl extends ProfileRepository {
   ProfileRepositoryImpl({required this.isar});
 
   @override
-  Future<Either<Failure, ProfileEntity>> getProfile(String pubkey) async {
+  Future<Either<Failure, ProfileEntity>> getProfile(String pubkeyHex) async {
     try {
       final profile = await isar.profileModels
           .where()
-          .pubkeyEqualTo(pubkey)
+          .pubkeyEqualTo(pubkeyHex)
           .findFirst();
       if (profile == null) {
-        return Left(Failure.notFoundFailure('Profile not found for pubkey: $pubkey'));
+        return Left(Failure.notFoundFailure('Profile not found: $pubkeyHex'));
       }
       return Right(profile.toDomain());
     } catch (e) {
@@ -43,6 +43,8 @@ class ProfileRepositoryImpl extends ProfileRepository {
       model.avatarUrl = profile.avatarUrl;
       model.nip05 = profile.nip05;
       model.updatedAt = profile.updatedAt;
+      model.isOwn = profile.isOwn;
+      model.lastSeenAt = profile.lastSeenAt;
 
       await isar.writeTxn(() async {
         await isar.profileModels.put(model);
@@ -55,11 +57,11 @@ class ProfileRepositoryImpl extends ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String npub) async {
+  Future<Either<Failure, ProfileEntity?>> getOwnProfile(String pubkeyHex) async {
     try {
       final profile = await isar.profileModels
           .where()
-          .pubkeyEqualTo(npub)
+          .pubkeyEqualTo(pubkeyHex)
           .findFirst();
       return Right(profile?.toDomain());
     } catch (e) {

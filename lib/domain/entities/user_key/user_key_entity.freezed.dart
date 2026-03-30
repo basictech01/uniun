@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserKeyEntity {
 
- String get nsec; String get npub; DateTime get createdAt;
+ String get pubkeyHex;// hex public key — used in Nostr event authorship
+ String get npub;// bech32 public key — display only
+ String get nsec;// bech32 private key — from secure storage only
+ DateTime get createdAt;
 /// Create a copy of UserKeyEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +31,16 @@ $UserKeyEntityCopyWith<UserKeyEntity> get copyWith => _$UserKeyEntityCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserKeyEntity&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserKeyEntity&&(identical(other.pubkeyHex, pubkeyHex) || other.pubkeyHex == pubkeyHex)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,nsec,npub,createdAt);
+int get hashCode => Object.hash(runtimeType,pubkeyHex,npub,nsec,createdAt);
 
 @override
 String toString() {
-  return 'UserKeyEntity(nsec: $nsec, npub: $npub, createdAt: $createdAt)';
+  return 'UserKeyEntity(pubkeyHex: $pubkeyHex, npub: $npub, nsec: $nsec, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +51,7 @@ abstract mixin class $UserKeyEntityCopyWith<$Res>  {
   factory $UserKeyEntityCopyWith(UserKeyEntity value, $Res Function(UserKeyEntity) _then) = _$UserKeyEntityCopyWithImpl;
 @useResult
 $Res call({
- String nsec, String npub, DateTime createdAt
+ String pubkeyHex, String npub, String nsec, DateTime createdAt
 });
 
 
@@ -65,10 +68,11 @@ class _$UserKeyEntityCopyWithImpl<$Res>
 
 /// Create a copy of UserKeyEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nsec = null,Object? npub = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pubkeyHex = null,Object? npub = null,Object? nsec = null,Object? createdAt = null,}) {
   return _then(_self.copyWith(
-nsec: null == nsec ? _self.nsec : nsec // ignore: cast_nullable_to_non_nullable
+pubkeyHex: null == pubkeyHex ? _self.pubkeyHex : pubkeyHex // ignore: cast_nullable_to_non_nullable
 as String,npub: null == npub ? _self.npub : npub // ignore: cast_nullable_to_non_nullable
+as String,nsec: null == nsec ? _self.nsec : nsec // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -155,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String nsec,  String npub,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String pubkeyHex,  String npub,  String nsec,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserKeyEntity() when $default != null:
-return $default(_that.nsec,_that.npub,_that.createdAt);case _:
+return $default(_that.pubkeyHex,_that.npub,_that.nsec,_that.createdAt);case _:
   return orElse();
 
 }
@@ -176,10 +180,10 @@ return $default(_that.nsec,_that.npub,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String nsec,  String npub,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String pubkeyHex,  String npub,  String nsec,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _UserKeyEntity():
-return $default(_that.nsec,_that.npub,_that.createdAt);case _:
+return $default(_that.pubkeyHex,_that.npub,_that.nsec,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +200,10 @@ return $default(_that.nsec,_that.npub,_that.createdAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String nsec,  String npub,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String pubkeyHex,  String npub,  String nsec,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _UserKeyEntity() when $default != null:
-return $default(_that.nsec,_that.npub,_that.createdAt);case _:
+return $default(_that.pubkeyHex,_that.npub,_that.nsec,_that.createdAt);case _:
   return null;
 
 }
@@ -211,11 +215,15 @@ return $default(_that.nsec,_that.npub,_that.createdAt);case _:
 @JsonSerializable()
 
 class _UserKeyEntity implements UserKeyEntity {
-  const _UserKeyEntity({required this.nsec, required this.npub, required this.createdAt});
+  const _UserKeyEntity({required this.pubkeyHex, required this.npub, required this.nsec, required this.createdAt});
   factory _UserKeyEntity.fromJson(Map<String, dynamic> json) => _$UserKeyEntityFromJson(json);
 
-@override final  String nsec;
+@override final  String pubkeyHex;
+// hex public key — used in Nostr event authorship
 @override final  String npub;
+// bech32 public key — display only
+@override final  String nsec;
+// bech32 private key — from secure storage only
 @override final  DateTime createdAt;
 
 /// Create a copy of UserKeyEntity
@@ -231,16 +239,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserKeyEntity&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserKeyEntity&&(identical(other.pubkeyHex, pubkeyHex) || other.pubkeyHex == pubkeyHex)&&(identical(other.npub, npub) || other.npub == npub)&&(identical(other.nsec, nsec) || other.nsec == nsec)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,nsec,npub,createdAt);
+int get hashCode => Object.hash(runtimeType,pubkeyHex,npub,nsec,createdAt);
 
 @override
 String toString() {
-  return 'UserKeyEntity(nsec: $nsec, npub: $npub, createdAt: $createdAt)';
+  return 'UserKeyEntity(pubkeyHex: $pubkeyHex, npub: $npub, nsec: $nsec, createdAt: $createdAt)';
 }
 
 
@@ -251,7 +259,7 @@ abstract mixin class _$UserKeyEntityCopyWith<$Res> implements $UserKeyEntityCopy
   factory _$UserKeyEntityCopyWith(_UserKeyEntity value, $Res Function(_UserKeyEntity) _then) = __$UserKeyEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String nsec, String npub, DateTime createdAt
+ String pubkeyHex, String npub, String nsec, DateTime createdAt
 });
 
 
@@ -268,10 +276,11 @@ class __$UserKeyEntityCopyWithImpl<$Res>
 
 /// Create a copy of UserKeyEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nsec = null,Object? npub = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pubkeyHex = null,Object? npub = null,Object? nsec = null,Object? createdAt = null,}) {
   return _then(_UserKeyEntity(
-nsec: null == nsec ? _self.nsec : nsec // ignore: cast_nullable_to_non_nullable
+pubkeyHex: null == pubkeyHex ? _self.pubkeyHex : pubkeyHex // ignore: cast_nullable_to_non_nullable
 as String,npub: null == npub ? _self.npub : npub // ignore: cast_nullable_to_non_nullable
+as String,nsec: null == nsec ? _self.nsec : nsec // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
