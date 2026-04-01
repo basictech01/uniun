@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Following — Ethereal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#fefcff",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#001b3f",
+              "tertiary-container": "#b85a00",
+              "primary-fixed": "#d7e3ff",
+              "on-tertiary-fixed-variant": "#733600",
+              "surface-tint": "#005cba",
+              "secondary": "#475f89",
+              "on-tertiary-fixed": "#311300",
+              "on-primary": "#ffffff",
+              "outline": "#727785",
+              "surface-bright": "#f8f9fb",
+              "on-primary-fixed-variant": "#00458e",
+              "on-secondary-fixed-variant": "#2f476f",
+              "surface-dim": "#d9dadc",
+              "secondary-container": "#b8cfff",
+              "on-error-container": "#93000a",
+              "on-surface": "#191c1e",
+              "secondary-fixed-dim": "#afc7f7",
+              "on-primary-fixed": "#001b3f",
+              "surface-container-highest": "#e1e2e4",
+              "primary-container": "#1672df",
+              "tertiary": "#934700",
+              "primary-fixed-dim": "#abc7ff",
+              "primary": "#005ab6",
+              "inverse-surface": "#2e3132",
+              "surface": "#f8f9fb",
+              "outline-variant": "#c1c6d5",
+              "on-tertiary-container": "#fffbff",
+              "error": "#ba1a1a",
+              "tertiary-fixed": "#ffdbc7",
+              "inverse-on-surface": "#f0f1f3",
+              "secondary-fixed": "#d7e3ff",
+              "inverse-primary": "#abc7ff",
+              "background": "#f8f9fb",
+              "on-background": "#191c1e",
+              "surface-container-low": "#f2f4f6",
+              "on-secondary-container": "#415882",
+              "surface-variant": "#e1e2e4",
+              "surface-container": "#edeef0",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed-dim": "#ffb688",
+              "surface-container-high": "#e7e8ea",
+              "on-tertiary": "#ffffff",
+              "on-surface-variant": "#414753",
+              "error-container": "#ffdad6",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .glass-nav {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_12px_32px_rgba(47,128,237,0.06)]">
+<div class="flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 hover:opacity-80 transition-opacity text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tighter text-blue-600 dark:text-blue-400">Ethereal</h1>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a professional man with a friendly expression, minimalist studio lighting, clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKruO68xJ3LoTeK9-MFCiZkDeCnUxo0ddtnm2fBp6YQMHfYonTWjgHUveOzBouQcIxJ9uc4ATdAMNG4x5r2n7zUElLfwXEze7KDzDyToTMQodkT7UR36I9PmOQVB-8drfhPvDaWra21ehkeCBMYWPccPkfqizea9khVy918J9ZB5kbtDAbEIxHwJEflZd7tpQ0KNWoionIShD4gSL-ybGz3dKNYY7iWugsgcKbeSWRc6m6_Gy0MmwnHhIerWd_PKXdto9HN2W_n5A"/>
+</div>
+</div>
+<div class="bg-slate-200/20 dark:bg-slate-800/20 h-[1px] w-full"></div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Page Header -->
+<header class="mb-8">
+<h2 class="text-[2.75rem] font-bold tracking-tight text-on-surface leading-tight mb-2">Following</h2>
+<p class="text-body-lg text-on-surface-variant leading-relaxed">Track notes and see how they evolve.</p>
+</header>
+<!-- Search & Filters Cluster -->
+<section class="space-y-6 mb-10">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl py-4 pl-12 pr-4 focus:ring-1 focus:ring-primary/20 placeholder:text-outline text-on-surface" placeholder="Search tracked notes..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-semibold text-sm whitespace-nowrap active:scale-95 transition-transform">All</button>
+<button class="bg-surface-container-high text-on-secondary-container px-6 py-2 rounded-full font-semibold text-sm whitespace-nowrap hover:bg-surface-container-highest transition-colors">Updated</button>
+<button class="bg-surface-container-high text-on-secondary-container px-6 py-2 rounded-full font-semibold text-sm whitespace-nowrap hover:bg-surface-container-highest transition-colors">Unread</button>
+</div>
+</section>
+<!-- Feed -->
+<div class="space-y-4">
+<!-- Note Card 1 (Active/New) -->
+<article class="bg-surface-container-lowest p-6 rounded-[1.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative group hover:shadow-[0_8px_30px_rgba(0,90,182,0.04)] transition-all duration-300">
+<div class="absolute top-6 right-6 flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/5 px-2 py-1 rounded">New activity</span>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img alt="Elena" class="w-full h-full object-cover" data-alt="Portrait of a creative woman with glasses in a sunlit modern office, soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9xX10jEw1PY8p9n0HrprgmuB68l_hTlEGlr7oRziXhID_rULvzrHY15B9LXlxtpbHXQhEqx-Ik9-5qFVqvvs7zGnzL8ondlYOEbCXggGrjgGyI25K8BALyLnI9lJyLoVkNb_kOujRD6uQZD5lE7SxuGKey6iFYfI9WbbIwq2jTXOuRaQeq_XirYj_rWJuHrvRoFGtKo7McjbR6ctcZB6_bSq2WqnohJDJf_bp0YOx9b4daE75HgEQTJZSjXkCPAHBTikOu72_FZY"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Elena Vance</h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">#Quantum-Computing</p>
+</div>
+</div>
+<h3 class="text-xl font-bold mb-3 leading-snug">The observer effect in distributed ledger systems</h3>
+<p class="text-on-surface-variant text-body-lg leading-relaxed mb-4 line-clamp-2">Exploring how monitoring network latency actually shifts the throughput behavior in high-frequency environments...</p>
+<div class="flex items-center justify-between mt-6 pt-4 border-t border-surface-container-low">
+<div class="flex items-center gap-4 text-outline text-xs font-medium">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="link">link</span>
+<span>12 references</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>4 replies</span>
+</div>
+</div>
+<span class="text-xs text-outline">2m ago</span>
+</div>
+<!-- Notification Banner (Inside Card) -->
+<div class="mt-4 bg-primary/5 p-3 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span>
+<span class="text-xs font-semibold text-primary">New reference added by Dr. Aris</span>
+</div>
+</article>
+<!-- Note Card 2 -->
+<article class="bg-surface-container-lowest p-6 rounded-[1.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.02)] group hover:shadow-[0_8px_30px_rgba(0,90,182,0.04)] transition-all duration-300">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img alt="Marcus" class="w-full h-full object-cover" data-alt="Cinematic close-up of a man's face, warm indoor lighting, artistic shadow play" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkiaiYmIM6REFfYVIr6elDlA1gopH932j_m-du-8tpfAsbP7-qoabsetS0q8oTsEGaZxOZu47kpUgCo34AaX7c_JGCush0o1DIJPUYfCkaUtxjiemhJXZkSPjodEKW-bA-m508-gdNvNlTRsmSUzbai3Up9fXwpwpCpK4zANUM_e1jiE9seDJj4EczU77JWoHEhUt-0FJI8IqUEKo3SnKX0-LOBQ0-H5bQ_tFXN9iUCYPewh89fG6Y_IhSCn9-q4JrTJ5uvb0r3ks"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Marcus Thorne</h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">#Design-Systems</p>
+</div>
+</div>
+<h3 class="text-xl font-bold mb-3 leading-snug">Subtle motion: The ethics of micro-interactions</h3>
+<p class="text-on-surface-variant text-body-lg leading-relaxed mb-4 line-clamp-2">When does a smooth transition become dark pattern friction? We need to define the velocity of intent.</p>
+<div class="flex items-center justify-between mt-6 pt-4 border-t border-surface-container-low">
+<div class="flex items-center gap-4 text-outline text-xs font-medium">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="link">link</span>
+<span>3 references</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+<span>21 replies</span>
+</div>
+</div>
+<span class="text-xs text-outline">1h ago</span>
+</div>
+</article>
+<!-- Note Card 3 (Minimal Preview) -->
+<article class="bg-surface-container-lowest p-6 rounded-[1.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.02)] group hover:shadow-[0_8px_30px_rgba(0,90,182,0.04)] transition-all duration-300">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">System Note</h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">#Archival-Logic</p>
+</div>
+</div>
+<h3 class="text-xl font-bold mb-3 leading-snug">Auto-clustering of related entities now active</h3>
+<p class="text-on-surface-variant text-body-lg leading-relaxed mb-4 line-clamp-2">The graph database has identified 4 new clusters between your tracked notes on "Philosophy" and "Cybernetics".</p>
+<div class="flex items-center justify-between mt-6 pt-4 border-t border-surface-container-low">
+<div class="flex items-center gap-4 text-outline text-xs font-medium">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="insights">insights</span>
+<span>View Graph</span>
+</div>
+</div>
+<span class="text-xs text-outline">4h ago</span>
+</div>
+</article>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 shadow-[0_-8px_24px_rgba(0,0,0,0.02)] pb-safe">
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 rounded-2xl px-6 py-2 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="rss_feed">rss_feed</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Vishnu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-6 py-2 hover:text-blue-500 transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Brahma</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-6 py-2 hover:text-blue-500 transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Shiv</span>
+</a>
+</nav>
+</body></html>

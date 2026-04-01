@@ -43,8 +43,8 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
         }
       }
 
-      // Placeholder data — replaced with live Isar queries when
-      // ChannelModel / DMModel / FollowModel repositories are built.
+      // Placeholder — replaced with live Isar queries once ChannelRepository
+      // (Kind 40/42), DMRepository (Kind 14), and FollowedNoteRepository are built.
       const channels = <DrawerChannelItem>[
         DrawerChannelItem(id: 'ch_general', name: 'general', hasUnread: true),
         DrawerChannelItem(id: 'ch_nostr', name: 'nostr-dev'),
@@ -54,17 +54,16 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
         DrawerDmItem(pubkey: 'dm1', name: 'Alice', unreadCount: 3),
         DrawerDmItem(pubkey: 'dm2', name: 'Bob'),
       ];
-      // Kind 3 follow list — empty until FollowModel repository is built.
-      const following = <DrawerFollowItem>[];
+      const followedNotes = <DrawerFollowedNoteItem>[];
 
       emit(DrawerLoaded(
         userName: displayName,
         npub: npubShort,
         pubkeyHex: user?.pubkeyHex ?? '',
         avatarUrl: avatarUrl,
+        followedNotes: followedNotes,
         channels: channels,
         dms: dms,
-        following: following,
       ));
     } catch (e) {
       emit(DrawerError(e.toString()));

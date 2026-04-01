@@ -15,9 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProfileEntity {
 
- String get pubkey; String? get name; String? get username; String? get about; String? get avatarUrl; String? get nip05; DateTime get updatedAt;// Own profile is never evicted: caller sets lastSeenAt = DateTime(3000, 6, 1).
-// CleanupManager evicts profiles where lastSeenAt < now - 30 days.
-// Null lastSeenAt = never evict (safe default for own profile).
+ String get pubkey; String? get name; String? get username; String? get about; String? get avatarUrl; String? get nip05; DateTime get updatedAt;// CleanupManager evicts where lastSeenAt < now - 30 days.
+// Own profile uses DateTime(3000, 6, 1) so it is never evicted.
  DateTime? get lastSeenAt;
 /// Create a copy of ProfileEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -229,9 +228,8 @@ class _ProfileEntity implements ProfileEntity {
 @override final  String? avatarUrl;
 @override final  String? nip05;
 @override final  DateTime updatedAt;
-// Own profile is never evicted: caller sets lastSeenAt = DateTime(3000, 6, 1).
-// CleanupManager evicts profiles where lastSeenAt < now - 30 days.
-// Null lastSeenAt = never evict (safe default for own profile).
+// CleanupManager evicts where lastSeenAt < now - 30 days.
+// Own profile uses DateTime(3000, 6, 1) so it is never evicted.
 @override final  DateTime? lastSeenAt;
 
 /// Create a copy of ProfileEntity

@@ -15,26 +15,27 @@ final class DrawerLoaded extends DrawerState {
     required this.npub,
     required this.pubkeyHex,
     this.avatarUrl,
+    required this.followedNotes,
     required this.channels,
     required this.dms,
-    required this.following,
   });
 
   final String userName;
   final String npub;
   final String pubkeyHex;
   final String? avatarUrl;
+  // Notes the user is tracking. Any Kind 1 note that e-tags a followed note
+  // is captured in that note's reference feed (distinct from saved notes,
+  // which exist only for AI/knowledge graph context).
+  final List<DrawerFollowedNoteItem> followedNotes;
   final List<DrawerChannelItem> channels;
   final List<DrawerDmItem> dms;
-  final List<DrawerFollowItem> following;
 }
 
 final class DrawerError extends DrawerState {
   const DrawerError(this.message);
   final String message;
 }
-
-// ── Lightweight data classes ──────────────────────────────────────────────────
 
 class DrawerChannelItem {
   const DrawerChannelItem({
@@ -62,15 +63,14 @@ class DrawerDmItem {
   final int unreadCount;
 }
 
-/// A user the logged-in user is following (Kind 3 — future scope).
-class DrawerFollowItem {
-  const DrawerFollowItem({
-    required this.pubkey,
-    required this.name,
-    this.avatarUrl,
+class DrawerFollowedNoteItem {
+  const DrawerFollowedNoteItem({
+    required this.eventId,
+    required this.contentPreview,
+    this.newReferenceCount = 0,
   });
 
-  final String pubkey;
-  final String name;
-  final String? avatarUrl;
+  final String eventId;
+  final String contentPreview;
+  final int newReferenceCount;
 }

@@ -22,9 +22,8 @@ class ProfileModel {
 
   late DateTime updatedAt;
 
-  /// CleanupManager evicts profiles where lastSeenAt < now - 30 days.
-  /// Own profile is never evicted: set lastSeenAt = DateTime(3000, 6, 1).
-  /// Null = never evict (safe default).
+  // CleanupManager evicts where lastSeenAt < now - 30 days.
+  // Set DateTime(3000, 6, 1) for own profile so it is never evicted.
   DateTime? lastSeenAt;
 
   ProfileModel();

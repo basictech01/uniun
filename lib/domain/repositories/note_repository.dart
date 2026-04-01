@@ -12,10 +12,14 @@ abstract class NoteRepository {
   /// Get a single note by Nostr event ID
   Future<Either<Failure, NoteEntity>> getNoteById(String eventId);
 
-  /// Get all notes that reference a given note (reply thread)
+  /// Direct replies to a note — notes where replyToEventId == eventId.
   Future<Either<Failure, List<NoteEntity>>> getReplies(String eventId);
 
-  /// Persist a note received from a relay
+  /// Full thread — root note + all notes where rootEventId == rootEventId,
+  /// sorted chronologically. Use this to render a Twitter-style thread view.
+  Future<Either<Failure, List<NoteEntity>>> getThread(String rootEventId);
+
+  /// Persist a note (from relay or created locally by the user).
   Future<Either<Failure, NoteEntity>> saveNote(NoteEntity note);
 
   /// Mark a note as seen (updates isSeen flag)

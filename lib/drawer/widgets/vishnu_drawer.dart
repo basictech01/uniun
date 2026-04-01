@@ -61,20 +61,35 @@ class VishnuDrawer extends StatelessWidget {
                         _showComingSoon(context, 'Saved Notes');
                       },
                     ),
+                    _NavItem(
+                      icon: Icons.link_rounded,
+                      label: 'Followed Notes',
+                      onTap: () {
+                        _close(context);
+                        Navigator.pushNamed(context, AppRoutes.followedNotes);
+                      },
+                    ),
 
                     const SizedBox(height: 16),
 
-                    // ── Following ─────────────────────────────────────────
-                    const _SectionHeader(label: 'Following'),
+                    // ── Followed Notes ────────────────────────────────────
+                    _SectionHeader(
+                      label: 'Following',
+                      onAdd: () => _showComingSoon(context, 'Follow a Note'),
+                    ),
                     const SizedBox(height: 4),
-                    if ((loaded?.following ?? []).isEmpty)
-                      const _EmptyHint('No one followed yet')
+                    if ((loaded?.followedNotes ?? []).isEmpty)
+                      const _EmptyHint('No followed notes yet')
                     else
-                      ...loaded!.following.map((f) => _FollowRow(
-                            item: f,
+                      ...loaded!.followedNotes.map((n) => _FollowedNoteRow(
+                            item: n,
                             onTap: () {
                               _close(context);
-                              _showComingSoon(context, f.name);
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.followedNoteFeed,
+                                arguments: n.eventId,
+                              );
                             },
                           )),
 
@@ -275,27 +290,15 @@ class _DrawerHeader extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Text(
-                    'UNIUN Workspace',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+              child: Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Icon(
@@ -398,11 +401,11 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-// ── Follow row ─────────────────────────────────────────────────────────────────
+// ── Followed note row ──────────────────────────────────────────────────────────
 
-class _FollowRow extends StatelessWidget {
-  const _FollowRow({required this.item, required this.onTap});
-  final app_drawer.DrawerFollowItem item;
+class _FollowedNoteRow extends StatelessWidget {
+  const _FollowedNoteRow({required this.item, required this.onTap});
+  final app_drawer.DrawerFollowedNoteItem item;
   final VoidCallback onTap;
 
   @override
@@ -414,18 +417,36 @@ class _FollowRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         child: Row(
           children: [
-            UserAvatar(seed: item.pubkey, photoUrl: item.avatarUrl, size: 22),
+            const Icon(Icons.link_rounded, size: 16, color: AppColors.outline),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                item.name,
+                item.contentPreview,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: AppColors.onSurfaceVariant,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (item.newReferenceCount > 0)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${item.newReferenceCount}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onPrimary,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

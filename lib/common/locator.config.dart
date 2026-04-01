@@ -12,19 +12,31 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:isar_community/isar.dart' as _i214;
+import 'package:uniun/core/isolate/embedded_server_bridge.dart' as _i717;
 import 'package:uniun/data/datasources/isar_module.dart' as _i146;
+import 'package:uniun/data/repositories/followed_note_repository_impl.dart'
+    as _i107;
 import 'package:uniun/data/repositories/note_repository_impl.dart' as _i348;
+import 'package:uniun/data/repositories/outbound_event_repository_impl.dart'
+    as _i694;
 import 'package:uniun/data/repositories/profile_repository_impl.dart' as _i484;
 import 'package:uniun/data/repositories/user_repository_impl.dart' as _i582;
+import 'package:uniun/domain/repositories/followed_note_repository.dart'
+    as _i836;
 import 'package:uniun/domain/repositories/note_repository.dart' as _i47;
+import 'package:uniun/domain/repositories/outbound_event_repository.dart'
+    as _i218;
 import 'package:uniun/domain/repositories/profile_repository.dart' as _i967;
 import 'package:uniun/domain/repositories/user_repository.dart' as _i103;
 import 'package:uniun/domain/usecases/get_feed_usecase.dart' as _i666;
 import 'package:uniun/domain/usecases/get_note_by_id_usecase.dart' as _i1024;
 import 'package:uniun/domain/usecases/get_replies_usecase.dart' as _i22;
+import 'package:uniun/domain/usecases/get_thread_usecase.dart' as _i435;
 import 'package:uniun/domain/usecases/mark_seen_usecase.dart' as _i871;
+import 'package:uniun/domain/usecases/publish_note_usecase.dart' as _i997;
 import 'package:uniun/domain/usecases/save_note_usecase.dart' as _i955;
 import 'package:uniun/drawer/bloc/drawer_bloc.dart' as _i987;
+import 'package:uniun/followed_notes/cubit/followed_notes_cubit.dart' as _i97;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -35,6 +47,9 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final isarModule = _$IsarModule();
     gh.factory<_i987.DrawerBloc>(() => _i987.DrawerBloc());
+    gh.singleton<_i717.EmbeddedServerBridge>(
+      () => _i717.EmbeddedServerBridge(),
+    );
     await gh.singletonAsync<_i214.Isar>(
       () => isarModule.createIsar(),
       preResolve: true,
@@ -42,8 +57,24 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i47.NoteRepository>(
       () => _i348.NoteRepositoryImpl(isar: gh<_i214.Isar>()),
     );
+    gh.factory<_i836.FollowedNoteRepository>(
+      () => _i107.FollowedNoteRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
+    gh.factory<_i218.OutboundEventRepository>(
+      () => _i694.OutboundEventRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
     gh.factory<_i967.ProfileRepository>(
       () => _i484.ProfileRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
+    gh.factory<_i97.FollowedNotesCubit>(
+      () => _i97.FollowedNotesCubit(gh<_i836.FollowedNoteRepository>()),
+    );
+    gh.lazySingleton<_i997.PublishNoteUseCase>(
+      () => _i997.PublishNoteUseCase(
+        gh<_i47.NoteRepository>(),
+        gh<_i218.OutboundEventRepository>(),
+        gh<_i717.EmbeddedServerBridge>(),
+      ),
     );
     gh.factory<_i103.UserRepository>(
       () => _i582.UserRepositoryImpl(isar: gh<_i214.Isar>()),
@@ -56,6 +87,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i22.GetRepliesUseCase>(
       () => _i22.GetRepliesUseCase(gh<_i47.NoteRepository>()),
+    );
+    gh.lazySingleton<_i435.GetThreadUseCase>(
+      () => _i435.GetThreadUseCase(gh<_i47.NoteRepository>()),
     );
     gh.lazySingleton<_i871.MarkSeenUseCase>(
       () => _i871.MarkSeenUseCase(gh<_i47.NoteRepository>()),

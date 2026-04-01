@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-primary-container": "#fefcff",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-fixed": "#001b3f",
+            "tertiary-container": "#b85a00",
+            "primary-fixed": "#d7e3ff",
+            "on-tertiary-fixed-variant": "#733600",
+            "surface-tint": "#005cba",
+            "secondary": "#475f89",
+            "on-tertiary-fixed": "#311300",
+            "on-primary": "#ffffff",
+            "outline": "#727785",
+            "surface-bright": "#f8f9fb",
+            "on-primary-fixed-variant": "#00458e",
+            "on-secondary-fixed-variant": "#2f476f",
+            "surface-dim": "#d9dadc",
+            "secondary-container": "#b8cfff",
+            "on-error-container": "#93000a",
+            "on-surface": "#191c1e",
+            "secondary-fixed-dim": "#afc7f7",
+            "on-primary-fixed": "#001b3f",
+            "surface-container-highest": "#e1e2e4",
+            "primary-container": "#1672df",
+            "tertiary": "#934700",
+            "primary-fixed-dim": "#abc7ff",
+            "primary": "#005ab6",
+            "inverse-surface": "#2e3132",
+            "surface": "#f8f9fb",
+            "outline-variant": "#c1c6d5",
+            "on-tertiary-container": "#fffbff",
+            "error": "#ba1a1a",
+            "tertiary-fixed": "#ffdbc7",
+            "inverse-on-surface": "#f0f1f3",
+            "secondary-fixed": "#d7e3ff",
+            "inverse-primary": "#abc7ff",
+            "background": "#f8f9fb",
+            "on-background": "#191c1e",
+            "surface-container-low": "#f2f4f6",
+            "on-secondary-container": "#415882",
+            "surface-variant": "#e1e2e4",
+            "surface-container": "#edeef0",
+            "on-secondary": "#ffffff",
+            "tertiary-fixed-dim": "#ffb688",
+            "surface-container-high": "#e7e8ea",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#414753",
+            "error-container": "#ffdad6",
+            "on-error": "#ffffff"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .graph-bg {
+      background-image: radial-gradient(#c1c6d5 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .node-pulse {
+      box-shadow: 0 0 0 0 rgba(0, 90, 182, 0.4);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 90, 182, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(0, 90, 182, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 90, 182, 0); }
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen selection:bg-secondary-container">
+<!-- Shared Component: TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_12px_32px_rgba(47,128,237,0.06)]">
+<div class="flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-50" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Inter'] font-bold tracking-tight text-slate-900 dark:text-slate-50 text-xl">Reference Graph</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User" data-alt="professional portrait of a creative professional with soft studio lighting and a neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUaenOwlQ53quzTKpwOP3lQWvQWt5VRKbIjaEwTJMhortY9NqtYx7qsPaR1WFQ0ndCbk5DkD5szihUK4rARYDiWYaxGENd8mVdH0iT76GFPFRVEXAhxAgmdt4q9oQR7T_NXa2Zo7c3l-AfhsvDLbT48sR1DtDBXAAURgGZtAPY_4nQdQ-XDJ19ig54_ppIhLAVk4S7jlzjpPWSZkdD730nogaSLqjFCO7pTvsFrSsMzmnFdcz8eeYSEieJkxmNfBUHUMgJLVReAAI"/>
+</div>
+</div>
+</div>
+<div class="bg-slate-200/20 dark:bg-slate-800/20 h-[1px] w-full"></div>
+</header>
+<!-- Main Graph Canvas -->
+<main class="relative h-screen w-full overflow-hidden graph-bg pt-20">
+<!-- Knowledge Map Area -->
+<div class="absolute inset-0 flex items-center justify-center">
+<!-- SVG Connection Lines -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-20">
+<line stroke="#005ab6" stroke-width="2" x1="50%" x2="35%" y1="50%" y2="40%"></line>
+<line stroke="#005ab6" stroke-width="2" x1="50%" x2="65%" y1="50%" y2="45%"></line>
+<line stroke="#005ab6" stroke-width="2" x1="50%" x2="55%" y1="50%" y2="65%"></line>
+<line stroke="#005ab6" stroke-dasharray="4" stroke-width="1" x1="35%" x2="25%" y1="40%" y2="30%"></line>
+<line stroke="#005ab6" stroke-dasharray="4" stroke-width="1" x1="65%" x2="75%" y1="45%" y2="55%"></line>
+</svg>
+<!-- Central Node -->
+<div class="relative z-10">
+<div class="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-on-primary node-pulse cursor-pointer shadow-xl border-4 border-white">
+<span class="material-symbols-outlined text-3xl" data-icon="psychology">psychology</span>
+</div>
+<div class="absolute top-24 left-1/2 -translate-x-1/2 whitespace-nowrap">
+<p class="font-bold text-sm bg-white/90 px-3 py-1 rounded-full shadow-sm text-primary">Quantum Computing Basics</p>
+</div>
+</div>
+<!-- Node: Reply Style -->
+<div class="absolute top-[35%] left-[30%] z-10 group">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-primary border-2 border-white shadow-md active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="reply">reply</span>
+</div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-semibold bg-surface-container-high px-2 py-1 rounded-lg">Reply by Dr. Aris</span>
+</div>
+</div>
+<!-- Node: Reference Style -->
+<div class="absolute top-[42%] right-[30%] z-10 group">
+<div class="w-14 h-14 rounded-2xl bg-surface-container-lowest flex items-center justify-center text-primary border-2 border-primary-container/20 shadow-md active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
+</div>
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-semibold bg-surface-container-high px-2 py-1 rounded-lg">External Source</span>
+</div>
+</div>
+<!-- Node: Context Style -->
+<div class="absolute bottom-[30%] left-[53%] z-10 group">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary border-2 border-white shadow-md active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+</div>
+<div class="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-xs font-semibold bg-surface-container-high px-2 py-1 rounded-lg">Historical Context</span>
+</div>
+</div>
+</div>
+<!-- Graph Controls (Top Left) -->
+<div class="absolute top-24 left-6 flex flex-col gap-2">
+<button class="w-10 h-10 bg-white shadow-md rounded-xl flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+<button class="w-10 h-10 bg-white shadow-md rounded-xl flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="remove">remove</span>
+</button>
+<button class="w-10 h-10 bg-white shadow-md rounded-xl flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors mt-4">
+<span class="material-symbols-outlined" data-icon="center_focus_strong">center_focus_strong</span>
+</button>
+</div>
+<!-- Toggle Chips -->
+<div class="absolute bottom-40 left-1/2 -translate-x-1/2 flex gap-2 p-1.5 bg-white/60 backdrop-blur-md rounded-2xl shadow-lg">
+<button class="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-on-primary transition-all">all</button>
+<button class="px-5 py-2 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-white/40 transition-all">replies</button>
+<button class="px-5 py-2 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-white/40 transition-all">references</button>
+</div>
+<!-- Selected Node Bottom Sheet (Mock State: Visible) -->
+<div class="fixed bottom-[88px] left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-40">
+<div class="bg-surface-container-lowest rounded-3xl shadow-[0_24px_48px_rgba(0,0,0,0.12)] p-6 translate-y-0 transition-transform border border-outline-variant/10">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-secondary-container rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<div>
+<h3 class="font-bold text-on-surface leading-tight">Qubit Superposition</h3>
+<p class="text-xs text-on-surface-variant">Authored by Dr. Elizabeth Chen</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed line-clamp-2">
+          This reference explores the mathematical foundations of superposition in quantum systems, specifically focusing on the Bloch sphere representation...
+        </p>
+<div class="mt-6 flex gap-3">
+<button class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-[0_8px_16px_rgba(0,90,182,0.1)] active:scale-95 duration-200">
+            Read Full Note
+          </button>
+<button class="w-12 h-12 flex items-center justify-center bg-surface-container text-primary rounded-xl active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Shared Component: BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-around items-center px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.02)]">
+<!-- Active State Logic: 'Shiv' (Psychology icon) matches 'Reference Graph' intent -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-6 py-2 hover:text-blue-500 transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="rss_feed">rss_feed</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Vishnu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-6 py-2 hover:text-blue-500 transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Brahma</span>
+</a>
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 rounded-2xl px-6 py-2 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">Shiv</span>
+</a>
+</nav>
+<!-- Content Halo Decorator (Design System Signature) -->
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary-container/20 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+</body></html>

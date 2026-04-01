@@ -13,9 +13,8 @@ abstract class ProfileEntity with _$ProfileEntity {
     String? avatarUrl,
     String? nip05,
     required DateTime updatedAt,
-    // Own profile is never evicted: caller sets lastSeenAt = DateTime(3000, 6, 1).
-    // CleanupManager evicts profiles where lastSeenAt < now - 30 days.
-    // Null lastSeenAt = never evict (safe default for own profile).
+    // CleanupManager evicts where lastSeenAt < now - 30 days.
+    // Own profile uses DateTime(3000, 6, 1) so it is never evicted.
     DateTime? lastSeenAt,
   }) = _ProfileEntity;
 

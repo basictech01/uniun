@@ -133,24 +133,39 @@ On launch, `SplashPage` calls `UserRepository.getActiveUser()`:
 - If either missing → `Left(notFoundFailure)` → navigate to `WelcomePage`
 - On reinstall: Isar wiped + secure storage cleared → user must log in again ✅
 
-**Other users' profile caching strategy:**
+**Profile eviction strategy (`isOwn` removed):**
+
+`isOwn` was removed. Own profile is identified by `lastSeenAt = DateTime(3000, 6, 1)` — far enough in the future that CleanupManager's `lastSeenAt < now - 30 days` check never fires. `null` lastSeenAt = never evict (safe default for own profile).
 
 ```
-Own user          → isOwn = true   → kept forever
-DM / Channel      → isOwn = false  → kept forever (explicit relationship)
-Feed users        → isOwn = false  → evicted after 30 days from lastSeenAt
-Random/unseen     → not stored at all
+Own user      → lastSeenAt = DateTime(3000,6,1)  → kept forever
+DM/Channel    → lastSeenAt = null                → kept forever
+Feed users    → lastSeenAt updated on view       → evicted after 30 days
+Unseen        → not stored at all
 ```
 
-`ProfileModel.lastSeenAt` is updated every time a profile appears in the UI. `CleanupManager` (EmbeddedServer) evicts profiles where `lastSeenAt < now - 30 days AND isOwn = false`.
+**No backend needed for auth:** Nostr identity is purely cryptographic. Login = having the private key. Logout = deleting it from secure storage + Isar.
 
-**No backend needed for auth:** Nostr identity is purely cryptographic — a keypair generated on device. The relay (Khatru/Go) validates event signatures but has no concept of "accounts" or "sessions". Login = having the private key. Logout = deleting it from secure storage + Isar.
+---
 
-**Future — Following / Followers (Kind 3):**
+## Finding 006 — Followed Notes: Reference-Graph Subscription
 
-Not implemented in v1. When built:
-- Follow list = Kind 3 event you publish (list of `["p", pubkey]` tags, replaceable)
-- Store in `FollowModel` (Isar) — one row per followed pubkey
-- Followed users' `ProfileModel`: `isOwn = false`, never evicted (kept like own profile)
-- Follower count (who follows YOU) = queried from relay on demand via `{"kinds": [3], "#p": ["<myPubkeyHex>"]}` — never stored locally
-- Following drives the Vishnu feed subscription: `{"kinds": [1], "authors": [<followed pubkeys>]}`
+**Context:** Designing a "follow a note" feature distinct from saved notes and user following.
+
+**Concept:** "Following a note" means subscribing to its reference graph. When a user follows note A, any future Kind 1 note that includes `["e", noteA_id]` in its tags is surfaced in that note's feed. The user gets notified when new references arrive.
+
+**How it differs from saved notes:**
+- **Saved note** — stores content for the AI knowledge graph (Shiv) and personal reference. No network subscription. Static.
+- **Followed note** — creates an active subscription. Any note that e-tags the followed note is captured. Dynamic, notification-driven.
+
+**Relay subscription for a followed note:**
+```json
+{"kinds": [1], "#e": ["<followed_note_event_id>"], "since": <last_check_timestamp>}
+```
+
+**Storage (when built):**
+- `FollowedNoteModel` (Isar) — one row per followed note: `{ eventId, contentPreview, lastCheckedAt, newReferenceCount }`
+- `DrawerBloc` loads this list and shows unread badge (newReferenceCount) per note
+- SyncEngine opens the `#e` filter subscription and increments `newReferenceCount` on new hits
+
+**Drawer UI:** "Following" section lists followed notes with a badge count. Tapping opens the reference feed for that note — all notes that have cited it, in chronological order.

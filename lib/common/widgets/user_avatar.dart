@@ -2,13 +2,8 @@ import 'package:avatar_plus/avatar_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
-/// Shared profile avatar used across the app (drawer header, top bar, DM rows,
-/// settings card, etc.).
-///
-/// - If [photoUrl] is an HTTP/HTTPS URL → shows network image from Blossom server.
-/// - Otherwise → shows a deterministic illustration from [seed] via avatar_plus.
-///
-/// [seed] should be the user's pubkeyHex or npub.
+// Avatar URLs come exclusively from Blossom (HTTP/HTTPS) or are generated
+// from the pubkey via avatar_plus. Local file paths are never stored.
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
     super.key,

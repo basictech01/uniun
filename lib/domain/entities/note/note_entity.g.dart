@@ -21,6 +21,8 @@ _NoteEntity _$NoteEntityFromJson(Map<String, dynamic> json) => _NoteEntity(
   tTags: (json['tTags'] as List<dynamic>).map((e) => e as String).toList(),
   created: DateTime.parse(json['created'] as String),
   isSeen: json['isSeen'] as bool,
+  rootEventId: json['rootEventId'] as String?,
+  replyToEventId: json['replyToEventId'] as String?,
 );
 
 Map<String, dynamic> _$NoteEntityToJson(_NoteEntity instance) =>
@@ -35,6 +37,8 @@ Map<String, dynamic> _$NoteEntityToJson(_NoteEntity instance) =>
       'tTags': instance.tTags,
       'created': instance.created.toIso8601String(),
       'isSeen': instance.isSeen,
+      'rootEventId': instance.rootEventId,
+      'replyToEventId': instance.replyToEventId,
     };
 
 const _$NoteTypeEnumMap = {

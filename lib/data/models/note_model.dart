@@ -124,6 +124,8 @@ extension NoteModelExtension on NoteModel {
         content: content,
         type: type,
         eTagRefs: eTagRefs,
+        rootEventId: rootEventId,
+        replyToEventId: replyToEventId,
         pTagRefs: pTagRefs,
         tTags: tTags,
         created: created,

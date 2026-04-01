@@ -415,12 +415,21 @@ On-device AI assistant using GraphRAG over the user's saved notes.
 ### DMs — Direct Messages (NIP-17)
 
 - Kind 14 = the actual message content (called a "rumor" — it is UNSIGNED).
-- Three-layer encryption for full privacy:
-  - Kind 14 (rumor) → NIP-44 encrypt with sender privkey + recipient pubkey → Kind 13 (seal, signed) → NIP-44 encrypt with ephemeral privkey + recipient pubkey → Kind 1059 (gift wrap, published to relay).
-- Only `["p", recipient_pubkey]` is visible on the relay in the gift wrap.
+- Three-layer encryption: Kind 14 → NIP-44 encrypt → Kind 13 (seal) → NIP-44 encrypt with ephemeral key → Kind 1059 (gift wrap, published to relay).
+- Only `["p", recipient_pubkey]` is visible on the relay.
 - Subscription filter: `{"kinds": [1059], "#p": ["my_pubkey"]}`.
 - Unread tracking via `DMReadStateModel` (same `lastReadEventId` pattern).
-- Full 3-layer encryption is future scope for MVP. MVP uses Kind 14 with basic structure.
+
+### Followed Notes
+
+Subscribing to a note's reference graph — distinct from saved notes (which are for Shiv AI).
+
+- `FollowedNoteModel` stores `eventId`, `contentPreview`, `followedAt`, `newReferenceCount`.
+- EmbeddedServer opens `{"kinds":[1],"#e":["followedNoteId"]}` per followed note.
+- `newReferenceCount` incremented by SyncEngine on each new match.
+- **Cubit**: `FollowedNotesCubit` — `load()`, `followNote()`, `unfollowNote()`, `clearNewReferences()`
+- **Pages**: `FollowedNotesPage` (list + badges), `FollowedNoteFeedPage` (reference feed)
+- **Drawer**: "Followed Notes" nav item and section list both navigate to these pages.
 
 ---
 
@@ -449,6 +458,9 @@ EmbeddedServer
 
 // Profile metadata
 {"kinds": [0], "authors": [pubkey]}
+
+// Followed note references (one per followed note)
+{"kinds": [1], "#e": ["followedNoteId"]}
 ```
 
 **Isar retention policy (enforced by CleanupManager):**
@@ -590,7 +602,7 @@ abstract class IsarModule {
 |------|-------|-----------|
 | Private key (nsec bech32) | `flutter_secure_storage` (Android Keystore / iOS Keychain) | Until logout |
 | Public key (hex) + npub | Isar `UserKeyModel` | Until logout |
-| Profile (Kind 0) | Isar `ProfileModel` with `isOwn = true` | Forever — never evicted |
+| Profile (Kind 0) | Isar `ProfileModel` with `lastSeenAt = DateTime(3000, 6, 1)` | Forever — sentinel date prevents eviction |
 
 The private key is **never** written to Isar. `UserKeyModel` holds only the public identity.
 
@@ -604,23 +616,22 @@ On reinstall, Isar is wiped but `flutter_secure_storage` may survive on Android 
 
 | Category | Profile stored? | Retention |
 |----------|----------------|-----------|
-| Own user | ✅ Yes, `isOwn = true` | Forever |
-| Followed users | ✅ Yes (future — Kind 3) | Forever |
+| Own user | ✅ Yes, `lastSeenAt = DateTime(3000,6,1)` | Forever (sentinel) |
 | DM / Channel participants | ✅ Yes | Forever |
-| Feed users (not followed) | Temporarily, `isOwn = false` | 30 days from `lastSeenAt` |
+| Feed users (seen) | Temporarily | 30 days from `lastSeenAt` |
 | Random unseen users | ❌ Not stored | — |
 
-`ProfileModel.lastSeenAt` is updated each time the profile appears in the UI. The `CleanupManager` (EmbeddedServer) evicts profiles where `lastSeenAt < now - 30 days` and `isOwn == false`.
+`ProfileModel.lastSeenAt` is updated each time the profile appears in the UI. The `CleanupManager` evicts profiles where `lastSeenAt < now - 30 days`. Own profile uses `DateTime(3000, 6, 1)` so it is never evicted — there is no `isOwn` boolean field.
 
-### Following / Followers (Future — Kind 3)
+### Followed Notes (NOT following people)
 
-Not yet implemented. Tracked as a GitHub issue.
+UNIUN does **not** implement a people-following / social graph in v1. There is no Kind 3 contact list, no follower count, no "following" list of users.
 
-When built:
-- Your follow list = Kind 3 event you publish (list of `["p", pubkey]` tags)
-- Stored in `FollowModel` (Isar) — one row per followed pubkey
-- Their profiles: fetched on follow, `isOwn = false`, never evicted
-- Followers (who follows YOU) = queried from relay on demand, not stored locally
+"Following a note" means subscribing to its **reference graph**: any new Kind 1 note that contains `["e", followedNoteId]` is captured and surfaced. This is implemented by:
+- `FollowedNoteModel` (Isar) — stores `eventId`, `contentPreview`, `followedAt`, `newReferenceCount`
+- `FollowedNoteRepository` — `followNote()`, `unfollowNote()`, `clearNewReferences()`, `isFollowed()`
+- EmbeddedServer opens: `{"kinds":[1],"#e":["followedNoteId"]}` per followed note
+- `newReferenceCount` is incremented by SyncEngine on each new match; cleared when user opens the feed
 
 ---
 
@@ -634,14 +645,22 @@ When built:
 | `lib/core/error/failures.dart` | `Failure` freezed union type |
 | `lib/core/usecases/usecase.dart` | `UseCase<T,P>` and `NoParamsUseCase<T>` base classes |
 | `lib/data/models/note_model.dart` | `NoteModel` Isar collection + `NoteModel.fromEvent()` |
-| `lib/data/models/profile_model.dart` | `ProfileModel` Isar + `ProfileModel.fromEvent()`, `isOwn`, `lastSeenAt` |
+| `lib/data/models/profile_model.dart` | `ProfileModel` Isar + `ProfileModel.fromEvent()`, `lastSeenAt` (own profile uses sentinel `DateTime(3000,6,1)`) |
+| `lib/data/models/followed_note_model.dart` | `FollowedNoteModel` Isar — eventId, contentPreview, followedAt, newReferenceCount |
 | `lib/data/models/user_key_model.dart` | `UserKeyModel` — pubkeyHex + npub only (nsec NOT stored here) |
 | `lib/data/datasources/isar_module.dart` | Isar singleton — all schemas registered |
 | `lib/data/repositories/note_repository_impl.dart` | Full Isar CRUD for notes |
 | `lib/data/repositories/profile_repository_impl.dart` | Full Isar CRUD for profiles |
 | `lib/data/repositories/user_repository_impl.dart` | Key generation, import, secure storage, auth check |
 | `lib/domain/entities/note/note_entity.dart` | `NoteEntity` freezed + `fromJson` |
-| `lib/domain/entities/profile/profile_entity.dart` | `ProfileEntity` freezed + `isOwn` + `lastSeenAt` |
+| `lib/domain/entities/profile/profile_entity.dart` | `ProfileEntity` freezed + `lastSeenAt` (no `isOwn` field) |
+| `lib/domain/entities/followed_note/followed_note_entity.dart` | `FollowedNoteEntity` freezed |
+| `lib/domain/repositories/followed_note_repository.dart` | `FollowedNoteRepository` interface |
+| `lib/data/repositories/followed_note_repository_impl.dart` | Full Isar CRUD for followed notes |
+| `lib/followed_notes/cubit/followed_notes_cubit.dart` | `FollowedNotesCubit` — load/follow/unfollow/clearNewReferences |
+| `lib/followed_notes/pages/followed_notes_page.dart` | List of followed notes with badges |
+| `lib/followed_notes/pages/followed_note_feed_page.dart` | Reference feed for a single followed note (placeholder) |
+| `lib/followed_notes/widgets/followed_note_tile.dart` | Tile widget with badge + unfollow |
 | `lib/domain/entities/user_key/user_key_entity.dart` | `UserKeyEntity` — pubkeyHex + npub + nsec (runtime only) |
 | `lib/domain/repositories/note_repository.dart` | `NoteRepository` interface |
 | `lib/domain/repositories/profile_repository.dart` | `ProfileRepository` interface |
@@ -659,8 +678,8 @@ When built:
 
 ### Pending
 
-**User Identity — nsec in secure storage**
-- `flutter_secure_storage` is wired ✅ — but `WelcomePage` and `ImportIdentityPage` still generate/validate keys locally and navigate without calling `UserRepository`. Wire `UserRepository.generateKey()` / `importKey()` via BLoC.
+**User Identity — wire BLoC**
+- `WelcomePage` and `ImportIdentityPage` still handle keys locally. Wire `UserRepository.generateKey()` / `importKey()` via a Cubit.
 
 **SavedNote + DraftNote**
 - `SavedNoteModel` (noteId, savedAt, embedding `List<double>?`) + entity + repository
@@ -672,36 +691,7 @@ When built:
 **DMs (Kind 14/1059)**
 - `DMModel`, `DMReadStateModel` + entities + repositories
 
-**AI Conversations (local only — never synced)**
-- `AIConversationModel`, `AIMessageModel` + entities + `AIRepository`
-
-**Following / Followers (Kind 3)**
-- `FollowModel` + entity + repository — tracked as GitHub issue
-
-**Vishnu Feed**
-- `VishnuFeedBloc`, `NoteCard` widget, `VishnuFeedPage`
-
-**Brahma Create Note**
-- `BrahmaCreateBloc`, compose note page
-
-**Shiv AI**
-- `EmbeddingService`, `VectorSearchService`, `ShivAIBloc`, `flutter_gemma` integration
-
-**Note Use Cases**
-- `GetFeedUseCase`, `SaveNoteUseCase`, `GetNoteByIdUseCase`, `GetRepliesUseCase`, `MarkSeenUseCase`
-- `lib/domain/inputs/note_input.dart`
-
-**SavedNote + DraftNote**
-- `SavedNoteModel` (noteId, savedAt, embedding `List<double>?`) + entity + repository
-- `DraftNoteModel` (localId, content, referenceIds, imageUrl) + entity + repository
-
-**Channels + Messages (Kind 40/42)**
-- `ChannelModel`, `MessageModel`, `ChannelReadStateModel` + entities + repositories
-
-**DMs (Kind 14/1059)**
-- `DMModel`, `DMReadStateModel` + entities + repositories
-
-**AI Conversations (local only — never synced)**
+**AI Conversations (local only)**
 - `AIConversationModel`, `AIMessageModel` + entities + `AIRepository`
 
 **Vishnu Feed**
@@ -712,6 +702,9 @@ When built:
 
 **Shiv AI**
 - `EmbeddingService`, `VectorSearchService`, `ShivAIBloc`, `flutter_gemma` integration
+
+**Followed Note Feed (live)**
+- Wire `FollowedNoteFeedPage` to Isar once EmbeddedServer opens `{"kinds":[1],"#e":["id"]}` subscriptions
 
 ---
 
