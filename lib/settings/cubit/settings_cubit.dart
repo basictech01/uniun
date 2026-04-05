@@ -1,20 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uniun/common/locator.dart';
-import 'package:uniun/domain/repositories/profile_repository.dart';
-import 'package:uniun/domain/repositories/user_repository.dart';
+import 'package:injectable/injectable.dart';
+import 'package:uniun/domain/usecases/profile_usecases.dart';
+import 'package:uniun/domain/usecases/user_usecases.dart';
 
 part 'settings_state.dart';
 
+@injectable
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit() : super(const SettingsState()) {
+  final GetActiveUserUseCase _getActiveUser;
+  final GetOwnProfileUseCase _getOwnProfile;
+
+  SettingsCubit(this._getActiveUser, this._getOwnProfile)
+      : super(const SettingsState()) {
     _load();
   }
 
   Future<void> _load() async {
     emit(state.copyWith(isLoading: true));
     try {
-      final userResult = await getIt<UserRepository>().getActiveUser();
+      final userResult = await _getActiveUser.call();
       final user = userResult.fold((_) => null, (u) => u);
 
       if (user == null) {
@@ -28,8 +33,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       String displayName = 'Anonymous';
       String? avatarUrl;
 
-      final profileResult =
-          await getIt<ProfileRepository>().getOwnProfile(user.pubkeyHex);
+      final profileResult = await _getOwnProfile.call(user.pubkeyHex);
       final profile = profileResult.fold((_) => null, (p) => p);
 
       if (profile != null) {
@@ -50,8 +54,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  void toggleAI(bool value) => emit(state.copyWith(aiEnabled: value));
-
   void toggleDmNotifications(bool value) =>
       emit(state.copyWith(dmNotifications: value));
 
@@ -64,7 +66,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
     try {
-      final result = await getIt<UserRepository>().getActiveUser();
+      final result = await _getActiveUser.call();
       final nsec = result.fold((_) => null, (u) => u.nsec);
       emit(state.copyWith(nsecVisible: true, nsec: nsec));
     } catch (_) {

@@ -136,6 +136,32 @@ class NoteRepositoryImpl extends NoteRepository {
   }
 
   @override
+  Future<Either<Failure, int>> getReplyCount(String eventId) async {
+    try {
+      final count = await isar.noteModels
+          .filter()
+          .replyToEventIdEqualTo(eventId)
+          .count();
+      return Right(count);
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getThreadReplyCount(String rootEventId) async {
+    try {
+      final count = await isar.noteModels
+          .filter()
+          .rootEventIdEqualTo(rootEventId)
+          .count();
+      return Right(count);
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> markAsSeen(String eventId) async {
     try {
       await isar.writeTxn(() async {

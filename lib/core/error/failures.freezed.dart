@@ -217,8 +217,8 @@ return errorFailure(_that.message);case _:
 /// @nodoc
 
 
-class _Failure implements Failure {
-  const _Failure(this.message);
+class _Failure extends Failure {
+  const _Failure(this.message): super._();
   
 
 @override final  String message;
@@ -283,8 +283,8 @@ as String,
 /// @nodoc
 
 
-class _NotFoundFailure implements Failure {
-  const _NotFoundFailure(this.message);
+class _NotFoundFailure extends Failure {
+  const _NotFoundFailure(this.message): super._();
   
 
 @override final  String message;
@@ -349,8 +349,8 @@ as String,
 /// @nodoc
 
 
-class _ErrorFailure implements Failure {
-  const _ErrorFailure(this.message);
+class _ErrorFailure extends Failure {
+  const _ErrorFailure(this.message): super._();
   
 
 @override final  String message;

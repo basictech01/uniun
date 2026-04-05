@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
 /// Glassmorphism floating pill navigation bar.
@@ -15,26 +16,26 @@ class FloatingNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  static const _items = [
-    _NavItem(
-      icon: Icons.visibility_outlined,
-      activeIcon: Icons.visibility_rounded,
-      label: 'VISHNU',
-    ),
-    _NavItem(
-      icon: Icons.add_circle_outline_rounded,
-      activeIcon: Icons.add_circle_rounded,
-      label: 'BRAHMA',
-    ),
-    _NavItem(
-      icon: Icons.content_cut_outlined,
-      activeIcon: Icons.content_cut_rounded,
-      label: 'SHIV',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = [
+      _NavItem(
+        icon: Icons.visibility_outlined,
+        activeIcon: Icons.visibility_rounded,
+        label: l10n.navVishnu,
+      ),
+      _NavItem(
+        icon: Icons.add_circle_outline_rounded,
+        activeIcon: Icons.add_circle_rounded,
+        label: l10n.navBrahma,
+      ),
+      _NavItem(
+        icon: Icons.content_cut_outlined,
+        activeIcon: Icons.content_cut_rounded,
+        label: l10n.navShiv,
+      ),
+    ];
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
       child: BackdropFilter(
@@ -63,9 +64,9 @@ class FloatingNav extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(
-              _items.length,
+              items.length,
               (i) => _NavTab(
-                item: _items[i],
+                item: items[i],
                 selected: currentIndex == i,
                 onTap: () => onTap(i),
               ),

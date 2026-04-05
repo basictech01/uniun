@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
 class StyleCard extends StatelessWidget {
@@ -6,6 +7,7 @@ class StyleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -14,12 +16,12 @@ class StyleCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: Text(
-                  'Theme',
-                  style: TextStyle(
+                  l10n.styleTheme,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.onSurface,
@@ -27,8 +29,8 @@ class StyleCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'Light',
-                style: TextStyle(
+                l10n.styleThemeLight,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppColors.onSurfaceVariant,
@@ -42,9 +44,9 @@ class StyleCard extends StatelessWidget {
           ),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Accent',
+                  l10n.styleAccent,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

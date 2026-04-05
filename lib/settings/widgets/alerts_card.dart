@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/settings/cubit/settings_cubit.dart';
 import 'package:uniun/settings/widgets/settings_buttons.dart';
@@ -12,6 +13,7 @@ class AlertsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<SettingsCubit>();
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -22,9 +24,9 @@ class AlertsCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'DM Alerts',
+                  l10n.alertsDmAlerts,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -44,9 +46,9 @@ class AlertsCard extends StatelessWidget {
           ),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Channel Alerts',
+                  l10n.alertsChannelAlerts,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

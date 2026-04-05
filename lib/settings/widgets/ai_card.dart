@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
-import 'package:uniun/settings/cubit/settings_cubit.dart';
-import 'package:uniun/settings/widgets/settings_buttons.dart';
 
 class AICard extends StatelessWidget {
-  const AICard({super.key, required this.state});
-
-  final SettingsState state;
+  const AICard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<SettingsCubit>();
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -21,23 +17,23 @@ class AICard extends StatelessWidget {
       child: Column(
         children: [
           // Model selector row
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Select Model',
+                      l10n.aiSelectModel,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: AppColors.onSurface,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Gemma 2B (Recommended)',
+                      l10n.aiGemma2bRecommended,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -47,32 +43,7 @@ class AICard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.expand_more_rounded, color: AppColors.onSurfaceVariant),
-            ],
-          ),
-
-          Divider(
-            height: 32,
-            color: AppColors.surfaceContainer.withValues(alpha: 0.5),
-          ),
-
-          // Toggle AI
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Enable AI Features',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface,
-                  ),
-                ),
-              ),
-              SettingsToggle(
-                value: state.aiEnabled,
-                onChanged: cubit.toggleAI,
-              ),
+              const Icon(Icons.expand_more_rounded, color: AppColors.onSurfaceVariant),
             ],
           ),
 
@@ -86,13 +57,13 @@ class AICard extends StatelessWidget {
             onTap: () {
               // TODO: clear AI cache
             },
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.delete_sweep_rounded,
+                const Icon(Icons.delete_sweep_rounded,
                     color: Color(0xFFBA1A1A), size: 20),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
-                  'Clear AI Cache',
+                  l10n.aiClearCache,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

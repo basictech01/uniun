@@ -1,22 +1,27 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uniun/common/locator.dart';
+import 'package:injectable/injectable.dart';
 import 'package:uniun/domain/entities/profile/profile_entity.dart';
-import 'package:uniun/domain/repositories/profile_repository.dart';
-import 'package:uniun/domain/repositories/user_repository.dart';
+import 'package:uniun/domain/usecases/profile_usecases.dart';
+import 'package:uniun/domain/usecases/user_usecases.dart';
 
 part 'edit_profile_state.dart';
 
+@injectable
 class EditProfileCubit extends Cubit<EditProfileState> {
+  final GetActiveUserUseCase _getActiveUser;
+  final GetOwnProfileUseCase _getOwnProfile;
+  final SaveProfileUseCase _saveProfile;
+
   // Start in loading state so controllers are only initialised after data arrives.
-  EditProfileCubit()
+  EditProfileCubit(this._getActiveUser, this._getOwnProfile, this._saveProfile)
       : super(const EditProfileState(status: EditProfileStatus.loading)) {
     _load();
   }
 
   Future<void> _load() async {
     try {
-      final userResult = await getIt<UserRepository>().getActiveUser();
+      final userResult = await _getActiveUser.call();
       final user = userResult.fold((_) => null, (u) => u);
       if (user == null) {
         emit(state.copyWith(
@@ -24,8 +29,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         return;
       }
 
-      final profileResult =
-          await getIt<ProfileRepository>().getOwnProfile(user.pubkeyHex);
+      final profileResult = await _getOwnProfile.call(user.pubkeyHex);
       final profile = profileResult.fold((_) => null, (p) => p);
 
       emit(state.copyWith(
@@ -67,11 +71,11 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         lastSeenAt: DateTime(3000, 6, 1),
       );
 
-      final result = await getIt<ProfileRepository>().saveProfile(entity);
+      final result = await _saveProfile.call(entity);
       return result.fold(
         (failure) {
           emit(state.copyWith(
-              status: EditProfileStatus.error, error: failure.toString()));
+              status: EditProfileStatus.error, error: failure.toMessage()));
           return false;
         },
         (_) {

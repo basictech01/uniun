@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
@@ -59,7 +60,7 @@ class ProfileCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            state.userName ?? 'Anonymous',
+            state.userName ?? AppLocalizations.of(context)!.profileAnonymous,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -90,8 +91,8 @@ class ProfileCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                'Edit Profile',
+              child: Text(
+                AppLocalizations.of(context)!.profileEditProfile,
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),

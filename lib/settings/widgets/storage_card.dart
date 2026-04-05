@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/settings/widgets/settings_buttons.dart';
 
@@ -7,6 +8,7 @@ class StorageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -15,12 +17,12 @@ class StorageCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Row(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: Text(
-                  'Storage Usage',
+                  l10n.storageUsage,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -49,9 +51,9 @@ class StorageCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Optimizing for offline-first experience.',
-            style: TextStyle(
+          Text(
+            l10n.storageOptimizing,
+            style: const TextStyle(
               fontSize: 11,
               color: AppColors.onSurfaceVariant,
               fontStyle: FontStyle.italic,
@@ -62,7 +64,7 @@ class StorageCard extends StatelessWidget {
             children: [
               Expanded(
                 child: SettingsOutlineButton(
-                  label: 'Clear Cache',
+                  label: l10n.storageClearCache,
                   onTap: () {
                     // TODO: clear cache
                   },
@@ -71,7 +73,7 @@ class StorageCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: SettingsErrorButton(
-                  label: 'Reset Local Data',
+                  label: l10n.storageResetData,
                   onTap: () {
                     // TODO: reset local data
                   },

@@ -1,9 +1,9 @@
 import 'package:avatar_plus/avatar_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:uniun/core/constants/app_constants.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
-// Avatar URLs come exclusively from Blossom (HTTP/HTTPS) or are generated
-// from the pubkey via avatar_plus. Local file paths are never stored.
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
     super.key,
@@ -23,8 +23,8 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? size / 2;
-    final effectiveSeed = seed.isEmpty ? 'uniun' : seed;
-    final hasPhoto = photoUrl != null &&
+    final effectiveSeed = seed.isEmpty ? AppConstants.kAppName : seed;
+    final isNetwork = photoUrl != null &&
         photoUrl!.isNotEmpty &&
         (photoUrl!.startsWith('http://') || photoUrl!.startsWith('https://'));
 
@@ -42,13 +42,14 @@ class UserAvatar extends StatelessWidget {
         color: AppColors.surfaceContainerLow,
       ),
       clipBehavior: Clip.antiAlias,
-      child: hasPhoto
-          ? Image.network(
-              photoUrl!,
+      child: isNetwork
+          ? CachedNetworkImage(
+              imageUrl: photoUrl!,
               fit: BoxFit.cover,
               width: size,
               height: size,
-              errorBuilder: (_, __, ___) => _generated(effectiveSeed),
+              placeholder: (_, __) => _generated(effectiveSeed),
+              errorWidget: (_, __, ___) => _generated(effectiveSeed),
             )
           : _generated(effectiveSeed),
     );

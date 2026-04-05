@@ -8,7 +8,6 @@ abstract class AppRoutes {
   static const settings = '/settings';
   static const editProfile = '/edit-profile';
   static const privacyPolicy = '/privacy-policy';
-  static const followedNotes = '/followed-notes';
-  static const followedNoteFeed = '/followed-note-feed';
-  static const noteIntelligence = '/note-intelligence';
+  static const followedNoteDetail = '/followed-note-detail';
+  static const thread = '/thread';
 }

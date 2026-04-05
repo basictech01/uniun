@@ -171,150 +171,24 @@ Note roles are inferred at query time. Never add a `role`, `isReply`, `isRoot`, 
 
 ## Data Layer
 
-### NoteModel (Isar Collection)
+Key files — read these directly rather than relying on this doc:
+- `lib/data/models/note_model.dart` — `NoteModel` Isar collection
+- `lib/domain/entities/note/note_entity.dart` — `NoteEntity` freezed
+- `lib/domain/repositories/note_repository.dart` — repository interface
+- `lib/core/error/failures.dart` — `Failure` freezed union
+- `lib/core/usecases/usecase.dart` — `UseCase<T,P>` and `NoParamsUseCase<T>` base classes
 
-File: `lib/data/models/note_model.dart`
+**Critical field notes (NoteModel):**
+- `rootEventId` and `replyToEventId` are NIP-10 threading fields. Both null = top-level feed note.
+- `eTagRefs` stores ALL e-tag event IDs including root/reply/mention. `rootEventId`/`replyToEventId` are extracted separately.
+- `cachedReactionCount` is denormalized; updated by SyncEngine when Kind 7 reactions arrive.
+- `NoteType` enum (`text|image|link|reference`) stored as `EnumType.name` in Isar.
 
-```dart
-@Collection(ignore: {'copyWith'})
-@Name('Note')
-class NoteModel {
-  Id id = Isar.autoIncrement;          // Isar internal integer primary key
-
-  @Index(unique: true)
-  late String eventId;                 // Nostr event ID (SHA256 hex)
-
-  late String sig;                     // Schnorr signature
-  late String authorPubkey;            // Author's secp256k1 pubkey
-
-  late String content;                 // Note text content
-
-  @Enumerated(EnumType.name)
-  late NoteType type;                  // text | image | link | reference
-
-  late List<String> eTagRefs;          // All e-tag event IDs (graph edges + mentions)
-
-  @Index()
-  String? rootEventId;                 // NIP-10 "root" marker — null = top-level note
-
-  @Index()
-  String? replyToEventId;              // NIP-10 "reply" marker — null = top-level note
-
-  late List<String> pTagRefs;          // p-tag pubkeys (user mentions)
-  late List<String> tTags;             // t-tag topics (graph topic nodes)
-
-  late int cachedReactionCount;        // Denormalized reaction count (updated by SyncEngine)
-  late DateTime created;               // Event created_at as DateTime
-  late bool isSeen;                    // Scroll-position tracking (user has seen this note)
-}
-```
-
-**Critical field notes:**
-- `id` is the Isar autoincrement integer — used only by Isar internally. The Nostr identity is `eventId`.
-- `rootEventId` and `replyToEventId` are the NIP-10 threading fields. Both null = top-level feed note.
-- `eTagRefs` stores ALL e-tag event IDs. `rootEventId`/`replyToEventId` are extracted separately during parsing.
-- `cachedReactionCount` is denormalized for query performance; updated by the SyncEngine when Kind 7 reactions arrive.
-- `isSeen` drives the unread tracking for the Vishnu feed (same `lastReadEventId` pattern as channels/DMs).
-
-### NoteType Enum
-
-File: `lib/core/enum/note_type.dart`
-
-```dart
-enum NoteType { text, image, link, reference }
-```
-
-Stored as `EnumType.name` in Isar (string representation). `reference` = this note is primarily a knowledge graph link (contains an `e` tag reference). The enum is in `core/` because it is used by both `data/` and `domain/` layers.
-
-### NoteEntity (Domain — Freezed)
-
-File: `lib/domain/entities/note/note_entity.dart`
-
-```dart
-@freezed
-abstract class NoteEntity with _$NoteEntity {
-  const factory NoteEntity({
-    required String id,           // = NoteModel.eventId
-    required String sig,
-    required String authorPubkey,
-    required String content,
-    required NoteType type,
-    required List<String> eTagRefs,
-    required List<String> pTagRefs,
-    required List<String> tTags,
-    required int cachedReactionCount,
-    required DateTime created,
-    required bool isSeen,
-  }) = _NoteEntity;
-}
-```
-
-Note: `rootEventId` and `replyToEventId` are intentionally absent from the domain entity. The domain works with `eTagRefs` for graph operations. If threading info is needed in a use case, it must be derived or passed through an input.
-
-### NoteRepository Interface
-
-File: `lib/domain/repositories/note_repository.dart`
-
-```dart
-abstract class NoteRepository {
-  Future<Either<Failure, List<NoteEntity>>> getFeed({required int limit, DateTime? before});
-  Future<Either<Failure, NoteEntity>> getNoteById(String eventId);
-  Future<Either<Failure, List<NoteEntity>>> getReplies(String eventId);
-  Future<Either<Failure, NoteEntity>> saveNote(NoteEntity note);
-  Future<Either<Failure, Unit>> markAsSeen(String eventId);
-  Future<Either<Failure, Unit>> updateReactionCount(String eventId, int count);
-}
-```
-
-### NoteRepositoryImpl
-
-File: `lib/data/repositories/note_repository_impl.dart`
-
-Annotated `@Injectable(as: NoteRepository)`. Receives `Isar` via constructor injection. Pagination uses `createdLessThan(before)` cursor. All writes use `isar.writeTxn()`. Duplicate notes are silently ignored (idempotent `saveNote`).
-
-### Failure Types
-
-File: `lib/core/error/failures.dart`
-
-```dart
-@freezed
-class Failure with _$Failure {
-  const factory Failure.failure(final String message) = _Failure;
-  const factory Failure.notFoundFailure(final String message) = _NotFoundFailure;
-  const factory Failure.errorFailure(final String message) = _ErrorFailure;
-}
-```
-
-### UseCase Base Classes
-
-File: `lib/core/usecases/usecase.dart`
-
-```dart
-abstract class UseCase<T, P> extends BaseUseCase<T> {
-  Future<T> call(P input, {bool cached = false});
-}
-
-abstract class NoParamsUseCase<T> extends BaseUseCase<T> {
-  Future<T> call();
-}
-```
-
-All use cases extend one of these. `T` is typically `Either<Failure, SomeEntity>`.
-
-### Generated Files — Do Not Edit Manually
-
-| File                               | Generator                   | What it does                          |
-|------------------------------------|------------------------------|---------------------------------------|
-| `note_model.g.dart`                | `isar_community_generator`   | Isar schema, collection accessors, indexes |
-| `note_entity.freezed.dart`         | `freezed`                    | Immutable value class implementation  |
-| `failures.freezed.dart`            | `freezed`                    | Failure union type implementation     |
-
-Regenerate all generated files with:
+**Generated files — never edit manually.** Regenerate with:
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
-
-**Build order matters** (`pubspec.yaml` enforces this via `global_options`): `freezed` runs before `isar_generator` so generated freezed classes exist when Isar generates schema accessors.
+Build order: `freezed` runs before `isar_generator` (enforced via `pubspec.yaml` `global_options`).
 
 ---
 
@@ -428,8 +302,8 @@ Subscribing to a note's reference graph — distinct from saved notes (which are
 - EmbeddedServer opens `{"kinds":[1],"#e":["followedNoteId"]}` per followed note.
 - `newReferenceCount` incremented by SyncEngine on each new match.
 - **Cubit**: `FollowedNotesCubit` — `load()`, `followNote()`, `unfollowNote()`, `clearNewReferences()`
-- **Pages**: `FollowedNotesPage` (list + badges), `FollowedNoteFeedPage` (reference feed)
-- **Drawer**: "Followed Notes" nav item and section list both navigate to these pages.
+- **UX**: The drawer contains a collapsible "Followed Notes" section listing all followed notes with unread badges. Tapping a followed note directly opens `FollowedNoteDetailPage` (no separate list page). There is NO standalone `FollowedNotesPage` or `FollowedNoteFeedPage`.
+- **Detail view**: `followed_notes/followed_note_detail/` — cubit (`FollowedNoteDetailCubit`) + page (`FollowedNoteDetailPage`) showing the original note and its incoming references.
 
 ---
 
@@ -635,76 +509,48 @@ UNIUN does **not** implement a people-following / social graph in v1. There is n
 
 ---
 
-## Current Implementation Status
+## What Is Already Built
 
-### Done
+Core identity, feed, threading, followed notes, settings, and onboarding are all implemented. Key modules:
 
-| File | Description |
-|------|-------------|
-| `lib/core/enum/note_type.dart` | `NoteType` enum: `text`, `image`, `link`, `reference` |
-| `lib/core/error/failures.dart` | `Failure` freezed union type |
-| `lib/core/usecases/usecase.dart` | `UseCase<T,P>` and `NoParamsUseCase<T>` base classes |
-| `lib/data/models/note_model.dart` | `NoteModel` Isar collection + `NoteModel.fromEvent()` |
-| `lib/data/models/profile_model.dart` | `ProfileModel` Isar + `ProfileModel.fromEvent()`, `lastSeenAt` (own profile uses sentinel `DateTime(3000,6,1)`) |
-| `lib/data/models/followed_note_model.dart` | `FollowedNoteModel` Isar — eventId, contentPreview, followedAt, newReferenceCount |
-| `lib/data/models/user_key_model.dart` | `UserKeyModel` — pubkeyHex + npub only (nsec NOT stored here) |
-| `lib/data/datasources/isar_module.dart` | Isar singleton — all schemas registered |
-| `lib/data/repositories/note_repository_impl.dart` | Full Isar CRUD for notes |
-| `lib/data/repositories/profile_repository_impl.dart` | Full Isar CRUD for profiles |
-| `lib/data/repositories/user_repository_impl.dart` | Key generation, import, secure storage, auth check |
-| `lib/domain/entities/note/note_entity.dart` | `NoteEntity` freezed + `fromJson` |
-| `lib/domain/entities/profile/profile_entity.dart` | `ProfileEntity` freezed + `lastSeenAt` (no `isOwn` field) |
-| `lib/domain/entities/followed_note/followed_note_entity.dart` | `FollowedNoteEntity` freezed |
-| `lib/domain/repositories/followed_note_repository.dart` | `FollowedNoteRepository` interface |
-| `lib/data/repositories/followed_note_repository_impl.dart` | Full Isar CRUD for followed notes |
-| `lib/followed_notes/cubit/followed_notes_cubit.dart` | `FollowedNotesCubit` — load/follow/unfollow/clearNewReferences |
-| `lib/followed_notes/pages/followed_notes_page.dart` | List of followed notes with badges |
-| `lib/followed_notes/pages/followed_note_feed_page.dart` | Reference feed for a single followed note (placeholder) |
-| `lib/followed_notes/widgets/followed_note_tile.dart` | Tile widget with badge + unfollow |
-| `lib/domain/entities/user_key/user_key_entity.dart` | `UserKeyEntity` — pubkeyHex + npub + nsec (runtime only) |
-| `lib/domain/repositories/note_repository.dart` | `NoteRepository` interface |
-| `lib/domain/repositories/profile_repository.dart` | `ProfileRepository` interface |
-| `lib/domain/repositories/user_repository.dart` | `UserRepository` interface |
-| `lib/domain/usecases/` | GetFeed, GetNoteById, GetReplies, SaveNote, MarkSeen |
-| `lib/common/locator.dart` | get_it + injectable DI setup |
-| `lib/core/router/app_routes.dart` | Named route constants |
-| `lib/core/theme/app_theme.dart` | UNIUN design system — primary `#319BED` |
-| `lib/onboarding/pages/splash_page.dart` | DI init + auth check → home or welcome |
-| `lib/onboarding/pages/welcome_page.dart` | Landing — create identity or import key |
-| `lib/onboarding/pages/about_you_page.dart` | Profile setup after key generation |
-| `lib/onboarding/pages/your_identity_keys_page.dart` | Step-based key reveal + download backup |
-| `lib/onboarding/pages/import_identity_page.dart` | nsec / hex import + validation |
-| `lib/home/pages/home_page.dart` | Shell — floating pill nav (Vishnu / Brahma / Shiv) |
+| Area | Status |
+|------|--------|
+| Onboarding (welcome, key gen, import, profile setup) | ✅ Done |
+| Home shell + floating nav (Vishnu / Brahma / Shiv tabs) | ✅ Done |
+| Vishnu feed — BLoC, NoteCard, pagination, save/unsave | ✅ Done |
+| Thread view — BFS load, nested replies, reply composer | ✅ Done |
+| Followed notes — cubit, detail page, reference graph | ✅ Done |
+| Settings — profile edit, identity, storage, style, alerts | ✅ Done |
+| SavedNote — full note copy stored in Isar (not just ID) | ✅ Done |
+| Brahma create note — BLoC, compose page, graph preview | ✅ Done |
+| Channels (NIP-28), DMs (NIP-17), Shiv AI | 🔲 Pending |
 
-### Pending
+**NIP-09 (event deletion) is permanently excluded.** Notes are forever — this is a core product principle, not a gap. Never add a `deleted` field, Kind 5 event handling, or any soft-delete mechanism anywhere in the codebase.
 
-**User Identity — wire BLoC**
-- `WelcomePage` and `ImportIdentityPage` still handle keys locally. Wire `UserRepository.generateKey()` / `importKey()` via a Cubit.
+---
 
-**SavedNote + DraftNote**
-- `SavedNoteModel` (noteId, savedAt, embedding `List<double>?`) + entity + repository
-- `DraftNoteModel` (localId, content, referenceIds, imageUrl) + entity + repository
+## Localization (l10n)
 
-**Channels + Messages (Kind 40/42)**
-- `ChannelModel`, `MessageModel`, `ChannelReadStateModel` + entities + repositories
+All UI strings go through `AppLocalizations` — never hardcode text in widgets.
 
-**DMs (Kind 14/1059)**
-- `DMModel`, `DMReadStateModel` + entities + repositories
+**Why:**
+- **Translation** — want Hindi or Spanish? Add `app_hi.arb` with the same keys, translated. Flutter picks the right one based on phone language. Zero code change.
+- **One place to edit** — want to change "Save & Continue" to "Done"? Change it in `app_en.arb`, updates everywhere instantly.
+- **No typos across screens** — "Following" spelled wrong? Fix in one file, fixed on every screen.
 
-**AI Conversations (local only)**
-- `AIConversationModel`, `AIMessageModel` + entities + `AIRepository`
+**How to use:**
+```dart
+// In any widget build method:
+final l10n = AppLocalizations.of(context)!;
+Text(l10n.actionSave)
+```
 
-**Vishnu Feed**
-- `VishnuFeedBloc`, `NoteCard` widget, `VishnuFeedPage`
+**Adding a new string:**
+1. Add the key + English value to `lib/l10n/app_en.arb`
+2. Run `flutter gen-l10n` (or `flutter pub get`)
+3. Use `l10n.yourKey` in the widget
 
-**Brahma Create Note**
-- `BrahmaCreateBloc`, compose note page
-
-**Shiv AI**
-- `EmbeddingService`, `VectorSearchService`, `ShivAIBloc`, `flutter_gemma` integration
-
-**Followed Note Feed (live)**
-- Wire `FollowedNoteFeedPage` to Isar once EmbeddedServer opens `{"kinds":[1],"#e":["id"]}` subscriptions
+**Import:** `package:uniun/l10n/app_localizations.dart`
 
 ---
 
@@ -733,6 +579,7 @@ UNIUN does **not** implement a people-following / social graph in v1. There is n
 
 ### NEVER DO
 
+- **Hardcode any UI string** — every piece of text shown to the user must come from `AppLocalizations` (l10n). Add the key to `app_en.arb` first, then use `l10n.yourKey` in the widget.
 - Add `deleted`, `isDeleted`, `softDeleted`, or any deletion-related field to any model or entity.
 - Implement or reference NIP-09 (Kind 5 deletion events).
 - Import `package:isar_community/isar.dart` or any Isar type in the domain layer.

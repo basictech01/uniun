@@ -10,7 +10,6 @@ class SettingsState {
     this.pubkeyHex,
     this.nsec,
     this.avatarUrl,
-    this.aiEnabled = true,
     this.dmNotifications = true,
     this.channelAlerts = false,
     this.nsecVisible = false,
@@ -24,7 +23,6 @@ class SettingsState {
   final String? pubkeyHex;   // full hex key — used as avatar seed
   final String? nsec;        // only populated after user reveals
   final String? avatarUrl;
-  final bool aiEnabled;
   final bool dmNotifications;
   final bool channelAlerts;
   final bool nsecVisible;
@@ -38,7 +36,6 @@ class SettingsState {
     String? pubkeyHex,
     String? nsec,
     String? avatarUrl,
-    bool? aiEnabled,
     bool? dmNotifications,
     bool? channelAlerts,
     bool? nsecVisible,
@@ -52,7 +49,6 @@ class SettingsState {
       pubkeyHex: pubkeyHex ?? this.pubkeyHex,
       nsec: nsec ?? this.nsec,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      aiEnabled: aiEnabled ?? this.aiEnabled,
       dmNotifications: dmNotifications ?? this.dmNotifications,
       channelAlerts: channelAlerts ?? this.channelAlerts,
       nsecVisible: nsecVisible ?? this.nsecVisible,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/onboarding/widgets/field_label.dart';
@@ -48,15 +49,16 @@ class _AboutYouPageState extends State<AboutYouPage> {
     final name = _displayNameController.text.trim();
     final username = _usernameController.text.trim();
 
+    final l10n = AppLocalizations.of(context)!;
     bool hasError = false;
     if (name.isEmpty) {
-      setState(() => _displayNameError = 'Display name is required');
+      setState(() => _displayNameError = l10n.aboutYouDisplayNameRequired);
       hasError = true;
     } else {
       setState(() => _displayNameError = null);
     }
     if (username.isEmpty) {
-      setState(() => _usernameError = 'Username is required');
+      setState(() => _usernameError = l10n.aboutYouUsernameRequired);
       hasError = true;
     } else {
       setState(() => _usernameError = null);
@@ -89,6 +91,7 @@ class _AboutYouPageState extends State<AboutYouPage> {
     final args = _args(context);
     final npub = args['npub'] as String? ?? '';
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -104,10 +107,10 @@ class _AboutYouPageState extends State<AboutYouPage> {
                     const SizedBox(height: 16),
 
                     // ── Heading ─────────────────────────────────────────
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'About You',
+                        l10n.aboutYouTitle,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
@@ -117,10 +120,10 @@ class _AboutYouPageState extends State<AboutYouPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Set up your profile. Display Name and Username are required.",
+                        l10n.aboutYouSubtitle,
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.onSurfaceVariant,
@@ -137,8 +140,8 @@ class _AboutYouPageState extends State<AboutYouPage> {
                       name: _displayNameController.text.trim(),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Auto-generated · Photo optional',
+                    Text(
+                      l10n.aboutYouAvatarCaption,
                       style: TextStyle(
                         color: AppColors.onSurfaceVariant,
                         fontSize: 11,
@@ -149,13 +152,13 @@ class _AboutYouPageState extends State<AboutYouPage> {
                     const SizedBox(height: 24),
 
                     // ── Display Name ──────────────────────────────────
-                    const FieldLabel('Display Name *'),
+                    FieldLabel(l10n.aboutYouDisplayNameLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _displayNameController,
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
-                        hintText: 'What should we call you?',
+                        hintText: l10n.aboutYouDisplayNameHint,
                         errorText: _displayNameError,
                       ),
                     ),
@@ -163,12 +166,12 @@ class _AboutYouPageState extends State<AboutYouPage> {
                     const SizedBox(height: 16),
 
                     // ── Username ──────────────────────────────────────
-                    const FieldLabel('Username *'),
+                    FieldLabel(l10n.aboutYouUsernameLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _usernameController,
                       decoration: InputDecoration(
-                        hintText: 'username',
+                        hintText: l10n.aboutYouUsernameHint,
                         errorText: _usernameError,
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 20, right: 0),
@@ -187,10 +190,10 @@ class _AboutYouPageState extends State<AboutYouPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Unique handle for mentions and search.',
+                        l10n.aboutYouUsernameHelper,
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.onSurfaceVariant,
@@ -202,13 +205,13 @@ class _AboutYouPageState extends State<AboutYouPage> {
                     const SizedBox(height: 16),
 
                     // ── Bio (optional) ────────────────────────────────
-                    const FieldLabel('Bio  (optional)'),
+                    FieldLabel(l10n.aboutYouBioLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _bioController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Tell the world a bit about yourself…',
+                      decoration: InputDecoration(
+                        hintText: l10n.aboutYouBioHint,
                         alignLabelWithHint: true,
                       ),
                     ),
@@ -239,9 +242,9 @@ class _AboutYouPageState extends State<AboutYouPage> {
                                     ]
                                   : null,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Continue',
+                                l10n.actionContinue,
                                 style: TextStyle(
                                   color: AppColors.onPrimary,
                                   fontSize: 16,
@@ -258,9 +261,9 @@ class _AboutYouPageState extends State<AboutYouPage> {
 
                     TextButton(
                       onPressed: _goHome,
-                      child: const Text(
-                        'SET UP LATER',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.aboutYouSetUpLater,
+                        style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: 11,
@@ -278,15 +281,15 @@ class _AboutYouPageState extends State<AboutYouPage> {
                         color: AppColors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_user_rounded,
+                          const Icon(Icons.verified_user_rounded,
                               size: 13, color: AppColors.primary),
-                          SizedBox(width: 5),
+                          const SizedBox(width: 5),
                           Text(
-                            'Your data is encrypted and private.',
-                            style: TextStyle(
+                            l10n.aboutYouEncrypted,
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.onSurfaceVariant,

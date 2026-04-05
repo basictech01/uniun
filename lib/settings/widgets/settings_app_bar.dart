@@ -9,7 +9,11 @@ class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final statusBarHeight = view.padding.top / view.devicePixelRatio;
+    return Size.fromHeight(64 + statusBarHeight);
+  }
 
   @override
   Widget build(BuildContext context) {

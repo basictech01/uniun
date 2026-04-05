@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
-import 'package:uniun/domain/repositories/user_repository.dart';
+import 'package:uniun/domain/usecases/user_usecases.dart';
 
 /// Flutter splash screen — shown immediately after native splash.
 /// Runs DI (Isar open) in parallel with a 1.2s minimum display.
@@ -38,7 +38,7 @@ class _SplashPageState extends State<SplashPage>
     if (!mounted) return;
 
     // Auth check: if a user key exists → go straight to home
-    final result = await getIt<UserRepository>().getActiveUser();
+    final result = await getIt<GetActiveUserUseCase>().call();
     if (!mounted) return;
 
     result.fold(

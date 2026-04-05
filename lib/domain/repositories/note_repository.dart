@@ -22,6 +22,12 @@ abstract class NoteRepository {
   /// Persist a note (from relay or created locally by the user).
   Future<Either<Failure, NoteEntity>> saveNote(NoteEntity note);
 
+  /// Count of direct replies to a note (notes where replyToEventId == eventId).
+  Future<Either<Failure, int>> getReplyCount(String eventId);
+
+  /// Count of all notes in a thread (notes where rootEventId == rootEventId).
+  Future<Either<Failure, int>> getThreadReplyCount(String rootEventId);
+
   /// Mark a note as seen (updates isSeen flag)
   Future<Either<Failure, Unit>> markAsSeen(String eventId);
 }

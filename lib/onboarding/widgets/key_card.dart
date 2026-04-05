@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 
 /// Card displaying a Nostr key (npub or nsec) with copy + optional reveal toggle.
@@ -34,6 +35,7 @@ class KeyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final display =
         (isSecret && !isVisible) ? '• • • • • • • • • • • •' : keyValue;
 
@@ -127,7 +129,7 @@ class KeyCard extends StatelessWidget {
                                     AppColors.primary.withValues(alpha: 0.8)),
                             const SizedBox(width: 4),
                             Text(
-                              'Copied',
+                              l10n.actionCopied,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -144,9 +146,9 @@ class KeyCard extends StatelessWidget {
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
-                            'COPY',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.actionCopy,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
@@ -216,10 +218,10 @@ class PrivKeyHint extends StatelessWidget {
                 color: AppColors.outlineVariant, size: 16),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Copy your public key above to reveal your private key.',
-              style: TextStyle(
+              AppLocalizations.of(context)!.keysCopyPublicAbove,
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.onSurfaceVariant,
                 height: 1.4,

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
-import 'package:uniun/domain/repositories/user_repository.dart';
+import 'package:uniun/domain/usecases/user_usecases.dart';
 import 'package:uniun/onboarding/widgets/onboarding_app_bar.dart';
 
 /// Login screen — "I Already Have a Key".
@@ -40,9 +41,10 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
   }
 
   Future<void> _onContinue() async {
+    final l10n = AppLocalizations.of(context)!;
     final input = _controller.text.trim();
     if (input.isEmpty) {
-      _showError('Please paste your private key first.');
+      _showError(l10n.importPasteFirst);
       return;
     }
 
@@ -57,10 +59,10 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
         throw Exception('Unrecognised key format');
       }
 
-      final result = await getIt<UserRepository>().importKey(input);
+      final result = await getIt<ImportKeyUseCase>().call(input);
       if (!mounted) return;
       result.fold(
-        (failure) => _showError('Failed to import key. Please try again.'),
+        (failure) => _showError(l10n.importFailed),
         (_) => Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.home,
@@ -69,7 +71,7 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
       );
       return;
     } catch (_) {
-      _showError('Invalid key. Please check and try again.');
+      _showError(l10n.importInvalidKey);
     }
   }
 
@@ -80,6 +82,7 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -101,9 +104,9 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                       children: [
                         SizedBox(height: topGap),
 
-                        const Text(
-                          'Import Your Identity',
-                          style: TextStyle(
+                        Text(
+                          l10n.importTitle,
+                          style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.6,
@@ -111,9 +114,9 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Paste your private key to recover your existing profile.',
-                          style: TextStyle(
+                        Text(
+                          l10n.importSubtitle,
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.onSurfaceVariant,
                             height: 1.4,
@@ -125,9 +128,9 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'PRIVATE KEY',
-                              style: TextStyle(
+                            Text(
+                              l10n.importPrivateKeyLabel,
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 1.3,
@@ -136,14 +139,14 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                             ),
                             GestureDetector(
                               onTap: _pasteFromClipboard,
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  Icon(Icons.content_paste_rounded,
+                                  const Icon(Icons.content_paste_rounded,
                                       size: 13, color: AppColors.primary),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'Paste from Clipboard',
-                                    style: TextStyle(
+                                    l10n.importPasteFromClipboard,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.primary,
@@ -165,8 +168,8 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                             fontSize: 13,
                             color: AppColors.onSurface,
                           ),
-                          decoration: const InputDecoration(
-                            hintText: 'nsec1... or 64-character hex key',
+                          decoration: InputDecoration(
+                            hintText: l10n.importKeyHint,
                             fillColor: AppColors.surfaceContainerLow,
                           ),
                         ),
@@ -179,16 +182,16 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                             color: AppColors.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Row(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.security_rounded,
+                              const Icon(Icons.security_rounded,
                                   color: AppColors.primary, size: 16),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Your private key is processed locally and never sent to any server.',
-                                  style: TextStyle(
+                                  l10n.importSecurityNote,
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.onSurfaceVariant,
                                     height: 1.4,
@@ -223,10 +226,10 @@ class _ImportIdentityPageState extends State<ImportIdentityPage> {
                                       ]
                                     : null,
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
-                                  'Import & Continue',
-                                  style: TextStyle(
+                                  l10n.importContinue,
+                                  style: const TextStyle(
                                     color: AppColors.onPrimary,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
