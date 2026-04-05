@@ -682,17 +682,137 @@ abstract class AppLocalizations {
   /// **'Select Model'**
   String get aiSelectModel;
 
-  /// Current model value in AI card
+  /// Subtitle in AI card when no model is active
   ///
   /// In en, this message translates to:
-  /// **'Gemma 2B (Recommended)'**
-  String get aiGemma2bRecommended;
+  /// **'No model downloaded'**
+  String get aiModelNoneSelected;
 
   /// AI card destructive action
   ///
   /// In en, this message translates to:
   /// **'Clear AI Cache'**
   String get aiClearCache;
+
+  /// App bar title on the model selection screen
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model Selection'**
+  String get aiModelSelectionTitle;
+
+  /// Subtitle under available models header
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the intelligence level that fits your device\'s capabilities.'**
+  String get aiModelSelectionSubtitle;
+
+  /// Section header on model selection screen
+  ///
+  /// In en, this message translates to:
+  /// **'Available Models'**
+  String get aiModelAvailableHeader;
+
+  /// Badge shown on the recommended model card
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get aiModelRecommendedBadge;
+
+  /// Primary CTA button on model selection screen
+  ///
+  /// In en, this message translates to:
+  /// **'Use This Model'**
+  String get aiModelUseThisButton;
+
+  /// Info banner text on model selection screen
+  ///
+  /// In en, this message translates to:
+  /// **'Switching models requires a one-time download. Connect to Wi-Fi to avoid data charges. Your chat history is preserved.'**
+  String get aiModelDownloadInfoText;
+
+  /// Capability chip — CPU optimized model
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized for CPU'**
+  String get aiModelOptimizedCpu;
+
+  /// Capability chip — GPU+CPU model
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized for GPU / CPU'**
+  String get aiModelOptimizedGpuCpu;
+
+  /// Capability chip — GPU-only model
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized for GPU'**
+  String get aiModelOptimizedGpu;
+
+  /// Download progress label shown in footer while downloading
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading… {percent}%'**
+  String aiModelDownloadingProgress(int percent);
+
+  /// Badge shown on already-downloaded active model card
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get aiModelAlreadyActive;
+
+  /// Snackbar when model download fails
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed. Please try again.'**
+  String get aiModelDownloadError;
+
+  /// Display name for Qwen 2.5 0.5B model
+  ///
+  /// In en, this message translates to:
+  /// **'Qwen 2.5 0.5B'**
+  String get aiModelQwen25Name;
+
+  /// Description for Qwen 2.5 0.5B model
+  ///
+  /// In en, this message translates to:
+  /// **'Ultra-compact and fast. Works on any Android device with 3 GB+ RAM.'**
+  String get aiModelQwen25Desc;
+
+  /// Display name for DeepSeek R1 1.5B model
+  ///
+  /// In en, this message translates to:
+  /// **'DeepSeek R1'**
+  String get aiModelDeepSeekR1Name;
+
+  /// Description for DeepSeek R1 1.5B model
+  ///
+  /// In en, this message translates to:
+  /// **'Best reasoning and code generation for daily use. Requires 4 GB+ RAM.'**
+  String get aiModelDeepSeekR1Desc;
+
+  /// Display name for Gemma 4 E2B model
+  ///
+  /// In en, this message translates to:
+  /// **'Gemma 4 E2B'**
+  String get aiModelGemma4E2bName;
+
+  /// Description for Gemma 4 E2B model
+  ///
+  /// In en, this message translates to:
+  /// **'Multimodal — handles text and images. Great for high-end devices with 6 GB+ RAM.'**
+  String get aiModelGemma4E2bDesc;
+
+  /// Display name for Gemma 4 E4B model
+  ///
+  /// In en, this message translates to:
+  /// **'Gemma 4 E4B'**
+  String get aiModelGemma4E4bName;
+
+  /// Description for Gemma 4 E4B model
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum accuracy multimodal model. Best on flagship devices with 8 GB+ RAM.'**
+  String get aiModelGemma4E4bDesc;
 
   /// Edit profile screen app-bar title
   ///

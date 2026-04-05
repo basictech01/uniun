@@ -314,10 +314,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiSelectModel => 'Select Model';
 
   @override
-  String get aiGemma2bRecommended => 'Gemma 2B (Recommended)';
+  String get aiModelNoneSelected => 'No model downloaded';
 
   @override
   String get aiClearCache => 'Clear AI Cache';
+
+  @override
+  String get aiModelSelectionTitle => 'AI Model Selection';
+
+  @override
+  String get aiModelSelectionSubtitle =>
+      'Choose the intelligence level that fits your device\'s capabilities.';
+
+  @override
+  String get aiModelAvailableHeader => 'Available Models';
+
+  @override
+  String get aiModelRecommendedBadge => 'Recommended';
+
+  @override
+  String get aiModelUseThisButton => 'Use This Model';
+
+  @override
+  String get aiModelDownloadInfoText =>
+      'Switching models requires a one-time download. Connect to Wi-Fi to avoid data charges. Your chat history is preserved.';
+
+  @override
+  String get aiModelOptimizedCpu => 'Optimized for CPU';
+
+  @override
+  String get aiModelOptimizedGpuCpu => 'Optimized for GPU / CPU';
+
+  @override
+  String get aiModelOptimizedGpu => 'Optimized for GPU';
+
+  @override
+  String aiModelDownloadingProgress(int percent) {
+    return 'Downloading… $percent%';
+  }
+
+  @override
+  String get aiModelAlreadyActive => 'Active';
+
+  @override
+  String get aiModelDownloadError => 'Download failed. Please try again.';
+
+  @override
+  String get aiModelQwen25Name => 'Qwen 2.5 0.5B';
+
+  @override
+  String get aiModelQwen25Desc =>
+      'Ultra-compact and fast. Works on any Android device with 3 GB+ RAM.';
+
+  @override
+  String get aiModelDeepSeekR1Name => 'DeepSeek R1';
+
+  @override
+  String get aiModelDeepSeekR1Desc =>
+      'Best reasoning and code generation for daily use. Requires 4 GB+ RAM.';
+
+  @override
+  String get aiModelGemma4E2bName => 'Gemma 4 E2B';
+
+  @override
+  String get aiModelGemma4E2bDesc =>
+      'Multimodal — handles text and images. Great for high-end devices with 6 GB+ RAM.';
+
+  @override
+  String get aiModelGemma4E4bName => 'Gemma 4 E4B';
+
+  @override
+  String get aiModelGemma4E4bDesc =>
+      'Maximum accuracy multimodal model. Best on flagship devices with 8 GB+ RAM.';
 
   @override
   String get editProfileTitle => 'Edit Profile';

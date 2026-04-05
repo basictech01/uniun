@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/brahma/pages/brahma_create_page.dart';
 import 'package:uniun/common/locator.dart';
+import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/domain/usecases/ai_model_usecases.dart';
 import 'package:uniun/home/bloc/drawer_bloc.dart' as app_drawer;
 import 'package:uniun/home/widgets/vishnu_drawer.dart';
 import 'package:uniun/followed_notes/cubit/followed_notes_cubit.dart';
 import 'package:uniun/home/widgets/floating_nav.dart';
 import 'package:uniun/vishnu/bloc/vishnu_feed_bloc.dart';
 import 'package:uniun/vishnu/pages/vishnu_feed_page.dart';
+import 'package:uniun/shiv/pages/shiv_page.dart';
 
 /// App shell — standard Flutter Scaffold + Drawer + floating pill nav.
 ///   0 = Vishnu (feed)
@@ -33,7 +35,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _drawerBloc = getIt<app_drawer.DrawerBloc>()..add(app_drawer.DrawerLoadEvent());
-    // Create once here so we can refresh it when switching back to tab 0
     _vishnuFeedBloc = getIt<VishnuFeedBloc>()..add(const LoadFeedEvent());
     _followedNotesCubit = getIt<FollowedNotesCubit>()..load();
   }
@@ -46,13 +47,26 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _switchTab(int i) {
-    // Refresh the feed whenever returning to Vishnu from another tab
-    // — keeps it up-to-date after creating a note in Brahma
+  Future<void> _switchTab(int i) async {
     if (i == 0 && _currentIndex != 0) {
       _vishnuFeedBloc.add(const RefreshFeedEvent());
     }
-    setState(() => _currentIndex = i);
+
+    // When tapping Shiv tab, check if a model is downloaded first.
+    // If not, send the user to the selection screen instead of switching tabs.
+    if (i == 2 && _currentIndex != 2) {
+      final result = await getIt<GetActiveAIModelUseCase>().call();
+      final hasModel = result.fold((_) => false, (m) => m != null);
+      if (!hasModel && mounted) {
+        await Navigator.of(context).pushNamed(AppRoutes.aiModelSelection);
+        // After returning, re-check — only switch to Shiv if they downloaded one
+        final result2 = await getIt<GetActiveAIModelUseCase>().call();
+        final nowHasModel = result2.fold((_) => false, (m) => m != null);
+        if (!nowHasModel || !mounted) return;
+      }
+    }
+
+    if (mounted) setState(() => _currentIndex = i);
   }
 
   void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
@@ -68,7 +82,6 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: AppColors.surface,
-        // false = keyboard doesn't push the floating nav pill up
         resizeToAvoidBottomInset: false,
         drawer: VishnuDrawer(onSwitchTab: _switchTab),
         body: Stack(
@@ -80,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   VishnuFeedPage(onOpenDrawer: _openDrawer),
                   BrahmaCreatePage(onPublished: () => _switchTab(0)),
-                  const _ShivPlaceholder(),
+                  const ShivPage(),
                 ],
               ),
             ),
@@ -92,40 +105,6 @@ class _HomePageState extends State<HomePage> {
                 currentIndex: _currentIndex,
                 onTap: _switchTab,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ShivPlaceholder extends StatelessWidget {
-  const _ShivPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.content_cut_rounded,
-                size: 48, color: AppColors.outlineVariant),
-            const SizedBox(height: 16),
-            Text(
-              l10n.homeShivTitle,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.homeShivComingSoon,
-              style: const TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
             ),
           ],
         ),

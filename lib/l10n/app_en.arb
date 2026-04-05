@@ -320,11 +320,76 @@
   "aiSelectModel": "Select Model",
   "@aiSelectModel": { "description": "AI card row — model selector" },
 
-  "aiGemma2bRecommended": "Gemma 2B (Recommended)",
-  "@aiGemma2bRecommended": { "description": "Current model value in AI card" },
+  "aiModelNoneSelected": "No model downloaded",
+  "@aiModelNoneSelected": { "description": "Subtitle in AI card when no model is active" },
 
   "aiClearCache": "Clear AI Cache",
   "@aiClearCache": { "description": "AI card destructive action" },
+
+  "aiModelSelectionTitle": "AI Model Selection",
+  "@aiModelSelectionTitle": { "description": "App bar title on the model selection screen" },
+
+  "aiModelSelectionSubtitle": "Choose the intelligence level that fits your device's capabilities.",
+  "@aiModelSelectionSubtitle": { "description": "Subtitle under available models header" },
+
+  "aiModelAvailableHeader": "Available Models",
+  "@aiModelAvailableHeader": { "description": "Section header on model selection screen" },
+
+  "aiModelRecommendedBadge": "Recommended",
+  "@aiModelRecommendedBadge": { "description": "Badge shown on the recommended model card" },
+
+  "aiModelUseThisButton": "Use This Model",
+  "@aiModelUseThisButton": { "description": "Primary CTA button on model selection screen" },
+
+  "aiModelDownloadInfoText": "Switching models requires a one-time download. Connect to Wi-Fi to avoid data charges. Your chat history is preserved.",
+  "@aiModelDownloadInfoText": { "description": "Info banner text on model selection screen" },
+
+  "aiModelOptimizedCpu": "Optimized for CPU",
+  "@aiModelOptimizedCpu": { "description": "Capability chip — CPU optimized model" },
+
+  "aiModelOptimizedGpuCpu": "Optimized for GPU / CPU",
+  "@aiModelOptimizedGpuCpu": { "description": "Capability chip — GPU+CPU model" },
+
+  "aiModelOptimizedGpu": "Optimized for GPU",
+  "@aiModelOptimizedGpu": { "description": "Capability chip — GPU-only model" },
+
+  "aiModelDownloadingProgress": "Downloading… {percent}%",
+  "@aiModelDownloadingProgress": {
+    "description": "Download progress label shown in footer while downloading",
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+
+  "aiModelAlreadyActive": "Active",
+  "@aiModelAlreadyActive": { "description": "Badge shown on already-downloaded active model card" },
+
+  "aiModelDownloadError": "Download failed. Please try again.",
+  "@aiModelDownloadError": { "description": "Snackbar when model download fails" },
+
+  "aiModelQwen25Name": "Qwen 2.5 0.5B",
+  "@aiModelQwen25Name": { "description": "Display name for Qwen 2.5 0.5B model" },
+
+  "aiModelQwen25Desc": "Ultra-compact and fast. Works on any Android device with 3 GB+ RAM.",
+  "@aiModelQwen25Desc": { "description": "Description for Qwen 2.5 0.5B model" },
+
+  "aiModelDeepSeekR1Name": "DeepSeek R1",
+  "@aiModelDeepSeekR1Name": { "description": "Display name for DeepSeek R1 1.5B model" },
+
+  "aiModelDeepSeekR1Desc": "Best reasoning and code generation for daily use. Requires 4 GB+ RAM.",
+  "@aiModelDeepSeekR1Desc": { "description": "Description for DeepSeek R1 1.5B model" },
+
+  "aiModelGemma4E2bName": "Gemma 4 E2B",
+  "@aiModelGemma4E2bName": { "description": "Display name for Gemma 4 E2B model" },
+
+  "aiModelGemma4E2bDesc": "Multimodal — handles text and images. Great for high-end devices with 6 GB+ RAM.",
+  "@aiModelGemma4E2bDesc": { "description": "Description for Gemma 4 E2B model" },
+
+  "aiModelGemma4E4bName": "Gemma 4 E4B",
+  "@aiModelGemma4E4bName": { "description": "Display name for Gemma 4 E4B model" },
+
+  "aiModelGemma4E4bDesc": "Maximum accuracy multimodal model. Best on flagship devices with 8 GB+ RAM.",
+  "@aiModelGemma4E4bDesc": { "description": "Description for Gemma 4 E4B model" },
 
   "editProfileTitle": "Edit Profile",
   "@editProfileTitle": { "description": "Edit profile screen app-bar title" },

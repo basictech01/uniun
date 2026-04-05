@@ -10,4 +10,5 @@ abstract class AppRoutes {
   static const privacyPolicy = '/privacy-policy';
   static const followedNoteDetail = '/followed-note-detail';
   static const thread = '/thread';
+  static const aiModelSelection = '/ai-model-selection';
 }

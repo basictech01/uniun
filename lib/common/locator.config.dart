@@ -15,6 +15,7 @@ import 'package:isar_community/isar.dart' as _i214;
 import 'package:uniun/brahma/bloc/brahma_create_bloc.dart' as _i787;
 import 'package:uniun/core/isolate/embedded_server_bridge.dart' as _i717;
 import 'package:uniun/data/datasources/isar_module.dart' as _i146;
+import 'package:uniun/data/repositories/ai_model_repository_impl.dart' as _i72;
 import 'package:uniun/data/repositories/followed_note_repository_impl.dart'
     as _i107;
 import 'package:uniun/data/repositories/note_repository_impl.dart' as _i348;
@@ -24,6 +25,7 @@ import 'package:uniun/data/repositories/profile_repository_impl.dart' as _i484;
 import 'package:uniun/data/repositories/saved_note_repository_impl.dart'
     as _i669;
 import 'package:uniun/data/repositories/user_repository_impl.dart' as _i582;
+import 'package:uniun/domain/repositories/ai_model_repository.dart' as _i646;
 import 'package:uniun/domain/repositories/followed_note_repository.dart'
     as _i836;
 import 'package:uniun/domain/repositories/note_repository.dart' as _i47;
@@ -32,6 +34,7 @@ import 'package:uniun/domain/repositories/outbound_event_repository.dart'
 import 'package:uniun/domain/repositories/profile_repository.dart' as _i967;
 import 'package:uniun/domain/repositories/saved_note_repository.dart' as _i43;
 import 'package:uniun/domain/repositories/user_repository.dart' as _i103;
+import 'package:uniun/domain/usecases/ai_model_usecases.dart' as _i894;
 import 'package:uniun/domain/usecases/followed_note_usecases.dart' as _i561;
 import 'package:uniun/domain/usecases/note_usecases.dart' as _i475;
 import 'package:uniun/domain/usecases/profile_usecases.dart' as _i391;
@@ -43,6 +46,8 @@ import 'package:uniun/followed_notes/followed_note_detail/cubit/followed_note_de
 import 'package:uniun/home/bloc/drawer_bloc.dart' as _i111;
 import 'package:uniun/settings/cubit/edit_profile_cubit.dart' as _i195;
 import 'package:uniun/settings/cubit/settings_cubit.dart' as _i731;
+import 'package:uniun/shiv/model_select/cubit/select_ai_model_cubit.dart'
+    as _i53;
 import 'package:uniun/thread/bloc/thread_bloc.dart' as _i118;
 import 'package:uniun/vishnu/bloc/vishnu_feed_bloc.dart' as _i558;
 
@@ -60,6 +65,9 @@ extension GetItInjectableX on _i174.GetIt {
     await gh.singletonAsync<_i214.Isar>(
       () => isarModule.createIsar(),
       preResolve: true,
+    );
+    gh.factory<_i646.AIModelRepository>(
+      () => _i72.AIModelRepositoryImpl(gh<_i214.Isar>()),
     );
     gh.factory<_i47.NoteRepository>(
       () => _i348.NoteRepositoryImpl(isar: gh<_i214.Isar>()),
@@ -160,6 +168,20 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i391.GetProfileUseCase>(),
       ),
     );
+    gh.lazySingleton<_i894.GetAvailableAIModelsUseCase>(
+      () => _i894.GetAvailableAIModelsUseCase(gh<_i646.AIModelRepository>()),
+    );
+    gh.lazySingleton<_i894.GetActiveAIModelUseCase>(
+      () => _i894.GetActiveAIModelUseCase(gh<_i646.AIModelRepository>()),
+    );
+    gh.lazySingleton<_i894.DownloadAndActivateAIModelUseCase>(
+      () => _i894.DownloadAndActivateAIModelUseCase(
+        gh<_i646.AIModelRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i894.ClearActiveAIModelUseCase>(
+      () => _i894.ClearActiveAIModelUseCase(gh<_i646.AIModelRepository>()),
+    );
     gh.lazySingleton<_i475.GetReplyCountUseCase>(
       () => _i475.GetReplyCountUseCase(gh<_i47.NoteRepository>()),
     );
@@ -191,6 +213,13 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i799.GetActiveUserProfileUseCase(
         gh<_i103.UserRepository>(),
         gh<_i967.ProfileRepository>(),
+      ),
+    );
+    gh.factory<_i53.SelectAIModelCubit>(
+      () => _i53.SelectAIModelCubit(
+        gh<_i894.GetAvailableAIModelsUseCase>(),
+        gh<_i894.GetActiveAIModelUseCase>(),
+        gh<_i894.DownloadAndActivateAIModelUseCase>(),
       ),
     );
     gh.factory<_i111.DrawerBloc>(

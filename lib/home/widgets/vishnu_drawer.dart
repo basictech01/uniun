@@ -11,7 +11,7 @@ import 'package:uniun/home/bloc/drawer_bloc.dart' as app_drawer;
 class VishnuDrawer extends StatelessWidget {
   const VishnuDrawer({super.key, required this.onSwitchTab});
 
-  final ValueChanged<int> onSwitchTab;
+  final Future<void> Function(int) onSwitchTab;
 
   void _close(BuildContext context) => Navigator.pop(context);
 

@@ -14,7 +14,7 @@ class FloatingNav extends StatelessWidget {
   });
 
   final int currentIndex;
-  final ValueChanged<int> onTap;
+  final Future<void> Function(int) onTap;
 
   @override
   Widget build(BuildContext context) {

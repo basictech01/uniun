@@ -84,19 +84,22 @@
   ---                                                       
   The Two Models Needed
                                                                                 
-  ┌────────────────┬─────────────────┬─────────────────────────────────────┐ 
-  │     Model      │       Job       │                Size                 │    
-  ├────────────────┼─────────────────┼─────────────────────────────────────┤    
-  │ Embedding      │ Converts text   │ ~80MB (all-MiniLM-L6-v2) or ~270MB  │    
-  │ model          │ to vector       │ (nomic-embed-text)                  │    
-  ├────────────────┼─────────────────┼─────────────────────────────────────┤    
-  │ LLM (Gemma     │ Generates the   │ ~1.5GB (Gemma 2B) or ~5GB (Gemma 7B)│
-  │ via            │ answer          │ Uses flutter_gemma package           │
-  │ flutter_gemma) │                 │ GPU-accelerated on Android + iOS     │
-  └────────────────┴─────────────────┴─────────────────────────────────────┘
+  ┌────────────────┬─────────────────┬──────────────────────────────────────────┐
+  │     Model      │       Job       │                Size                      │
+  ├────────────────┼─────────────────┼──────────────────────────────────────────┤
+  │ Embedding      │ Converts text   │ ~80MB (all-MiniLM-L6-v2) — bundled       │
+  │ model          │ to vector       │ always available, no download needed      │
+  ├────────────────┼─────────────────┼──────────────────────────────────────────┤
+  │ LLM (user-     │ Generates the   │ 586MB–4.3GB depending on model chosen     │
+  │ selected, via  │ answer          │ flutter_gemma ^0.13.1                     │
+  │ flutter_gemma) │                 │ GPU-accelerated on Android + iOS          │
+  │                │                 │ Downloaded once on first Shiv open        │
+  └────────────────┴─────────────────┴──────────────────────────────────────────┘
 
   These run separately. The embedding model runs fast, synchronously. The LLM
   (flutter_gemma) runs slower, streams tokens via getResponseStream().
+
+  For available LLM options see docs/SHIV_AI.md — Model Selection section.
                                                                                 
   ---                                                       
   The Challenge: Vector Search in Isar
@@ -167,7 +170,7 @@
   4. Prompt builder (inject notes into LLM context)                             
   5. ShivAIBloc: handle streaming response                                      
   6. Chat UI: ShivStreamingText (token-by-token render)                         
-  7. Model selection page (Strategy pattern for different LLMs)                 
+  7. Model selection page (AIModelSelectionPage — see docs/SHIV_AI.md)                 
                                                                                 
   This is why Shiv is built last — it needs:
   - Vishnu (so notes exist)

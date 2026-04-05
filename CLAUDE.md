@@ -6,9 +6,11 @@ This file is the single source of truth for any AI assistant working on this cod
 
 ## What Is UNIUN?
 
-UNIUN is a **decentralized, offline-first social and knowledge network** built entirely on the Nostr protocol, implemented as a Flutter mobile application. Users create, share, and connect **Notes** — Nostr Kind 1 events — that form both a social feed and a personal knowledge graph. There is no backend server of any kind. All data is stored locally in an Isar database on the device and synced to the wider Nostr network via WebSocket relay connections managed by the EmbeddedServer (a separately maintained sync engine).
+UNIUN is a **decentralized, offline-first social and knowledge network** built entirely on the Nostr protocol, implemented as a Flutter mobile application. Users create, share, and connect **Notes** — Nostr Kind 1 events — that form both a social feed and a personal knowledge graph. Data is stored locally in an Isar database on the device and synced to the Nostr relay via WebSocket, managed by the EmbeddedServer (a separately maintained sync engine).
 
-The app combines four systems into one: a social feed (Vishnu), a note creation workspace (Brahma), an AI assistant that reasons over the user's saved notes using on-device LLM inference (Shiv), and a public/private messaging layer (Channels + DMs). On-device AI runs via `flutter_gemma` (Google Gemma 2B/7B via MediaPipe) with no cloud API calls. The knowledge graph is not a separate construction — it emerges naturally from the Nostr event graph: every `e` tag is a graph edge, every `t` tag is a topic node, every reply thread is a directed conversation subgraph.
+The app combines four systems into one: a social feed (Vishnu), a note creation workspace (Brahma), an AI assistant that reasons over the user's saved notes using on-device LLM inference (Shiv), and a public/private messaging layer (Channels + DMs). On-device AI runs via `flutter_gemma ^0.13.1` (user-selected model: Qwen3 0.6B / DeepSeek R1 / Gemma 4 E2B / Gemma 4 E4B) with no cloud API calls. The knowledge graph is not a separate construction — it emerges naturally from the Nostr event graph: every `e` tag is a graph edge, every `t` tag is a topic node, every reply thread is a directed conversation subgraph.
+
+**The relay (`uniun-backend/`)** is a Go service built on Khatru (github.com/fiatjaf/khatru). It stores events in BadgerDB (primary) with optional MySQL mirror. Media blobs (Blossom protocol) are stored on Azure Blob Storage. The Flutter app's EmbeddedServer connects to this relay via WebSocket.
 
 ---
 
@@ -426,16 +428,23 @@ Flutter App (this repo)
     ↓ reads/writes
 Isar DB (local, offline-first source of truth)
     ↑ written by
-Dart Gateway / EmbeddedServer (flutter isolate — separate team)
-    ↓ WebSocket
-Go Relay Server (Khatru — separate team)
-    ↓
-Other Nostr clients
+EmbeddedServer (Dart isolate — separate team)
+    ↕ WebSocket (NIP-01)
+uniun-backend/  ← Go relay (Khatru + BadgerDB + Blossom)
+    ↕ optional mirror
+MySQL
+
+Flutter Brahma (image attach)
+    → PUT /upload  (Blossom BUD-01)
+uniun-backend Blossom handler
+    → Azure Blob Storage
 ```
 
 - **Flutter App (this repo)**: Create/sign notes, render UI from Isar, all user interactions
-- **Dart Gateway (separate team)**: Saves relay events to Isar, manages WebSocket connections, EventQueue for offline sync
-- **Go Relay (separate team)**: Note routing, relay management
+- **EmbeddedServer (Dart isolate — separate team)**: Saves relay events to Isar, manages WebSocket connections, EventQueue for offline sync. Do not modify.
+- **uniun-backend/ (Go relay — this repo, `uniun-backend/` folder)**: Khatru-based Nostr relay. Accepts/stores events (BadgerDB primary, MySQL optional mirror). Handles Blossom media uploads via Azure Blob Storage. See `otodo.md` for build roadmap.
+
+**Rule:** Never add direct HTTP calls from Flutter to the relay. Flutter only talks to Isar. The EmbeddedServer handles all relay communication.
 
 The Flutter app **never talks to the relay directly**. It only reads/writes Isar. The Gateway handles all network sync.
 
@@ -559,6 +568,7 @@ Text(l10n.actionSave)
 ### DO
 
 - Work one model/entity/feature at a time. Do not speculatively scaffold future features.
+- **File grouping (SOLID SRP)**: Single Responsibility applies at the **class level**, not the file level. Group related classes of the same domain in one file — e.g., `note_usecases.dart` holds all Note use cases, `ai_model_usecases.dart` holds all AI model use cases. This is correct SOLID. Do NOT create one file per use case.
 - Use `isar_community` package (import `package:isar_community/isar.dart`). Never `isar`.
 - Use `abstract class` for all `@freezed` domain entities (Freezed 3.x requirement):
   ```dart
