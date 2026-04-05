@@ -42,3 +42,8 @@ android {
 flutter {
     source = "../.."
 }
+
+// Suppress obsolete -source/-target 8 warnings from transitive dependencies
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf("-Xlint:-options"))
+}

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/home/pages/home_page.dart';
 import 'package:uniun/onboarding/pages/about_you_page.dart';
+import 'package:uniun/followed_notes/followed_note_detail/pages/followed_note_detail_page.dart';
+import 'package:uniun/thread/pages/thread_page.dart';
+import 'package:uniun/settings/pages/edit_profile_page.dart';
+import 'package:uniun/settings/pages/privacy_policy_page.dart';
+import 'package:uniun/settings/pages/settings_page.dart';
 import 'package:uniun/onboarding/pages/import_identity_page.dart';
 import 'package:uniun/onboarding/pages/splash_page.dart';
 import 'package:uniun/onboarding/pages/welcome_page.dart';
@@ -37,6 +44,13 @@ class UniunApp extends StatelessWidget {
     return MaterialApp(
       title: 'UNIUN',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en')],
       theme: AppTheme.light,
       initialRoute: AppRoutes.splash,
       routes: {
@@ -46,6 +60,15 @@ class UniunApp extends StatelessWidget {
         AppRoutes.yourIdentityKeys: (_) => const YourIdentityKeysPage(),
         AppRoutes.aboutYou: (_) => const AboutYouPage(),
         AppRoutes.home: (_) => const HomePage(),
+        AppRoutes.settings: (_) => const SettingsPage(),
+        AppRoutes.editProfile: (_) => const EditProfilePage(),
+        AppRoutes.privacyPolicy: (_) => const PrivacyPolicyPage(),
+        AppRoutes.followedNoteDetail: (ctx) => FollowedNoteDetailPage(
+              noteId: ModalRoute.of(ctx)!.settings.arguments as String,
+            ),
+        AppRoutes.thread: (ctx) => ThreadPage(
+              noteId: ModalRoute.of(ctx)!.settings.arguments as String,
+            ),
       },
     );
   }

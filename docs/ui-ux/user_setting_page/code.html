@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UNIUN Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#1672df",
+                        "on-surface-variant": "#414753",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e1e2e4",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary": "#934700",
+                        "on-tertiary-fixed": "#311300",
+                        "tertiary-fixed-dim": "#ffb688",
+                        "secondary-fixed-dim": "#afc7f7",
+                        "outline-variant": "#c1c6d5",
+                        "on-tertiary-fixed-variant": "#733600",
+                        "error": "#ba1a1a",
+                        "surface-container": "#edeef0",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9fb",
+                        "outline": "#727785",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e1e2e4",
+                        "on-secondary-fixed-variant": "#2f476f",
+                        "secondary-container": "#b8cfff",
+                        "on-surface": "#191c1e",
+                        "surface-dim": "#d9dadc",
+                        "on-background": "#191c1e",
+                        "surface": "#f8f9fb",
+                        "secondary": "#475f89",
+                        "on-primary-fixed": "#001b3f",
+                        "secondary-fixed": "#d7e3ff",
+                        "surface-tint": "#005cba",
+                        "surface-bright": "#f8f9fb",
+                        "primary": "#005ab6",
+                        "primary-fixed-dim": "#abc7ff",
+                        "on-secondary-container": "#415882",
+                        "on-primary-container": "#fefcff",
+                        "tertiary-fixed": "#ffdbc7",
+                        "inverse-primary": "#abc7ff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#00458e",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-container": "#b85a00",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-container-high": "#e7e8ea",
+                        "primary-fixed": "#d7e3ff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f3",
+                        "on-secondary-fixed": "#001b3f"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom Toggle Switch Style */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #edeef0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #005ab6; }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f8f9fb]/80 dark:bg-[#191c1e]/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(0,90,182,0.06)]">
+<div class="flex items-center px-8 h-16 w-full max-w-md mx-auto">
+<button class="mr-4 p-2 rounded-full hover:bg-[#edeef0] dark:hover:bg-[#414753] transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#005ab6] dark:text-[#2F80ED]" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Inter'] font-bold text-xl tracking-tight text-[#191c1e] dark:text-[#f8f9fb]">Settings</h1>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-md mx-auto space-y-8">
+<!-- Profile Section (Bento Style) -->
+<section class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2">Account</h2>
+<div class="bg-surface-container-lowest p-6 rounded-[1.5rem] shadow-sm flex flex-col items-center gap-4">
+<div class="relative">
+<img alt="User Avatar" class="w-24 h-24 rounded-full object-cover ring-4 ring-secondary-container/30" data-alt="Modern minimalist portrait of a young man with a neutral expression against a soft studio grey background, professional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ2tZaCgTpDtgu6gIqsfxCouWjYCE2bBltGAWghsuU_qsGqef9_nYyaIZKGtoTDHNxy26W4nxvprOnSuk-JKnuGPIyKNe3lELR0Pj8f65fUpxxgnH168fqtZ9VWecK_5pNVc_bk6_YbruR8_LJ1tLAA1QlQh4-RWtWDhSpGD9VZQ4sW_C_Xx2iDmUGiwsAD06bEv7f174zVMyv2xxd9A11qpYLKI6pVl6ou5ojN2k0Y1gtSFdlodjh-YxFl-Idto8SpgTr9cInPyM"/>
+<button class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-4 border-surface-container-lowest active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+<div class="text-center">
+<p class="text-xl font-extrabold tracking-tight">Alex Rivera</p>
+<p class="text-on-surface-variant text-sm font-medium">@arivera.uniun</p>
+</div>
+<button class="w-full mt-2 py-3 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-xl shadow-md active:scale-95 transition-all">
+                    Edit Profile
+                </button>
+</div>
+</section>
+<!-- Identity Section -->
+<section class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="lock">lock</span> Identity
+            </h2>
+<div class="bg-surface-container-lowest rounded-[1.5rem] overflow-hidden">
+<div class="p-6 pb-2">
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">This is your login + recovery method.</p>
+</div>
+<div class="divide-y divide-surface-container/50">
+<button class="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="key">key</span>
+<span class="font-semibold">View Public Key (npub)</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="visibility_off">visibility_off</span>
+<span class="font-semibold">View / Reveal Private Key (nsec)</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="content_copy">content_copy</span>
+<span class="font-semibold">Copy Keys</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="file_copy">file_copy</span>
+</button>
+<button class="w-full flex items-center justify-between px-6 py-4 hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="backup">backup</span>
+<span class="font-semibold">Export Backup</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="download">download</span>
+</button>
+</div>
+</div>
+</section>
+<!-- AI Section -->
+<section class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="smart_toy">smart_toy</span> AI - Shiv
+            </h2>
+<div class="bg-surface-container-lowest rounded-[1.5rem] overflow-hidden">
+<div class="p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-semibold">Select Model</p>
+<p class="text-sm text-primary font-bold">Shiv-v2 Turbo (Recommended)</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="expand_more">expand_more</span>
+</div>
+<div class="flex items-center justify-between border-t border-surface-container/50 pt-6">
+<p class="font-semibold">Toggle AI Features</p>
+<label class="switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<button class="flex items-center gap-4 text-error font-semibold pt-2">
+<span class="material-symbols-outlined" data-icon="delete_sweep">delete_sweep</span>
+                        Clear AI Cache
+                    </button>
+</div>
+</div>
+</section>
+<!-- Storage Section -->
+<section class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="database">database</span> Storage
+            </h2>
+<div class="bg-surface-container-lowest rounded-[1.5rem] overflow-hidden p-6 space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<p class="font-semibold">Storage Usage</p>
+<p class="text-xl font-bold text-primary">1.2GB</p>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%] rounded-full"></div>
+</div>
+<p class="text-xs text-on-surface-variant italic">Optimizing for offline-first experience.</p>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<button class="py-3 px-4 bg-surface-container-low rounded-xl font-bold text-sm hover:bg-surface-container transition-colors">
+                        Clear Cache
+                    </button>
+<button class="py-3 px-4 bg-error-container text-on-error-container rounded-xl font-bold text-sm hover:bg-red-100 transition-colors">
+                        Reset Local Data
+                    </button>
+</div>
+</div>
+</section>
+<!-- Notifications & Appearance -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="notifications">notifications</span> Alerts
+                </h2>
+<div class="bg-surface-container-lowest rounded-[1.5rem] p-6 space-y-6">
+<div class="flex items-center justify-between">
+<p class="font-semibold">DM Notifications</p>
+<label class="switch">
+<input checked="" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<p class="font-semibold">Channel Alerts</p>
+<label class="switch">
+<input type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<h2 class="text-on-surface-variant font-bold text-sm tracking-widest uppercase px-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base" data-icon="palette">palette</span> Style
+                </h2>
+<div class="bg-surface-container-lowest rounded-[1.5rem] p-6 space-y-6">
+<div class="flex items-center justify-between">
+<p class="font-semibold">Theme</p>
+<span class="text-sm font-bold bg-surface-container px-3 py-1 rounded-full">Light</span>
+</div>
+<div class="flex items-center justify-between">
+<p class="font-semibold">Accent Color</p>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-on-surface-variant uppercase tracking-tighter">#2F80ED</span>
+<div class="w-6 h-6 rounded-full bg-[#2F80ED] border-2 border-surface-container"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Privacy Footer -->
+<section class="pt-4 pb-8">
+<button class="w-full flex items-center justify-center gap-3 py-4 text-on-surface-variant hover:text-primary transition-colors group">
+<span class="material-symbols-outlined" data-icon="privacy_tip">privacy_tip</span>
+<span class="font-bold border-b border-transparent group-hover:border-primary">Privacy Policy &amp; Terms</span>
+<span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</button>
+<p class="text-center text-[10px] text-outline tracking-widest uppercase mt-4">UNIUN v1.0.4-beta</p>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 pt-4 bg-[#f8f9fb]/80 dark:bg-[#191c1e]/80 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0px_-12px_32px_rgba(0,90,182,0.06)] z-50">
+<a class="flex flex-col items-center justify-center text-[#414753] dark:text-[#c1c6d5] px-5 py-2 hover:text-[#005ab6] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="brightness_low">brightness_low</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-wide uppercase">Vishnu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#414753] dark:text-[#c1c6d5] px-5 py-2 hover:text-[#005ab6] transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="architecture">architecture</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-wide uppercase">Brahma</span>
+</a>
+<!-- Active Tab: Profile/Settings maps closely to Shiv in this hierarchy -->
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#005ab6] to-[#1672df] text-white rounded-[1.5rem] px-5 py-2 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="Cyclone" style="font-variation-settings: 'FILL' 1;">cyclone</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-wide uppercase">Shiv</span>
+</a>
+</nav>
+</body></html>

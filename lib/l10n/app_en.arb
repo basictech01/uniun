@@ -1,0 +1,600 @@
+{
+  "@@locale": "en",
+
+  "appVersion": "UNIUN v1.0.0-beta",
+  "@appVersion": { "description": "App version string shown in settings / footer" },
+
+  "appTagline": "Your notes, your\nnetwork, your identity.",
+  "@appTagline": { "description": "Hero tagline on the welcome screen" },
+
+  "navVishnu": "VISHNU",
+  "@navVishnu": { "description": "Floating nav label for the feed tab" },
+
+  "navBrahma": "BRAHMA",
+  "@navBrahma": { "description": "Floating nav label for the create-note tab" },
+
+  "navShiv": "SHIV",
+  "@navShiv": { "description": "Floating nav label for the AI assistant tab" },
+
+  "actionCopy": "COPY",
+  "@actionCopy": { "description": "Copy button label (uppercase)" },
+
+  "actionCopied": "Copied",
+  "@actionCopied": { "description": "Feedback after copying" },
+
+  "actionRetry": "Retry",
+  "@actionRetry": { "description": "Retry button" },
+
+  "actionContinue": "Continue",
+  "@actionContinue": { "description": "Continue button in onboarding" },
+
+  "actionSave": "Save",
+  "@actionSave": { "description": "Save / bookmark action" },
+
+  "actionSaved": "Saved",
+  "@actionSaved": { "description": "State when note is bookmarked" },
+
+  "actionFollow": "Follow",
+  "@actionFollow": { "description": "Follow a note" },
+
+  "actionFollowing": "Following",
+  "@actionFollowing": { "description": "State when following a note" },
+
+  "drawerHome": "Home",
+  "@drawerHome": { "description": "Drawer nav item — home" },
+
+  "drawerSavedNotes": "Saved Notes",
+  "@drawerSavedNotes": { "description": "Drawer nav item — saved notes" },
+
+  "drawerChannels": "Channels",
+  "@drawerChannels": { "description": "Drawer section header — channels" },
+
+  "drawerDirectMessages": "Direct Messages",
+  "@drawerDirectMessages": { "description": "Drawer section header — DMs" },
+
+  "drawerApps": "Apps",
+  "@drawerApps": { "description": "Drawer section header — apps" },
+
+  "drawerAiAssistant": "AI Assistant",
+  "@drawerAiAssistant": { "description": "Drawer apps item — AI" },
+
+  "drawerSettings": "Settings",
+  "@drawerSettings": { "description": "Drawer footer — settings" },
+
+  "drawerFollowingNotes": "FOLLOWING NOTES",
+  "@drawerFollowingNotes": { "description": "Drawer section header — followed notes (uppercase)" },
+
+  "drawerNoFollowedNotes": "No followed notes yet",
+  "@drawerNoFollowedNotes": { "description": "Empty state for followed notes in drawer" },
+
+  "drawerNoChannels": "No channels yet",
+  "@drawerNoChannels": { "description": "Empty state for channels in drawer" },
+
+  "drawerNoMessages": "No messages yet",
+  "@drawerNoMessages": { "description": "Empty state for DMs in drawer" },
+
+  "drawerCopyNpub": "Copy npub",
+  "@drawerCopyNpub": { "description": "QR sheet action button" },
+
+  "drawerNpubCopied": "npub copied",
+  "@drawerNpubCopied": { "description": "Snackbar after copying npub" },
+
+  "drawerComingSoon": "{feature} — coming soon",
+  "@drawerComingSoon": {
+    "description": "Snackbar for unimplemented features",
+    "placeholders": {
+      "feature": { "type": "String" }
+    }
+  },
+
+  "brahmaTitle": "Brahma",
+  "@brahmaTitle": { "description": "Title of the create-note screen" },
+
+  "brahmaHintText": "Write a new note...",
+  "@brahmaHintText": { "description": "Placeholder in the note compose field" },
+
+  "brahmaAddImage": "Add Image",
+  "@brahmaAddImage": { "description": "Tooltip for attach-image button" },
+
+  "brahmaTagPeople": "Tag People",
+  "@brahmaTagPeople": { "description": "Tooltip for tag-people button" },
+
+  "brahmaReferenceNote": "Reference Note",
+  "@brahmaReferenceNote": { "description": "Tooltip for reference-note button" },
+
+  "brahmaCreateNote": "Create Note",
+  "@brahmaCreateNote": { "description": "Submit button in the compose card" },
+
+  "brahmaFailedToPublish": "Failed to publish",
+  "@brahmaFailedToPublish": { "description": "Fallback error message when publishing fails" },
+
+  "brahmaGraphPreviewLabel": "REFERENCE GRAPH PREVIEW",
+  "@brahmaGraphPreviewLabel": { "description": "Section header above the graph preview canvas" },
+
+  "brahmaInteractivePreview": "Interactive Preview",
+  "@brahmaInteractivePreview": { "description": "Badge on the graph preview canvas" },
+
+  "vishnuNoNotes": "No notes yet",
+  "@vishnuNoNotes": { "description": "Empty-feed heading" },
+
+  "vishnuCreateFirst": "Create your first note in Brahma\nor wait for the relay to sync.",
+  "@vishnuCreateFirst": { "description": "Empty-feed body text" },
+
+  "vishnuThread": "THREAD",
+  "@vishnuThread": { "description": "Thread indicator badge on note cards" },
+
+  "homeShivTitle": "Shiv — AI Assistant",
+  "@homeShivTitle": { "description": "Placeholder title for the Shiv tab" },
+
+  "homeShivComingSoon": "On-device AI coming soon.",
+  "@homeShivComingSoon": { "description": "Placeholder body for the Shiv tab" },
+
+  "threadTitle": "Thread",
+  "@threadTitle": { "description": "Thread screen app-bar title" },
+
+  "threadReplies": "Replies",
+  "@threadReplies": { "description": "Segmented toggle tab — replies" },
+
+  "threadReferences": "References",
+  "@threadReferences": { "description": "Segmented toggle tab — references" },
+
+  "threadNoReplies": "No replies yet",
+  "@threadNoReplies": { "description": "Empty state heading for replies tab" },
+
+  "threadBeFirstToReply": "Be the first to reply.",
+  "@threadBeFirstToReply": { "description": "Empty state body for replies tab" },
+
+  "threadNoReferences": "No references",
+  "@threadNoReferences": { "description": "Empty state heading for references tab" },
+
+  "threadNoReferencesDetail": "No notes reference this one yet.",
+  "@threadNoReferencesDetail": { "description": "Empty state body for references tab" },
+
+  "threadPost": "Post",
+  "@threadPost": { "description": "Send button in the reply composer" },
+
+  "threadReplyToThis": "Reply to this note…",
+  "@threadReplyToThis": { "description": "Reply composer hint when no specific target" },
+
+  "threadReplyTo": "Reply to @{name}…",
+  "@threadReplyTo": {
+    "description": "Reply composer hint when replying to a specific user",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "threadReplyingTo": "Replying to @{name}",
+  "@threadReplyingTo": {
+    "description": "Pill label showing who the reply targets",
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+
+  "threadContinuation": "THREAD CONTINUATION",
+  "@threadContinuation": { "description": "Section header in followed-note detail" },
+
+  "threadNReplies": "{count} Replies",
+  "@threadNReplies": {
+    "description": "Reply count label in thread continuation card",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "threadUpdated": "Updated: {time}",
+  "@threadUpdated": {
+    "description": "Last-updated label in thread continuation card",
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+
+  "followedNoteViewThread": "View Thread",
+  "@followedNoteViewThread": { "description": "Primary CTA on followed-note detail" },
+
+  "followedNoteFailedToLoad": "Failed to load note",
+  "@followedNoteFailedToLoad": { "description": "Error state on followed-note detail" },
+
+  "followedNoteResearchNode": "Research Node",
+  "@followedNoteResearchNode": { "description": "Node-type label on note header card" },
+
+  "followedNoteFollowing": "Following",
+  "@followedNoteFollowing": { "description": "Following badge on note header card" },
+
+  "followedNoteReferencedBy": "Referenced By",
+  "@followedNoteReferencedBy": { "description": "Section header for the referencedBy grid" },
+
+  "followedNoteReferences": "References",
+  "@followedNoteReferences": { "description": "Section header for the references list" },
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": { "description": "Settings screen app-bar title" },
+
+  "settingsAccount": "Account",
+  "@settingsAccount": { "description": "Settings section label — account" },
+
+  "settingsIdentity": "Identity",
+  "@settingsIdentity": { "description": "Settings section label — identity" },
+
+  "settingsAiShiv": "AI · Shiv",
+  "@settingsAiShiv": { "description": "Settings section label — AI" },
+
+  "settingsStorage": "Storage",
+  "@settingsStorage": { "description": "Settings section label — storage" },
+
+  "settingsAlerts": "Alerts",
+  "@settingsAlerts": { "description": "Settings section label — alerts" },
+
+  "settingsStyle": "Style",
+  "@settingsStyle": { "description": "Settings section label — style" },
+
+  "profileAnonymous": "Anonymous",
+  "@profileAnonymous": { "description": "Fallback display name when profile has no name" },
+
+  "profileEditProfile": "Edit Profile",
+  "@profileEditProfile": { "description": "Edit profile button on settings" },
+
+  "identityLoginRecovery": "This is your login & recovery method.",
+  "@identityLoginRecovery": { "description": "Subtitle on the identity card" },
+
+  "identityKeys": "Keys",
+  "@identityKeys": { "description": "Identity card row — keys" },
+
+  "identityRelays": "Relays",
+  "@identityRelays": { "description": "Identity card row — relays" },
+
+  "identityExportBackup": "Export Backup",
+  "@identityExportBackup": { "description": "Identity card row — export backup" },
+
+  "identityPrivacyPolicy": "Privacy & Policy",
+  "@identityPrivacyPolicy": { "description": "Identity card row — privacy policy" },
+
+  "identityYourKeys": "Your Keys",
+  "@identityYourKeys": { "description": "Keys sheet title" },
+
+  "identityNeverShare": "Never share your private key with anyone.",
+  "@identityNeverShare": { "description": "Warning subtitle in the keys sheet" },
+
+  "identityPublicKey": "Public Key (npub)",
+  "@identityPublicKey": { "description": "Section label for public key in keys sheet" },
+
+  "identityPublicKeyCopied": "Public key copied",
+  "@identityPublicKeyCopied": { "description": "Snackbar after copying public key from keys sheet" },
+
+  "identityPrivateKey": "Private Key (nsec)",
+  "@identityPrivateKey": { "description": "Section label for private key in keys sheet" },
+
+  "identityRevealPrivateKey": "Reveal Private Key",
+  "@identityRevealPrivateKey": { "description": "Button to reveal nsec in keys sheet" },
+
+  "identityNeverShareKey": "Never share this key",
+  "@identityNeverShareKey": { "description": "Warning label inside revealed nsec box" },
+
+  "identityTapToCopy": "Tap to copy",
+  "@identityTapToCopy": { "description": "Inline copy prompt for nsec" },
+
+  "identityHide": "Hide",
+  "@identityHide": { "description": "Hide nsec inline button" },
+
+  "identityPrivateKeyCopied": "Private key copied — keep it safe!",
+  "@identityPrivateKeyCopied": { "description": "Snackbar after copying nsec from keys sheet" },
+
+  "identityRelaysSheetTitle": "Relays",
+  "@identityRelaysSheetTitle": { "description": "Relays bottom sheet title" },
+
+  "identityRelaysSubtitle": "Nostr relays your client connects to.",
+  "@identityRelaysSubtitle": { "description": "Relays sheet subtitle" },
+
+  "identityRelaysComingSoon": "Custom relay management coming soon.",
+  "@identityRelaysComingSoon": { "description": "Info note in relays sheet" },
+
+  "alertsDmAlerts": "DM Alerts",
+  "@alertsDmAlerts": { "description": "Toggle label for DM notifications" },
+
+  "alertsChannelAlerts": "Channel Alerts",
+  "@alertsChannelAlerts": { "description": "Toggle label for channel notifications" },
+
+  "storageUsage": "Storage Usage",
+  "@storageUsage": { "description": "Storage card section heading" },
+
+  "storageOptimizing": "Optimizing for offline-first experience.",
+  "@storageOptimizing": { "description": "Storage card subtitle" },
+
+  "storageClearCache": "Clear Cache",
+  "@storageClearCache": { "description": "Storage card button" },
+
+  "storageResetData": "Reset Local Data",
+  "@storageResetData": { "description": "Storage card destructive button" },
+
+  "styleTheme": "Theme",
+  "@styleTheme": { "description": "Style card row — theme" },
+
+  "styleThemeLight": "Light",
+  "@styleThemeLight": { "description": "Current theme value" },
+
+  "styleAccent": "Accent",
+  "@styleAccent": { "description": "Style card row — accent color" },
+
+  "aiSelectModel": "Select Model",
+  "@aiSelectModel": { "description": "AI card row — model selector" },
+
+  "aiGemma2bRecommended": "Gemma 2B (Recommended)",
+  "@aiGemma2bRecommended": { "description": "Current model value in AI card" },
+
+  "aiClearCache": "Clear AI Cache",
+  "@aiClearCache": { "description": "AI card destructive action" },
+
+  "editProfileTitle": "Edit Profile",
+  "@editProfileTitle": { "description": "Edit profile screen app-bar title" },
+
+  "editProfileSaved": "Profile saved",
+  "@editProfileSaved": { "description": "Snackbar after saving profile" },
+
+  "editProfileDisplayName": "Display Name",
+  "@editProfileDisplayName": { "description": "Field label — display name" },
+
+  "editProfileUsername": "Username",
+  "@editProfileUsername": { "description": "Field label — username" },
+
+  "editProfileAbout": "About",
+  "@editProfileAbout": { "description": "Field label — about / bio" },
+
+  "editProfileAvatarUrl": "Avatar URL",
+  "@editProfileAvatarUrl": { "description": "Field label — avatar URL" },
+
+  "editProfileNip05": "NIP-05 Identifier",
+  "@editProfileNip05": { "description": "Field label — NIP-05" },
+
+  "editProfileDisplayNameHint": "e.g. Satoshi",
+  "@editProfileDisplayNameHint": { "description": "Hint for display name field" },
+
+  "editProfileUsernameHint": "e.g. satoshi",
+  "@editProfileUsernameHint": { "description": "Hint for username field" },
+
+  "editProfileAboutHint": "Tell the world who you are…",
+  "@editProfileAboutHint": { "description": "Hint for about field" },
+
+  "editProfileAvatarUrlHint": "https://…",
+  "@editProfileAvatarUrlHint": { "description": "Hint for avatar URL field" },
+
+  "editProfileNip05Hint": "you@yourdomain.com",
+  "@editProfileNip05Hint": { "description": "Hint for NIP-05 field" },
+
+  "editProfileSaveButton": "Save Profile",
+  "@editProfileSaveButton": { "description": "Save profile button" },
+
+  "welcomeTagline": "Your notes, your\nnetwork, your identity.",
+  "@welcomeTagline": { "description": "Hero tagline on welcome screen" },
+
+  "welcomeCreateIdentity": "Create New Identity",
+  "@welcomeCreateIdentity": { "description": "Primary CTA on welcome screen" },
+
+  "welcomeImportKey": "I Already Have a Key",
+  "@welcomeImportKey": { "description": "Secondary CTA on welcome screen" },
+
+  "welcomeLearnHow": "Learn how UNIUN works",
+  "@welcomeLearnHow": { "description": "Learn more link on welcome screen" },
+
+  "aboutYouTitle": "About You",
+  "@aboutYouTitle": { "description": "Heading on the about-you onboarding page" },
+
+  "aboutYouSubtitle": "Set up your profile. Display Name and Username are required.",
+  "@aboutYouSubtitle": { "description": "Body subtitle on about-you page" },
+
+  "aboutYouAvatarCaption": "Auto-generated · Photo optional",
+  "@aboutYouAvatarCaption": { "description": "Caption under the avatar on about-you page" },
+
+  "aboutYouDisplayNameLabel": "Display Name *",
+  "@aboutYouDisplayNameLabel": { "description": "Field label for display name on about-you page" },
+
+  "aboutYouDisplayNameHint": "What should we call you?",
+  "@aboutYouDisplayNameHint": { "description": "Hint for display name on about-you page" },
+
+  "aboutYouUsernameLabel": "Username *",
+  "@aboutYouUsernameLabel": { "description": "Field label for username on about-you page" },
+
+  "aboutYouUsernameHint": "username",
+  "@aboutYouUsernameHint": { "description": "Hint for username on about-you page" },
+
+  "aboutYouUsernameHelper": "Unique handle for mentions and search.",
+  "@aboutYouUsernameHelper": { "description": "Helper text under username on about-you page" },
+
+  "aboutYouBioLabel": "Bio  (optional)",
+  "@aboutYouBioLabel": { "description": "Field label for bio on about-you page" },
+
+  "aboutYouBioHint": "Tell the world a bit about yourself…",
+  "@aboutYouBioHint": { "description": "Hint for bio on about-you page" },
+
+  "aboutYouSetUpLater": "SET UP LATER",
+  "@aboutYouSetUpLater": { "description": "Skip button on about-you page" },
+
+  "aboutYouEncrypted": "Your data is encrypted and private.",
+  "@aboutYouEncrypted": { "description": "Privacy reassurance chip on about-you page" },
+
+  "aboutYouDisplayNameRequired": "Display name is required",
+  "@aboutYouDisplayNameRequired": { "description": "Validation error for display name" },
+
+  "aboutYouUsernameRequired": "Username is required",
+  "@aboutYouUsernameRequired": { "description": "Validation error for username" },
+
+  "importTitle": "Import Your Identity",
+  "@importTitle": { "description": "Heading on the import-identity page" },
+
+  "importSubtitle": "Paste your private key to recover your existing profile.",
+  "@importSubtitle": { "description": "Body subtitle on the import-identity page" },
+
+  "importPrivateKeyLabel": "PRIVATE KEY",
+  "@importPrivateKeyLabel": { "description": "Field section label on import page" },
+
+  "importPasteFromClipboard": "Paste from Clipboard",
+  "@importPasteFromClipboard": { "description": "Paste action on import page" },
+
+  "importKeyHint": "nsec1... or 64-character hex key",
+  "@importKeyHint": { "description": "Hint for key input on import page" },
+
+  "importSecurityNote": "Your private key is processed locally and never sent to any server.",
+  "@importSecurityNote": { "description": "Security reassurance note on import page" },
+
+  "importContinue": "Import & Continue",
+  "@importContinue": { "description": "Submit button on import page" },
+
+  "importPasteFirst": "Please paste your private key first.",
+  "@importPasteFirst": { "description": "Validation error when field is empty on import page" },
+
+  "importFailed": "Failed to import key. Please try again.",
+  "@importFailed": { "description": "Error snackbar on import page" },
+
+  "importInvalidKey": "Invalid key. Please check and try again.",
+  "@importInvalidKey": { "description": "Error snackbar for unrecognised key format" },
+
+  "keysTitle": "Your Identity Keys",
+  "@keysTitle": { "description": "Heading on the identity-keys onboarding page" },
+
+  "keysSubtitle": "One is for sharing. One is for your eyes only.",
+  "@keysSubtitle": { "description": "Subtitle on the identity-keys onboarding page" },
+
+  "keysPublicKeyTitle": "Public Key",
+  "@keysPublicKeyTitle": { "description": "KeyCard title for npub" },
+
+  "keysPublicKeySubtitle": "Share with others to receive messages.",
+  "@keysPublicKeySubtitle": { "description": "KeyCard subtitle for npub" },
+
+  "keysPrivateKeyTitle": "Private Key",
+  "@keysPrivateKeyTitle": { "description": "KeyCard title for nsec" },
+
+  "keysPrivateKeySubtitle": "Never share this. Total access to your identity.",
+  "@keysPrivateKeySubtitle": { "description": "KeyCard subtitle for nsec" },
+
+  "keysPrivateKeyWarning": "Lose this key = lose your account forever.",
+  "@keysPrivateKeyWarning": { "description": "KeyCard warning for nsec" },
+
+  "keysSaveAndContinue": "Save & Continue",
+  "@keysSaveAndContinue": { "description": "CTA button on identity-keys page" },
+
+  "keysDownloadBackup": "Download Backup",
+  "@keysDownloadBackup": { "description": "Secondary action on identity-keys page" },
+
+  "keysE2eEncrypted": "E2E ENCRYPTED",
+  "@keysE2eEncrypted": { "description": "Badge on identity-keys page footer" },
+
+  "keysPublicCopied": "Public key copied — now reveal your private key",
+  "@keysPublicCopied": { "description": "Snackbar after copying npub on identity-keys page" },
+
+  "keysPrivateCopied": "Private key copied — store it somewhere safe!",
+  "@keysPrivateCopied": { "description": "Snackbar after copying nsec on identity-keys page" },
+
+  "keysFailedToSave": "Failed to save keys: {error}",
+  "@keysFailedToSave": {
+    "description": "Error snackbar when key save fails",
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "keysBackupSaved": "Backup saved to {path}",
+  "@keysBackupSaved": {
+    "description": "Snackbar after saving backup file",
+    "placeholders": {
+      "path": { "type": "String" }
+    }
+  },
+
+  "keysBackupFailed": "Failed to save backup",
+  "@keysBackupFailed": { "description": "Error snackbar when backup write fails" },
+
+  "keysCopyPublicAbove": "Copy your public key above to reveal your private key.",
+  "@keysCopyPublicAbove": { "description": "Hint shown in place of private key card until npub is copied" },
+
+  "privacyPageTitle": "Privacy & Policy",
+  "@privacyPageTitle": { "description": "App-bar title for privacy policy page" },
+
+  "privacyIntroTitle": "Privacy & Policy",
+  "@privacyIntroTitle": { "description": "Section heading inside privacy policy page" },
+
+  "privacyIntroBody": "UNIUN is built on transparency. Your data stays on your device. Below is everything you need to know — no legal jargon.",
+  "@privacyIntroBody": { "description": "Intro paragraph on privacy policy page" },
+
+  "privacyExpandPrivacy": "Privacy Policy",
+  "@privacyExpandPrivacy": { "description": "Expandable section title — privacy policy" },
+
+  "privacyExpandTerms": "Terms of Use",
+  "@privacyExpandTerms": { "description": "Expandable section title — terms of use" },
+
+  "privacyLastUpdated": "Last updated: June 2025",
+  "@privacyLastUpdated": { "description": "Footer date on privacy policy page" },
+
+  "privacyContactEmail": "privacy@uniun.app",
+  "@privacyContactEmail": { "description": "Contact email shown on privacy policy page" },
+
+  "privacyStoredLocallyTitle": "What We Store Locally",
+  "@privacyStoredLocallyTitle": {},
+  "privacyStoredLocallyBody": "UNIUN stores your notes, profile, saved items, channel messages, and settings directly on your device. This data is not sent to any server controlled by UNIUN.",
+  "@privacyStoredLocallyBody": {},
+
+  "privacySharedPubliclyTitle": "What Gets Shared Publicly",
+  "@privacySharedPubliclyTitle": {},
+  "privacySharedPubliclyBody": "When you publish a note or send a message in a public channel, that content is broadcast to Nostr relays. Nostr is an open public protocol — once published, your notes may be visible to anyone connected to those relays. UNIUN does not control third-party relays.",
+  "@privacySharedPubliclyBody": {},
+
+  "privacyIdentityKeysTitle": "Your Identity & Keys",
+  "@privacyIdentityKeysTitle": {},
+  "privacyIdentityKeysBody": "Your identity is a cryptographic key pair. Your public key is visible to others on the Nostr network. Your private key (nsec) is stored exclusively in your device's secure system keychain (iOS Keychain / Android Keystore). UNIUN never transmits your private key to any server.",
+  "@privacyIdentityKeysBody": {},
+
+  "privacyLocalAiTitle": "Local AI (Shiv)",
+  "@privacyLocalAiTitle": {},
+  "privacyLocalAiBody": "The Shiv AI assistant runs entirely on your device. It accesses only your locally saved notes. No note content is sent to any external AI service or API.",
+  "@privacyLocalAiBody": {},
+
+  "privacyMediaTitle": "Media & Blossom Servers",
+  "@privacyMediaTitle": {},
+  "privacyMediaBody": "If you attach images or media, they may be uploaded to a Blossom content server of your choice. UNIUN does not operate Blossom servers. Content uploaded there may be publicly accessible by design of the protocol.",
+  "@privacyMediaBody": {},
+
+  "privacyDmsTitle": "Direct Messages",
+  "@privacyDmsTitle": {},
+  "privacyDmsBody": "DMs are end-to-end encrypted using the Nostr NIP-17 standard. Only the intended recipient can read the message content. Message routing metadata may be visible to relays.",
+  "@privacyDmsBody": {},
+
+  "privacyControlTitle": "Your Control",
+  "@privacyControlTitle": {},
+  "privacyControlBody": "You can delete your local data at any time from Settings. Because Nostr is a public protocol, notes already published to relays cannot be retracted — this is an intentional property of the network, not a limitation of the app.",
+  "@privacyControlBody": {},
+
+  "privacyContactTitle": "Contact",
+  "@privacyContactTitle": {},
+  "privacyContactBody": "For privacy questions: privacy@uniun.app",
+  "@privacyContactBody": {},
+
+  "termsResponsibilityTitle": "Your Responsibility",
+  "@termsResponsibilityTitle": {},
+  "termsResponsibilityBody": "You are solely responsible for all content you publish on UNIUN. By using the app, you agree not to post content that is illegal, abusive, harassing, or violates others' rights.",
+  "@termsResponsibilityBody": {},
+
+  "termsNoAbuseTitle": "No Abuse or Spam",
+  "@termsNoAbuseTitle": {},
+  "termsNoAbuseBody": "Do not use UNIUN to spam, harass, impersonate others, or conduct automated activity that disrupts the Nostr network.",
+  "@termsNoAbuseBody": {},
+
+  "termsPrivateKeyTitle": "Keep Your Private Key Safe",
+  "@termsPrivateKeyTitle": {},
+  "termsPrivateKeyBody": "Your private key (nsec) is your identity and login. If you lose it, your account cannot be recovered — UNIUN has no way to reset or recover private keys. Back it up in a secure location.",
+  "@termsPrivateKeyBody": {},
+
+  "termsPublicContentTitle": "Public Content on Relays",
+  "@termsPublicContentTitle": {},
+  "termsPublicContentBody": "Notes and channel messages you publish are sent to Nostr relays and may be visible to anyone on the network. Do not share sensitive personal information in public notes.",
+  "@termsPublicContentBody": {},
+
+  "termsAppMayChangeTitle": "App May Change",
+  "@termsAppMayChangeTitle": {},
+  "termsAppMayChangeBody": "UNIUN is in active development. Features, relay behavior, and policies may change over time. We will communicate significant updates within the app.",
+  "@termsAppMayChangeBody": {},
+
+  "termsNoWarrantyTitle": "No Warranty",
+  "@termsNoWarrantyTitle": {},
+  "termsNoWarrantyBody": "UNIUN is provided as-is. We make no guarantees about relay uptime, third-party server availability, or persistence of content on external relays.",
+  "@termsNoWarrantyBody": {}
+}

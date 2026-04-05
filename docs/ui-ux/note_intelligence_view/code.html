@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Note Detail — Ethereal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-primary-container": "#fefcff",
+                "surface-container-lowest": "#ffffff",
+                "on-secondary-fixed": "#001b3f",
+                "tertiary-container": "#b85a00",
+                "primary-fixed": "#d7e3ff",
+                "on-tertiary-fixed-variant": "#733600",
+                "surface-tint": "#005cba",
+                "secondary": "#475f89",
+                "on-tertiary-fixed": "#311300",
+                "on-primary": "#ffffff",
+                "outline": "#727785",
+                "surface-bright": "#f8f9fb",
+                "on-primary-fixed-variant": "#00458e",
+                "on-secondary-fixed-variant": "#2f476f",
+                "surface-dim": "#d9dadc",
+                "secondary-container": "#b8cfff",
+                "on-error-container": "#93000a",
+                "on-surface": "#191c1e",
+                "secondary-fixed-dim": "#afc7f7",
+                "on-primary-fixed": "#001b3f",
+                "surface-container-highest": "#e1e2e4",
+                "primary-container": "#1672df",
+                "tertiary": "#934700",
+                "primary-fixed-dim": "#abc7ff",
+                "primary": "#005ab6",
+                "inverse-surface": "#2e3132",
+                "surface": "#f8f9fb",
+                "outline-variant": "#c1c6d5",
+                "on-tertiary-container": "#fffbff",
+                "error": "#ba1a1a",
+                "tertiary-fixed": "#ffdbc7",
+                "inverse-on-surface": "#f0f1f3",
+                "secondary-fixed": "#d7e3ff",
+                "inverse-primary": "#abc7ff",
+                "background": "#f8f9fb",
+                "on-background": "#191c1e",
+                "surface-container-low": "#f2f4f6",
+                "on-secondary-container": "#415882",
+                "surface-variant": "#e1e2e4",
+                "surface-container": "#edeef0",
+                "on-secondary": "#ffffff",
+                "tertiary-fixed-dim": "#ffb688",
+                "surface-container-high": "#e7e8ea",
+                "on-tertiary": "#ffffff",
+                "on-surface-variant": "#414753",
+                "error-container": "#ffdad6",
+                "on-error": "#ffffff"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_12px_32px_rgba(47,128,237,0.06)]">
+<div class="flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 text-on-surface">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tighter text-blue-600 dark:text-blue-400">Ethereal</h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="active:scale-95 duration-200 text-slate-400">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border-none">
+<img alt="Profile" data-alt="close-up portrait of a professional male with glasses and short hair in a minimalist digital avatar style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD7qhfTy0Xt17oefAJtR19wVCa_o53dADIDFSG3kcVOQ-BUFwn4BxqPObgyloLDwt2Q-R1x3Akx4BRXMVofkM6T8lrcSwGXLJ7qDHDBcy5jWW2WgglGvorrWtDnBe7dZpv7MjZU6we83CWtqRhObh8CW1na0vs4REksKWakq9LvPBH7uk5i01KUDsANyaAnh33d_SwI2dYyRg8_Jj7iYuu937qEGuUQsQIVZIaB3MmgQ66jF5yzEr6ZEY2g5jvdz_wKeB9qzx2JWQ"/>
+</div>
+</div>
+</div>
+<div class="bg-slate-200/20 dark:bg-slate-800/20 h-[1px] w-full"></div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-10">
+<!-- Author Info & Toggle Section -->
+<section class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-12 h-12 rounded-2xl bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="Author" data-alt="stylized digital portrait of a thoughtful female creator with soft lighting and a modern tech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADy4NO6biBrLS6LXXgOzr_x96-DqrXadju6L4M-KXSwhz-5acTjrJklK7I9UG6iU3Trk4tMtOrt-QlUcKiNkgKMQNFKrh4RtDB9jBBU-UHv1no2R6lAdPZM7IOzxc_qVDoCqpmgdhM6GCwHfdpljyLfztOo59FAeL0kEX252AOl_W52XOVa1uRk7ChTJoWbkDqPb3O6go5COSMB3inBQii6GxEKN_lg1--3ihdBFHWs89PdzNeWF6clCXrPo_Hq7ZQa8Jo4ZR4s5E"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary w-5 h-5 rounded-full flex items-center justify-center border-2 border-surface">
+<span class="material-symbols-outlined text-[12px] text-white" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div>
+<h2 class="font-bold text-on-surface tracking-tight">Elena Vance</h2>
+<p class="text-on-surface-variant text-sm flex items-center gap-2">
+<span>4h ago</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]" data-icon="language">language</span> Research Node</span>
+</p>
+</div>
+</div>
+<button class="px-5 py-2 bg-surface-container-high text-primary font-bold rounded-xl active:scale-95 duration-200 transition-all hover:bg-surface-container-highest">
+                Following
+            </button>
+</section>
+<!-- Main Note Premium Card -->
+<article class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-[0_12px_32px_rgba(0,90,182,0.06)] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="space-y-6 relative z-10">
+<p class="text-xl leading-relaxed text-on-surface font-light">
+                    The intersection of <span class="text-primary font-medium">bioluminescent urbanism</span> and sustainable infrastructure suggests that we could replace 40% of street lighting with synthetic fungal clusters. This isn't just about energy; it's about shifting the nocturnal aesthetic of our cities from harsh electricity to organic radiance.
+                </p>
+<div class="pt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-low text-on-secondary-container text-xs font-semibold rounded-full uppercase tracking-wider">#urbanism</span>
+<span class="px-3 py-1 bg-surface-container-low text-on-secondary-container text-xs font-semibold rounded-full uppercase tracking-wider">#sustainability</span>
+<span class="px-3 py-1 bg-surface-container-low text-on-secondary-container text-xs font-semibold rounded-full uppercase tracking-wider">#biotech</span>
+</div>
+</div>
+<!-- Context Actions -->
+<div class="mt-8 flex items-center justify-between border-t border-surface-container pt-6">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+<span class="text-sm font-medium">1.2k</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-sm font-medium">84</span>
+</button>
+</div>
+<button class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="bookmark" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+</button>
+</div>
+</article>
+<!-- Intelligence Sections -->
+<div class="space-y-12">
+<!-- Referenced By -->
+<section class="space-y-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Referenced By</h3>
+<span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md">3 NODES</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-5 bg-surface-container-low rounded-2xl space-y-3 hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-lg bg-surface-container-highest"></div>
+<span class="text-xs font-bold text-on-surface">Mark S.</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic">"Synthetics could solve the energy leakage problem in Tokyo's Ward 3..."</p>
+</div>
+<div class="p-5 bg-surface-container-low rounded-2xl space-y-3 hover:bg-surface-container transition-colors group">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-lg bg-surface-container-highest"></div>
+<span class="text-xs font-bold text-on-surface">Dr. Aris</span>
+</div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic">"Fundamental research on fungal mycelium networks supports Elena's hypothesis..."</p>
+</div>
+</div>
+</section>
+<!-- References -->
+<section class="space-y-4">
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant px-2">References</h3>
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden">
+<div class="p-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-xl bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" data-icon="description">description</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Mycelium Light Emission Ratios</p>
+<p class="text-xs text-on-surface-variant">Published 2023 · Nature Biotech</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Thread Continuation -->
+<section class="space-y-4">
+<h3 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant px-2">Thread Continuation</h3>
+<div class="relative pl-6 space-y-6">
+<div class="absolute left-0 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary-container to-transparent rounded-full"></div>
+<div class="relative">
+<div class="absolute -left-7 top-1 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-background"></div>
+<div class="p-5 bg-surface-container-low rounded-2xl">
+<p class="text-sm text-on-surface leading-relaxed">
+                                I'm planning to prototype this in the South District park next month. Looking for collaborators in mycology and structural engineering.
+                            </p>
+<div class="mt-3 flex items-center gap-4">
+<span class="text-[10px] font-bold text-primary uppercase">12 Replies</span>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase">Update: 1h ago</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Fixed Bottom Actions Cluster -->
+<div class="fixed bottom-0 left-0 w-full z-50 px-6 pb-8 pt-10 pointer-events-none">
+<div class="max-w-2xl mx-auto flex gap-3 pointer-events-auto">
+<button class="flex-1 h-14 bg-gradient-to-br from-primary to-primary-container text-white font-bold rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="hub" style="font-variation-settings: 'FILL' 1;">hub</span>
+                View Graph
+            </button>
+<button class="w-14 h-14 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center text-on-surface shadow-xl active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="add_comment">add_comment</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar Logic (Supressed due to Detail Focus but defined for structural continuity if needed elsewhere) -->
+<!-- Note: Following the "Destination Rule", for a deep detail view, we prioritize the primary CTA "View Graph" -->
+</body></html>

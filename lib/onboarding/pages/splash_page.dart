@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/domain/usecases/user_usecases.dart';
 
 /// Flutter splash screen — shown immediately after native splash.
 /// Runs DI (Isar open) in parallel with a 1.2s minimum display.
@@ -31,18 +32,19 @@ class _SplashPageState extends State<SplashPage>
   }
 
   Future<void> _boot() async {
-    // DI + minimum splash time run in parallel
-    await Future.wait([
-      configureDependencies(),
-      Future.delayed(const Duration(milliseconds: 1200)),
-    ]);
-
+    // Wait only for DI to complete — the native splash already covered startup.
+    // Adding an extra delay here causes a visible "second splash" for returning users.
+    await configureDependencies();
     if (!mounted) return;
 
-    // TODO: check UserRepository.getActiveUser()
-    // → if Right(user) → AppRoutes.home
-    // → else → AppRoutes.welcome
-    Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+    // Auth check: if a user key exists → go straight to home
+    final result = await getIt<GetActiveUserUseCase>().call();
+    if (!mounted) return;
+
+    result.fold(
+      (_) => Navigator.pushReplacementNamed(context, AppRoutes.welcome),
+      (_) => Navigator.pushReplacementNamed(context, AppRoutes.home),
+    );
   }
 
   @override

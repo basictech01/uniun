@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
@@ -14,6 +15,7 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -43,8 +45,8 @@ class WelcomePage extends StatelessWidget {
                 const SizedBox(height: 48),
 
                 // ── Hero tagline ─────────────────────────────────────────
-                const Text(
-                  'Your notes, your\nnetwork, your identity.',
+                Text(
+                  l10n.welcomeTagline,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.onSurface,
@@ -83,15 +85,15 @@ class WelcomePage extends StatelessWidget {
                       arguments: {'npub': npub, 'nsec': nsec},
                     );
                   },
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_circle_rounded,
+                      const Icon(Icons.add_circle_rounded,
                           color: AppColors.onPrimary, size: 22),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
-                        'Create New Identity',
-                        style: TextStyle(
+                        l10n.welcomeCreateIdentity,
+                        style: const TextStyle(
                           color: AppColors.onPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -107,15 +109,15 @@ class WelcomePage extends StatelessWidget {
                 _SecondaryButton(
                   onPressed: () => Navigator.pushNamed(
                       context, AppRoutes.importIdentity),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.vpn_key_rounded,
+                      const Icon(Icons.vpn_key_rounded,
                           color: AppColors.primary, size: 20),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
-                        'I Already Have a Key',
-                        style: TextStyle(
+                        l10n.welcomeImportKey,
+                        style: const TextStyle(
                           color: AppColors.onSurface,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -132,19 +134,19 @@ class WelcomePage extends StatelessWidget {
                   onTap: () {
                     // TODO: open how-it-works page
                   },
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Learn how UNIUN works',
-                        style: TextStyle(
+                        l10n.welcomeLearnHow,
+                        style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
                         ),
                       ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_rounded,
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_rounded,
                           color: AppColors.primary, size: 16),
                     ],
                   ),

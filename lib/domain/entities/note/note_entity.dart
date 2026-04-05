@@ -17,6 +17,10 @@ abstract class NoteEntity with _$NoteEntity {
     required List<String> tTags,
     required DateTime created,
     required bool isSeen,
+    /// NIP-10 "root" marker — null means this IS a top-level note.
+    String? rootEventId,
+    /// NIP-10 "reply" marker — the direct parent note this replies to.
+    String? replyToEventId,
   }) = _NoteEntity;
 
   factory NoteEntity.fromJson(Map<String, dynamic> json) =>

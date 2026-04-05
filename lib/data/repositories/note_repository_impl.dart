@@ -18,21 +18,19 @@ class NoteRepositoryImpl extends NoteRepository {
     DateTime? before,
   }) async {
     try {
-      if (before != null) {
-        final notes = await isar.noteModels
-            .filter()
-            .createdLessThan(before)
-            .sortByCreatedDesc()
-            .limit(limit)
-            .findAll();
-        return Right(notes.map((n) => n.toDomain()).toList());
-      }
-      final notes = await isar.noteModels
-          .where()
-          .anyId()
+      // Only top-level notes (rootEventId == null) appear in the feed.
+      // Replies live inside thread views — never in the main feed.
+      final query = isar.noteModels
+          .filter()
+          .rootEventIdIsNull();
+
+      final notes = await (before != null
+              ? query.createdLessThan(before)
+              : query)
           .sortByCreatedDesc()
           .limit(limit)
           .findAll();
+
       return Right(notes.map((n) => n.toDomain()).toList());
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
@@ -58,13 +56,43 @@ class NoteRepositoryImpl extends NoteRepository {
   @override
   Future<Either<Failure, List<NoteEntity>>> getReplies(String eventId) async {
     try {
+      // Direct replies only — notes where this event is the immediate parent.
+      // Using replyToEventId (indexed) is precise; eTagRefs would also match
+      // mentions which are not replies.
       final replies = await isar.noteModels
-          .where()
           .filter()
-          .eTagRefsElementEqualTo(eventId)
+          .replyToEventIdEqualTo(eventId)
           .sortByCreated()
           .findAll();
       return Right(replies.map((n) => n.toDomain()).toList());
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<NoteEntity>>> getThread(
+      String rootEventId) async {
+    try {
+      // Root note
+      final root = await isar.noteModels
+          .where()
+          .eventIdEqualTo(rootEventId)
+          .findFirst();
+
+      // All notes in the thread (rootEventId == rootEventId), chronological
+      final replies = await isar.noteModels
+          .filter()
+          .rootEventIdEqualTo(rootEventId)
+          .sortByCreated()
+          .findAll();
+
+      final all = [
+        if (root != null) root,
+        ...replies,
+      ];
+
+      return Right(all.map((n) => n.toDomain()).toList());
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
     }
@@ -89,6 +117,8 @@ class NoteRepositoryImpl extends NoteRepository {
         content: note.content,
         type: note.type,
         eTagRefs: note.eTagRefs,
+        rootEventId: note.rootEventId,
+        replyToEventId: note.replyToEventId,
         pTagRefs: note.pTagRefs,
         tTags: note.tTags,
         created: note.created,
@@ -100,6 +130,32 @@ class NoteRepositoryImpl extends NoteRepository {
       });
 
       return Right(model.toDomain());
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getReplyCount(String eventId) async {
+    try {
+      final count = await isar.noteModels
+          .filter()
+          .replyToEventIdEqualTo(eventId)
+          .count();
+      return Right(count);
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getThreadReplyCount(String rootEventId) async {
+    try {
+      final count = await isar.noteModels
+          .filter()
+          .rootEventIdEqualTo(rootEventId)
+          .count();
+      return Right(count);
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
     }

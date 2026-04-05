@@ -15,6 +15,9 @@ _ProfileEntity _$ProfileEntityFromJson(Map<String, dynamic> json) =>
       avatarUrl: json['avatarUrl'] as String?,
       nip05: json['nip05'] as String?,
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      lastSeenAt: json['lastSeenAt'] == null
+          ? null
+          : DateTime.parse(json['lastSeenAt'] as String),
     );
 
 Map<String, dynamic> _$ProfileEntityToJson(_ProfileEntity instance) =>
@@ -26,4 +29,5 @@ Map<String, dynamic> _$ProfileEntityToJson(_ProfileEntity instance) =>
       'avatarUrl': instance.avatarUrl,
       'nip05': instance.nip05,
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'lastSeenAt': instance.lastSeenAt?.toIso8601String(),
     };

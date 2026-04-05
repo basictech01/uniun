@@ -109,3 +109,63 @@ These are user-asserted edges — more reliable than LLM-extracted ones.
 **v1 approach:** Start with standard vector RAG (already designed). Add graph traversal as a second pass on top — seed from vector, expand via graph. No community detection or heavy infrastructure needed for basic GraphRAG.
 
 **Full technical details:** See `docs/graphrag.md`
+
+---
+
+## Finding 005 — User Identity Storage: Secure Storage + Isar Split
+
+**Context:** Deciding where to store the user's Nostr keypair (nsec + npub) and profile data, and how to handle profile caching for other users seen in the feed.
+
+**Problem with naive approach:** Storing nsec in Isar (a plain file on disk) means the private key is accessible to anyone who can read app storage — no different from a text file. On rooted Android devices this is trivially readable.
+
+**Decided approach:** Split storage by sensitivity:
+
+| Data | Storage | Why |
+|------|---------|-----|
+| nsec (bech32 private key) | `flutter_secure_storage` → Android Keystore / iOS Keychain | Hardware-backed encryption, survives app updates, wiped on uninstall |
+| pubkeyHex + npub | Isar `UserKeyModel` | Public data — safe to store anywhere |
+| Own profile (Kind 0) | Isar `ProfileModel` with `isOwn = true` | Never evicted, own identity must always be available offline |
+
+On launch, `SplashPage` calls `UserRepository.getActiveUser()`:
+- Reads `pubkeyHex` + `npub` from Isar
+- Reads `nsec` from secure storage
+- If both exist → `Right(UserKeyEntity)` → navigate to `HomePage` (no login needed)
+- If either missing → `Left(notFoundFailure)` → navigate to `WelcomePage`
+- On reinstall: Isar wiped + secure storage cleared → user must log in again ✅
+
+**Profile eviction strategy (`isOwn` removed):**
+
+`isOwn` was removed. Own profile is identified by `lastSeenAt = DateTime(3000, 6, 1)` — far enough in the future that CleanupManager's `lastSeenAt < now - 30 days` check never fires. `null` lastSeenAt = never evict (safe default for own profile).
+
+```
+Own user      → lastSeenAt = DateTime(3000,6,1)  → kept forever
+DM/Channel    → lastSeenAt = null                → kept forever
+Feed users    → lastSeenAt updated on view       → evicted after 30 days
+Unseen        → not stored at all
+```
+
+**No backend needed for auth:** Nostr identity is purely cryptographic. Login = having the private key. Logout = deleting it from secure storage + Isar.
+
+---
+
+## Finding 006 — Followed Notes: Reference-Graph Subscription
+
+**Context:** Designing a "follow a note" feature distinct from saved notes and user following.
+
+**Concept:** "Following a note" means subscribing to its reference graph. When a user follows note A, any future Kind 1 note that includes `["e", noteA_id]` in its tags is surfaced in that note's feed. The user gets notified when new references arrive.
+
+**How it differs from saved notes:**
+- **Saved note** — stores content for the AI knowledge graph (Shiv) and personal reference. No network subscription. Static.
+- **Followed note** — creates an active subscription. Any note that e-tags the followed note is captured. Dynamic, notification-driven.
+
+**Relay subscription for a followed note:**
+```json
+{"kinds": [1], "#e": ["<followed_note_event_id>"], "since": <last_check_timestamp>}
+```
+
+**Storage (when built):**
+- `FollowedNoteModel` (Isar) — one row per followed note: `{ eventId, contentPreview, lastCheckedAt, newReferenceCount }`
+- `DrawerBloc` loads this list and shows unread badge (newReferenceCount) per note
+- SyncEngine opens the `#e` filter subscription and increments `newReferenceCount` on new hits
+
+**Drawer UI:** "Following" section lists followed notes with a badge count. Tapping opens the reference feed for that note — all notes that have cited it, in chronological order.

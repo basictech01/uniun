@@ -23,16 +23,21 @@ const ProfileModelSchema = CollectionSchema(
       name: r'avatarUrl',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
-    r'nip05': PropertySchema(id: 3, name: r'nip05', type: IsarType.string),
-    r'pubkey': PropertySchema(id: 4, name: r'pubkey', type: IsarType.string),
+    r'lastSeenAt': PropertySchema(
+      id: 2,
+      name: r'lastSeenAt',
+      type: IsarType.dateTime,
+    ),
+    r'name': PropertySchema(id: 3, name: r'name', type: IsarType.string),
+    r'nip05': PropertySchema(id: 4, name: r'nip05', type: IsarType.string),
+    r'pubkey': PropertySchema(id: 5, name: r'pubkey', type: IsarType.string),
     r'updatedAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'username': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'username',
       type: IsarType.string,
     ),
@@ -115,11 +120,12 @@ void _profileModelSerialize(
 ) {
   writer.writeString(offsets[0], object.about);
   writer.writeString(offsets[1], object.avatarUrl);
-  writer.writeString(offsets[2], object.name);
-  writer.writeString(offsets[3], object.nip05);
-  writer.writeString(offsets[4], object.pubkey);
-  writer.writeDateTime(offsets[5], object.updatedAt);
-  writer.writeString(offsets[6], object.username);
+  writer.writeDateTime(offsets[2], object.lastSeenAt);
+  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[4], object.nip05);
+  writer.writeString(offsets[5], object.pubkey);
+  writer.writeDateTime(offsets[6], object.updatedAt);
+  writer.writeString(offsets[7], object.username);
 }
 
 ProfileModel _profileModelDeserialize(
@@ -132,11 +138,12 @@ ProfileModel _profileModelDeserialize(
   object.about = reader.readStringOrNull(offsets[0]);
   object.avatarUrl = reader.readStringOrNull(offsets[1]);
   object.id = id;
-  object.name = reader.readStringOrNull(offsets[2]);
-  object.nip05 = reader.readStringOrNull(offsets[3]);
-  object.pubkey = reader.readString(offsets[4]);
-  object.updatedAt = reader.readDateTime(offsets[5]);
-  object.username = reader.readStringOrNull(offsets[6]);
+  object.lastSeenAt = reader.readDateTimeOrNull(offsets[2]);
+  object.name = reader.readStringOrNull(offsets[3]);
+  object.nip05 = reader.readStringOrNull(offsets[4]);
+  object.pubkey = reader.readString(offsets[5]);
+  object.updatedAt = reader.readDateTime(offsets[6]);
+  object.username = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -152,14 +159,16 @@ P _profileModelDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
+      return (reader.readDateTime(offset)) as P;
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -751,6 +760,79 @@ extension ProfileModelQueryFilter
       return query.addFilterCondition(
         FilterCondition.between(
           property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'lastSeenAt'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'lastSeenAt'),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'lastSeenAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lastSeenAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lastSeenAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterFilterCondition>
+  lastSeenAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lastSeenAt',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -1480,6 +1562,19 @@ extension ProfileModelQuerySortBy
     });
   }
 
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByLastSeenAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastSeenAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  sortByLastSeenAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastSeenAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1579,6 +1674,19 @@ extension ProfileModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByLastSeenAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastSeenAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy>
+  thenByLastSeenAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastSeenAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<ProfileModel, ProfileModel, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1658,6 +1766,12 @@ extension ProfileModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByLastSeenAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastSeenAt');
+    });
+  }
+
   QueryBuilder<ProfileModel, ProfileModel, QDistinct> distinctByName({
     bool caseSensitive = true,
   }) {
@@ -1714,6 +1828,12 @@ extension ProfileModelQueryProperty
   QueryBuilder<ProfileModel, String?, QQueryOperations> avatarUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatarUrl');
+    });
+  }
+
+  QueryBuilder<ProfileModel, DateTime?, QQueryOperations> lastSeenAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastSeenAt');
     });
   }
 

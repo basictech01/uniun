@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
+import 'package:uniun/onboarding/widgets/field_label.dart';
+import 'package:uniun/onboarding/widgets/generated_avatar.dart';
+import 'package:uniun/onboarding/widgets/onboarding_app_bar.dart';
 
 /// Profile setup — shown after key generation on Create New Identity flow.
 /// Route args: Map{'npub': String, 'nsec': String}
@@ -16,6 +20,16 @@ class _AboutYouPageState extends State<AboutYouPage> {
   final _usernameController = TextEditingController();
   final _bioController = TextEditingController();
 
+  String? _displayNameError;
+  String? _usernameError;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayNameController.addListener(() => setState(() {}));
+    _usernameController.addListener(() => setState(() {}));
+  }
+
   @override
   void dispose() {
     _displayNameController.dispose();
@@ -27,13 +41,40 @@ class _AboutYouPageState extends State<AboutYouPage> {
   Map _args(BuildContext context) =>
       ModalRoute.of(context)?.settings.arguments as Map? ?? {};
 
+  bool get _canContinue =>
+      _displayNameController.text.trim().isNotEmpty &&
+      _usernameController.text.trim().isNotEmpty;
+
   void _onContinue(BuildContext context) {
+    final name = _displayNameController.text.trim();
+    final username = _usernameController.text.trim();
+
+    final l10n = AppLocalizations.of(context)!;
+    bool hasError = false;
+    if (name.isEmpty) {
+      setState(() => _displayNameError = l10n.aboutYouDisplayNameRequired);
+      hasError = true;
+    } else {
+      setState(() => _displayNameError = null);
+    }
+    if (username.isEmpty) {
+      setState(() => _usernameError = l10n.aboutYouUsernameRequired);
+      hasError = true;
+    } else {
+      setState(() => _usernameError = null);
+    }
+    if (hasError) return;
+
     final args = _args(context);
-    // TODO: save Kind 0 profile event via BLoC
     Navigator.pushNamed(
       context,
       AppRoutes.yourIdentityKeys,
-      arguments: args, // passes npub + nsec through
+      arguments: {
+        ...args,
+        'displayName': name,
+        'username': username,
+        'bio': _bioController.text.trim(),
+      },
     );
   }
 
@@ -47,12 +88,16 @@ class _AboutYouPageState extends State<AboutYouPage> {
 
   @override
   Widget build(BuildContext context) {
+    final args = _args(context);
+    final npub = args['npub'] as String? ?? '';
+
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
-            _OnboardingAppBar(onBack: () => Navigator.pop(context)),
+            OnboardingAppBar(onBack: () => Navigator.pop(context)),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -62,10 +107,10 @@ class _AboutYouPageState extends State<AboutYouPage> {
                     const SizedBox(height: 16),
 
                     // ── Heading ─────────────────────────────────────────
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'About You',
+                        l10n.aboutYouTitle,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
@@ -75,10 +120,10 @@ class _AboutYouPageState extends State<AboutYouPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Let's set up your profile. This is how the community will see you.",
+                        l10n.aboutYouSubtitle,
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.onSurfaceVariant,
@@ -89,71 +134,46 @@ class _AboutYouPageState extends State<AboutYouPage> {
 
                     const SizedBox(height: 24),
 
-                    // ── Avatar picker ────────────────────────────────────
-                    GestureDetector(
-                      onTap: () {
-                        // TODO: image_picker → Blossom upload
-                      },
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 88,
-                            height: 88,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.surfaceContainer,
-                              border:
-                                  Border.all(color: Colors.white, width: 3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.08),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.add_a_photo_rounded,
-                              size: 26,
-                              color: AppColors.outlineVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Upload Photo',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                    // ── Avatar ────────────────────────────────────────
+                    GeneratedAvatar(
+                      seed: npub,
+                      name: _displayNameController.text.trim(),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.aboutYouAvatarCaption,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceVariant,
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
-                    // ── Display Name ─────────────────────────────────────
-                    _FieldLabel('Display Name'),
+                    // ── Display Name ──────────────────────────────────
+                    FieldLabel(l10n.aboutYouDisplayNameLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _displayNameController,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        hintText: 'What should we call you?',
+                      decoration: InputDecoration(
+                        hintText: l10n.aboutYouDisplayNameHint,
+                        errorText: _displayNameError,
                       ),
                     ),
 
                     const SizedBox(height: 16),
 
-                    // ── Username ─────────────────────────────────────────
-                    _FieldLabel('Username'),
+                    // ── Username ──────────────────────────────────────
+                    FieldLabel(l10n.aboutYouUsernameLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
-                        hintText: 'username',
-                        prefixIcon: Padding(
+                      decoration: InputDecoration(
+                        hintText: l10n.aboutYouUsernameHint,
+                        errorText: _usernameError,
+                        prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 20, right: 0),
                           child: Text(
                             '@',
@@ -166,14 +186,14 @@ class _AboutYouPageState extends State<AboutYouPage> {
                           ),
                         ),
                         prefixIconConstraints:
-                            BoxConstraints(minWidth: 0, minHeight: 0),
+                            const BoxConstraints(minWidth: 0, minHeight: 0),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Unique handle for mentions and search.',
+                        l10n.aboutYouUsernameHelper,
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.onSurfaceVariant,
@@ -184,45 +204,52 @@ class _AboutYouPageState extends State<AboutYouPage> {
 
                     const SizedBox(height: 16),
 
-                    // ── Bio ──────────────────────────────────────────────
-                    _FieldLabel('Bio (Optional)'),
+                    // ── Bio (optional) ────────────────────────────────
+                    FieldLabel(l10n.aboutYouBioLabel),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _bioController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Tell us a bit about yourself...',
+                      decoration: InputDecoration(
+                        hintText: l10n.aboutYouBioHint,
                         alignLabelWithHint: true,
                       ),
                     ),
 
                     const SizedBox(height: 28),
 
-                    // ── Continue ─────────────────────────────────────────
+                    // ── Continue button ───────────────────────────────
                     Builder(
-                      builder: (ctx) => GestureDetector(
-                        onTap: () => _onContinue(ctx),
-                        child: Container(
-                          width: double.infinity,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.2),
-                                blurRadius: 20,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Continue',
-                              style: TextStyle(
-                                color: AppColors.onPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                      builder: (ctx) => AnimatedOpacity(
+                        opacity: _canContinue ? 1.0 : 0.45,
+                        duration: const Duration(milliseconds: 150),
+                        child: GestureDetector(
+                          onTap: () => _onContinue(ctx),
+                          child: Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(999),
+                              boxShadow: _canContinue
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.2),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Center(
+                              child: Text(
+                                l10n.actionContinue,
+                                style: TextStyle(
+                                  color: AppColors.onPrimary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ),
@@ -234,9 +261,9 @@ class _AboutYouPageState extends State<AboutYouPage> {
 
                     TextButton(
                       onPressed: _goHome,
-                      child: const Text(
-                        'SET UP LATER',
-                        style: TextStyle(
+                      child: Text(
+                        l10n.aboutYouSetUpLater,
+                        style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: 11,
@@ -254,15 +281,15 @@ class _AboutYouPageState extends State<AboutYouPage> {
                         color: AppColors.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_user_rounded,
+                          const Icon(Icons.verified_user_rounded,
                               size: 13, color: AppColors.primary),
-                          SizedBox(width: 5),
+                          const SizedBox(width: 5),
                           Text(
-                            'Your data is encrypted and private.',
-                            style: TextStyle(
+                            l10n.aboutYouEncrypted,
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.onSurfaceVariant,
@@ -279,73 +306,6 @@ class _AboutYouPageState extends State<AboutYouPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-          color: AppColors.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
-}
-
-class _OnboardingAppBar extends StatelessWidget {
-  const _OnboardingAppBar({required this.onBack});
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_rounded,
-                color: AppColors.primary),
-            onPressed: onBack,
-          ),
-          const Expanded(
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image(
-                    image: AssetImage('assets/images/uniun-logo.png'),
-                    height: 24,
-                    width: 24,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'UNIUN',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
       ),
     );
   }
