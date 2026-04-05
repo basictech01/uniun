@@ -29,6 +29,7 @@ dependencies:
   isar_community_flutter_libs: 3.3.2
   dartz: ^0.10.1
   path_provider: ^2.0.15
+  path: ^1.9.0
   nostr_core_dart: ^1.0.1
   json_annotation: ^4.9.0
   flutter_secure_storage: ^9.0.0
@@ -37,6 +38,8 @@ dependencies:
   image_picker: ^1.2.1
   flutter_native_splash: ^2.3.10
   qr_flutter: ^4.1.0
+  flutter_gemma: ^0.13.1
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,12 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/images/uniun-logo.png"
+
+# nostr_core_dart ^1.0.1 declares http ^0.13.3, but flutter_gemma ^0.13.1 needs
+# http ^1.4.0 via grpc. nostr_core_dart only calls http.get(Uri.parse(...)) so
+# it is fully compatible with http 1.x at runtime — safe to override.
+dependency_overrides:
+  http: ^1.4.0
 
 flutter:
   generate: true

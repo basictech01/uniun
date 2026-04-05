@@ -505,7 +505,8 @@ classDiagram
         +unloadModel() Future~void~
         +run(prompt) Stream~String~
         +isReady() bool
-        <<uses flutter_gemma package>>
+        <<flutter_gemma 0.13.1 — user-selected model>>
+        <<Qwen3 0.6B / DeepSeek R1 / Gemma 4 E2B / E4B>>
     }
 
     %% ════════════════════════════════════════
@@ -615,18 +616,26 @@ UNIUN is a **decentralized, offline-first note network** — a hybrid of:
 └──────────────────────▲───────────────────────────────┘
                        │ writes to
 ┌──────────────────────┴───────────────────────────────┐
-│  EMBEDDED SERVER (Background Service)                │
+│  EMBEDDED SERVER (Dart isolate — separate team)      │
 │  SyncEngine · EventQueue · RelayConnector            │
 └──────────────────────┬───────────────────────────────┘
-                       │ WebSocket
+                       │ WebSocket (NIP-01)
 ┌──────────────────────▼───────────────────────────────┐
-│  RELAY NETWORK (Decentralized)                       │
-│  Relay 1 · Relay 2 · ... · Relay N                  │
+│  uniun-backend  (Go relay — Khatru + BadgerDB)       │
+│  Event storage · Blossom media · MySQL mirror        │
+│  See docs/BACKEND.md for full details                │
 └──────────────────────────────────────────────────────┘
+                       │ Azure Blob Storage
+┌──────────────────────▼───────────────────────────────┐
+│  Media Files (images uploaded via Brahma)            │
+└──────────────────────────────────────────────────────┘
+
                        +
 ┌──────────────────────────────────────────────────────┐
-│  AI MODEL RUNNER (On-Device)                         │
-│  llama.cpp / ollama / local LLM engine               │
+│  AI MODEL RUNNER (On-Device — Shiv)                  │
+│  flutter_gemma ^0.13.1 (Qwen3 0.6B / DeepSeek R1 /  │
+│  Gemma 4 E2B / Gemma 4 E4B) — user downloads once   │
+│  + all-MiniLM-L6-v2 embedding model (bundled ~80MB) │
 └──────────────────────────────────────────────────────┘
 ```
 

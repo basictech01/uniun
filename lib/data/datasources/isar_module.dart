@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uniun/data/models/ai_model_selection_model.dart';
 import 'package:uniun/data/models/followed_note_model.dart';
 import 'package:uniun/data/models/note_model.dart';
 import 'package:uniun/data/models/outbound_event_model.dart';
@@ -22,6 +23,7 @@ abstract class IsarModule {
         FollowedNoteModelSchema,
         OutboundEventModelSchema,
         SavedNoteModelSchema,
+        AIModelSelectionModelSchema,
       ],
       directory: dir.path,
     );

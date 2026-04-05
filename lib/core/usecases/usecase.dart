@@ -2,6 +2,13 @@ abstract class BaseUseCase<T> {
   const BaseUseCase();
 }
 
+// For use cases that emit a stream of values (e.g. download progress).
+abstract class StreamUseCase<T, P> {
+  const StreamUseCase();
+
+  Stream<T> call(P input);
+}
+
 abstract class UseCase<T, P> extends BaseUseCase<T> {
   const UseCase() : super();
 

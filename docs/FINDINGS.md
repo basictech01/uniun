@@ -31,32 +31,36 @@ DMReadStateModel       { conversationId, lastReadEventId, unreadCount }
 
 ---
 
-## Finding 002 — Shiv AI: flutter_gemma for On-Device LLM + RAG
+## Finding 002 — Shiv AI: flutter_gemma + User-Selected Models + Branching Chat
 
-**Context:** Choosing an on-device LLM runtime for Shiv (AI assistant with RAG over saved notes).
+**Context:** Designing Shiv's LLM backend, model selection UX, and conversation structure.
 
-**Options considered:**
-- Custom Strategy pattern with multiple backends (Llama.cpp, Ollama, Phi, Gemma) — over-engineered for v1
-- flutter_gemma — Flutter plugin that runs Google Gemma models natively on device via MediaPipe LLM Inference API
+**Package:** `flutter_gemma: ^0.13.1` — Flutter plugin wrapping MediaPipe LLM Inference API. Supports GPU acceleration (Android GPU delegate / iOS Metal). Streaming via `getResponseStream(prompt)`.
 
-**Decided approach:** Use `flutter_gemma` package as the single LLM backend.
+**Model selection:** User picks a model on first open of Shiv (and can change in Settings → AI Model). Models are downloaded once and stored on-device. No cloud inference ever.
 
-- Runs Gemma 2B / Gemma 7B models directly on mobile (no server needed)
-- Uses GPU acceleration on both Android (GPU delegate) and iOS (Metal)
-- Simple API: `FlutterGemmaPlugin.instance.getResponseAsync(prompt)` for full response, `.getResponseStream(prompt)` for token streaming
-- Model file (.bin) bundled in app assets or downloaded on first launch
+**Recommended model tiers:**
 
-**Why not Strategy pattern:** For a basic working app, one model backend is enough. Strategy pattern adds complexity with no user benefit until we actually need multiple backends. Can always refactor later.
+| Tier | Model | Size | Best For |
+|------|-------|------|----------|
+| Low-end | Qwen3 0.6B | 586MB | Budget phones |
+| Mid ⭐ | DeepSeek R1 | 1.7GB | Daily use + reasoning |
+| High | Gemma 4 E2B | 2.4GB | Multimodal |
+| Flagship | Gemma 4 E4B | 4.3GB | Best accuracy |
 
-**RAG flow with flutter_gemma:**
-1. User asks question → EmbeddingService converts to vector
-2. VectorSearchService finds top-K saved notes by cosine similarity
-3. PromptBuilder injects notes into prompt context
-4. `flutter_gemma` streams the answer token-by-token
+**RAG flow:**
+1. Note saved → `EmbeddingService` (all-MiniLM-L6-v2, bundled) → vector → `SavedNoteModel.embedding` in Isar
+2. User asks → same embedding model → query vector → cosine sim over all saved embeddings → top-K notes
+3. `PromptBuilder` injects top-K notes + branch conversation history into prompt
+4. `flutter_gemma` streams answer token-by-token → `ShivAIBloc` emits streaming state
 
-**Model sizes:**
-- Gemma 2B — ~1.5GB, runs on any modern phone (4GB+ RAM)
-- Gemma 7B — ~5GB, needs 8GB+ RAM devices
+**Branching chat system:**
+- Conversations are a **tree of messages** internally, but always display as a **linear chat** (only the active branch path shown)
+- Users can branch from any previous message: long-press → "Continue from here" → new branch created, old branch preserved
+- `BranchTreeView` (accessed via top-right tree icon) shows the full tree and allows switching between branches
+- Default experience is identical to a normal chatbot — branching is opt-in and hidden
+
+Full details in `docs/SHIV_AI.md`.
 
 ---
 
@@ -169,3 +173,26 @@ Unseen        → not stored at all
 - SyncEngine opens the `#e` filter subscription and increments `newReferenceCount` on new hits
 
 **Drawer UI:** "Following" section lists followed notes with a badge count. Tapping opens the reference feed for that note — all notes that have cited it, in chronological order.
+
+---
+
+## Finding 007 — uniun-backend: Own Nostr Relay (Khatru + BadgerDB)
+
+**Context:** Deciding whether to use public Nostr relays or run our own.
+
+**Decision:** Run our own relay (`uniun-backend/`) built on Khatru — a Go framework for building Nostr relays. This gives control over which event kinds are accepted, rate limiting, media storage, and retention.
+
+**Stack:**
+- **Khatru** (`github.com/fiatjaf/khatru`) — handles all NIP-01 WebSocket protocol, subscription management, and event routing. We write the rules; Khatru does the networking.
+- **BadgerDB** — embedded key-value store (no separate database process). Events stored at `WORKING_DIR/db/`.
+- **MySQL** — optional secondary mirror. Set `MYSQL_DSN` env var to enable. BadgerDB is primary.
+- **Blossom** — media blob protocol (BUD-01). Images from Brahma are uploaded here via `PUT /upload`.
+- **Azure Blob Storage** — where Blossom stores the actual image bytes. Enabled with `AZURE_FOR_BLOSSOM=true`.
+
+**Current state:** Core relay works (NIP-01, storage, Blossom wiring). Two stubs need filling:
+- `RejectEvent` (`main.go:113`) — currently accepts all events. Needs kind allowlist + size limits.
+- `RejectFilter` (`main.go:118`) — currently allows all subscriptions. Needs protection against full-database dumps.
+
+**Flutter connection:** The EmbeddedServer's `RelayConnector` connects to `RELAY_URL` via WebSocket. The Flutter app never calls this relay directly — all relay communication goes through the EmbeddedServer isolate.
+
+**Full details + roadmap:** `docs/BACKEND.md`
