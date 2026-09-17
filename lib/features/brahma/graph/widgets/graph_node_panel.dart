@@ -5,6 +5,7 @@ import 'package:uniun/core/enum/note_type.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/features/brahma/graph/bloc/graph_bloc.dart';
 import 'package:uniun/features/brahma/graph/models/graph_node_type.dart';
+import 'package:uniun/features/brahma/graph/widgets/graph_stepper.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
 import 'package:uniun/domain/entities/profile/profile_entity.dart';
 import 'package:uniun/l10n/app_localizations.dart';
@@ -109,6 +110,8 @@ class GraphNodePanel extends StatelessWidget {
                 children: [
                   _TypeBadge(type: node.type, l10n: l10n),
                   const Spacer(),
+                  const _ConnectionStepper(),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: onClose,
                     child: Icon(Icons.close_rounded,
@@ -164,6 +167,37 @@ class GraphNodePanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Walks the connections of the anchored node — the no-search way to follow a
+/// note's edges. Hidden when the node has none.
+class _ConnectionStepper extends StatelessWidget {
+  const _ConnectionStepper();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return BlocBuilder<GraphBloc, GraphState>(
+      buildWhen: (prev, curr) =>
+          prev.connectionAnchorId != curr.connectionAnchorId ||
+          prev.connectionIndex != curr.connectionIndex,
+      builder: (context, state) {
+        final total = state.connectionOrder.length;
+        if (total == 0) return const SizedBox.shrink();
+        return GraphStepper(
+          icon: Icons.link_rounded,
+          current: state.connectionIndex + 1,
+          total: total,
+          positionLabel:
+              l10n.graphStepPosition(state.connectionIndex + 1, total),
+          prevTooltip: l10n.graphPrevConnection,
+          nextTooltip: l10n.graphNextConnection,
+          onStep: (delta) =>
+              context.read<GraphBloc>().add(StepConnectedNodeEvent(delta)),
+        );
+      },
     );
   }
 }

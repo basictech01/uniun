@@ -1558,6 +1558,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get graphSearchClear => 'खोज साफ़ करें';
 
   @override
+  String graphStepPosition(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String get graphSearchPrevMatch => 'Previous match';
+
+  @override
+  String get graphSearchNextMatch => 'Next match';
+
+  @override
+  String get graphPrevConnection => 'Previous connection';
+
+  @override
+  String get graphNextConnection => 'Next connection';
+
+  @override
   String get groupEntryTitle => 'दल';
 
   @override

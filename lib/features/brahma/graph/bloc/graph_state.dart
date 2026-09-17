@@ -15,6 +15,10 @@ class GraphState {
     this.scopedManasIconName,
     this.searchQuery = '',
     this.matchedNodeIds = const {},
+    this.matchOrder = const [],
+    this.matchIndex = -1,
+    this.connectionAnchorId,
+    this.connectionIndex = -1,
   });
 
   final GraphStatus status;
@@ -53,7 +57,58 @@ class GraphState {
   /// [searchQuery] is non-empty; matched nodes stay lit, the rest dim.
   final Set<String> matchedNodeIds;
 
+  /// [matchedNodeIds] as a stepping order (newest note first). Same members,
+  /// so `matchOrder.length` is the match count.
+  final List<String> matchOrder;
+
+  /// Position in [matchOrder] the camera is parked on, or -1 when the user has
+  /// typed but not stepped yet — the graph highlights every match but has not
+  /// moved.
+  final int matchIndex;
+
+  /// The node whose connections the node panel's stepper walks. It stays put
+  /// while stepping — otherwise each step would re-orbit around the node just
+  /// reached and `‹` would not lead back where it came from. Any fresh
+  /// selection re-anchors it.
+  final String? connectionAnchorId;
+
+  /// Position in [connectionOrder], or -1 when no connection is focused.
+  final int connectionIndex;
+
   bool get isSearching => searchQuery.isNotEmpty;
+
+  /// The match the camera should be centred on, or null when none is focused.
+  String? get focusedMatchId =>
+      matchIndex >= 0 && matchIndex < matchOrder.length
+          ? matchOrder[matchIndex]
+          : null;
+
+  /// The anchor's neighbours in stepping order (newest note first).
+  List<String> get connectionOrder {
+    final anchor = connectionAnchorId;
+    if (anchor == null) return const [];
+    final neighbours = adjacency[anchor];
+    if (neighbours == null || neighbours.isEmpty) return const [];
+    final byId = {for (final n in nodes) n.eventId: n};
+    final ordered = [
+      for (final id in neighbours)
+        if (byId.containsKey(id)) byId[id]!,
+    ]..sort((a, b) =>
+        (b.created ?? DateTime(0)).compareTo(a.created ?? DateTime(0)));
+    return [for (final n in ordered) n.eventId];
+  }
+
+  String? get focusedConnectionId {
+    final order = connectionOrder;
+    return connectionIndex >= 0 && connectionIndex < order.length
+        ? order[connectionIndex]
+        : null;
+  }
+
+  /// The node the camera should fly to. A search owns the camera while it is
+  /// open; otherwise the connection walk does.
+  String? get focusedNodeId =>
+      isSearching ? focusedMatchId : focusedConnectionId;
 
   GraphState copyWith({
     GraphStatus? status,
@@ -69,6 +124,11 @@ class GraphState {
     bool clearScope = false,
     String? searchQuery,
     Set<String>? matchedNodeIds,
+    List<String>? matchOrder,
+    int? matchIndex,
+    String? connectionAnchorId,
+    int? connectionIndex,
+    bool clearConnections = false,
   }) {
     return GraphState(
       status: status ?? this.status,
@@ -87,6 +147,12 @@ class GraphState {
           : (scopedManasIconName ?? this.scopedManasIconName),
       searchQuery: searchQuery ?? this.searchQuery,
       matchedNodeIds: matchedNodeIds ?? this.matchedNodeIds,
+      matchOrder: matchOrder ?? this.matchOrder,
+      matchIndex: matchIndex ?? this.matchIndex,
+      connectionAnchorId: clearConnections
+          ? null
+          : (connectionAnchorId ?? this.connectionAnchorId),
+      connectionIndex: clearConnections ? -1 : (connectionIndex ?? this.connectionIndex),
     );
   }
 
@@ -123,7 +189,10 @@ class GraphState {
           scopedManasIconName == other.scopedManasIconName &&
           searchQuery == other.searchQuery &&
           matchedNodeIds.length == other.matchedNodeIds.length &&
-          matchedNodeIds.containsAll(other.matchedNodeIds);
+          matchedNodeIds.containsAll(other.matchedNodeIds) &&
+          matchIndex == other.matchIndex &&
+          connectionAnchorId == other.connectionAnchorId &&
+          connectionIndex == other.connectionIndex;
 
   @override
   int get hashCode => Object.hash(
@@ -138,5 +207,8 @@ class GraphState {
         scopedManasIconName,
         searchQuery,
         matchedNodeIds.length,
+        matchIndex,
+        connectionAnchorId,
+        connectionIndex,
       );
 }

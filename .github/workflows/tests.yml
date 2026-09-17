@@ -17,8 +17,8 @@ on:
 
 permissions:
   contents: read
-  # Needed by codecov/codecov-action's tokenless OIDC upload (no secret
-  # required for public repos).
+  # codecov/codecov-action still requests an OIDC token; harmless to keep.
+  # The upload itself needs CODECOV_TOKEN — see the coverage job.
   id-token: write
 
 concurrency:
@@ -255,15 +255,17 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Uploads to Codecov for the PR/main-branch coverage dashboard, patch
-      # (diff) coverage, and trend graphs. Tokenless via GitHub OIDC — works
-      # for any public repo without a secret. Until the Codecov GitHub App
-      # is installed on the org (github.com/apps/codecov, an org-admin-only
-      # step), the upload is simply rejected server-side; `fail_ci_if_error:
-      # false` keeps that from ever failing the build in the meantime.
+      # (diff) coverage, and trend graphs. This repo is PRIVATE, so the
+      # tokenless OIDC path does not apply — Codecov answers
+      # "Token required - not valid tokenless upload" and the dashboard stays
+      # empty. It needs a CODECOV_TOKEN repo secret (Codecov → repo settings →
+      # upload token). Without it the step still passes: `fail_ci_if_error:
+      # false`, and the percentage is printed in the job summary regardless.
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: coverage.info
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
           verbose: true
 

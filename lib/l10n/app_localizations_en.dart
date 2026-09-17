@@ -1542,6 +1542,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get graphSearchClear => 'Clear search';
 
   @override
+  String graphStepPosition(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String get graphSearchPrevMatch => 'Previous match';
+
+  @override
+  String get graphSearchNextMatch => 'Next match';
+
+  @override
+  String get graphPrevConnection => 'Previous connection';
+
+  @override
+  String get graphNextConnection => 'Next connection';
+
+  @override
   String get groupEntryTitle => 'Groups';
 
   @override

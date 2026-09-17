@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uniun/common/locator.dart';
@@ -97,45 +98,55 @@ class _GraphViewState extends State<_GraphView> {
           builder: (context, state) =>
               BrahmaDrawer(activeManasId: state.scopedManasId),
         ),
-        body: Stack(
-          children: [
-            // Positioned.fill gives _GraphBody tight constraints so GraphCanvas
-            // LayoutBuilder gets the full screen size (without this, the inner
-            // Stack with only Positioned children would have zero size).
-            Positioned.fill(
-              child: _GraphBody(
-                onInteractingChanged: (v) {
-                  if (_isGraphInteracting != v) {
-                    setState(() => _isGraphInteracting = v);
-                  }
-                },
-              ),
-            ),
-
-            // FloatingNav — hides while graph is being touched or node panel is open
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                offset: _navVisible ? Offset.zero : const Offset(0, 1.5),
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeInOut,
-                child: FloatingNav(
-                  currentIndex: 1,
-                  onTap: (i) async {
-                    // Tap on the Brahma icon while already on Brahma →
-                    // open the side drawer. Edge-swipe also works.
-                    if (i == 1) {
-                      brahmaScaffoldKey.currentState?.openDrawer();
-                      return;
+        // Any tap no child claims puts the search keyboard away — the
+        // package's own dismisser, as used elsewhere in the app.
+        body: KeyboardDismissOnTap(
+          child: Stack(
+            children: [
+              // Positioned.fill gives _GraphBody tight constraints so GraphCanvas
+              // LayoutBuilder gets the full screen size (without this, the inner
+              // Stack with only Positioned children would have zero size).
+              Positioned.fill(
+                child: _GraphBody(
+                  onInteractingChanged: (v) {
+                    if (_isGraphInteracting != v) {
+                      setState(() => _isGraphInteracting = v);
                     }
-                    Navigator.pop(context, i);
                   },
                 ),
               ),
-            ),
-          ],
+
+              // FloatingNav — hides while the graph is being touched, the node
+              // panel is open, or the search keyboard is up (it would sit on
+              // top of the keyboard otherwise, as it does on Shiv).
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: KeyboardVisibilityBuilder(
+                  builder: (context, isKeyboardVisible) => AnimatedSlide(
+                    offset: (_navVisible && !isKeyboardVisible)
+                        ? Offset.zero
+                        : const Offset(0, 1.5),
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeInOut,
+                    child: FloatingNav(
+                      currentIndex: 1,
+                      onTap: (i) async {
+                        // Tap on the Brahma icon while already on Brahma →
+                        // open the side drawer. Edge-swipe also works.
+                        if (i == 1) {
+                          brahmaScaffoldKey.currentState?.openDrawer();
+                          return;
+                        }
+                        Navigator.pop(context, i);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+        ),
         ),
       ),
     );
@@ -198,12 +209,19 @@ class _GraphBody extends StatelessWidget {
                       selectedNodeId: state.selectedNodeId,
                       isSearching: state.isSearching,
                       matchedNodeIds: state.matchedNodeIds,
+                      focusedNodeId: state.focusedNodeId,
                       onNodeTap: (id) => context
                           .read<GraphBloc>()
                           .add(SelectGraphNodeEvent(id)),
-                      onCanvasTap: () => context
-                          .read<GraphBloc>()
-                          .add(const DeselectGraphNodeEvent()),
+                      onCanvasTap: () {
+                        // The canvas claims its own taps, so the page-level
+                        // KeyboardDismissOnTap never sees them — put the
+                        // search keyboard away here instead.
+                        FocusScope.of(context).unfocus();
+                        context
+                            .read<GraphBloc>()
+                            .add(const DeselectGraphNodeEvent());
+                      },
                       onInteractingChanged: onInteractingChanged,
                     ),
                   ),

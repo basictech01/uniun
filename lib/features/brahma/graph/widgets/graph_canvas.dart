@@ -24,6 +24,7 @@ class GraphCanvas extends StatefulWidget {
     this.onInteractingChanged,
     this.isSearching = false,
     this.matchedNodeIds = const {},
+    this.focusedNodeId,
   });
 
   final List<GraphNodeData> nodes;
@@ -37,11 +38,17 @@ class GraphCanvas extends StatefulWidget {
   final bool isSearching;
   final Set<String> matchedNodeIds;
 
+  /// The node to centre the camera on — a search match or a connection of the
+  /// selected node. Each new value flies the view to that node; the view held
+  /// before the first flight comes back when the focus ends.
+  final String? focusedNodeId;
+
   @override
   State<GraphCanvas> createState() => _GraphCanvasState();
 }
 
-class _GraphCanvasState extends State<GraphCanvas> {
+class _GraphCanvasState extends State<GraphCanvas>
+    with SingleTickerProviderStateMixin {
   late Graph _graph;
   Timer? _timer;
   bool _initialized = false;
@@ -81,6 +88,31 @@ class _GraphCanvasState extends State<GraphCanvas> {
   final Map<Node, Offset> _velocity = {};
   final Map<Node, int> _degree = {};
 
+  // ── Camera ─────────────────────────────────────────────────────────────────
+  // Zoom level a search flight lands on, and where in the viewport it parks the
+  // node: high enough that the node panel (up to 52% of the screen) can open
+  // under it without covering it.
+  static const double _focusScale = 1.4;
+  static const double _focusYFraction = 0.3;
+
+  final TransformationController _viewer = TransformationController();
+  late final AnimationController _camera = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  )..addListener(_driveCamera);
+
+  // Matrix the running flight started from.
+  Matrix4? _flyFrom;
+  // Fixed destination (the restore flight). Null while flying to a node, whose
+  // destination is recomputed every frame from its live position.
+  Matrix4? _flyTo;
+  // Node the camera is locked onto — kept centred while the simulation is
+  // still moving it. Cleared as soon as the user touches the canvas.
+  String? _followNodeId;
+  // The view to return to when the search closes; captured before the first
+  // flight of a search session.
+  Matrix4? _preSearchView;
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +120,11 @@ class _GraphCanvasState extends State<GraphCanvas> {
   }
 
   void _prepareGraph(List<GraphNodeData> nodes) {
+    // A new node set is re-seeded from scratch, so a camera position captured
+    // against the old layout no longer points anywhere meaningful.
+    _camera.stop();
+    _followNodeId = null;
+    _preSearchView = null;
     _initialized = false;
     _isDragging = false;
     _draggingNode = null;
@@ -340,6 +377,11 @@ class _GraphCanvasState extends State<GraphCanvas> {
         return;
       }
       _tick();
+      // Hold the focused node under the camera as the layout settles. During
+      // the flight itself _driveCamera already re-reads its position.
+      if (_followNodeId != null && !_camera.isAnimating) {
+        _viewer.value = _viewCentredOn(_followNodeId!) ?? _viewer.value;
+      }
       if (mounted) setState(() {});
     });
   }
@@ -349,6 +391,88 @@ class _GraphCanvasState extends State<GraphCanvas> {
     if (_timer == null || !_timer!.isActive) _startSimulation();
   }
 
+  Node? _nodeById(String id) {
+    for (final n in _graph.nodes) {
+      if (n.key?.value == id) return n;
+    }
+    return null;
+  }
+
+  /// The transform that parks [id]'s current centre at the focus point.
+  Matrix4? _viewCentredOn(String id) {
+    final node = _nodeById(id);
+    if (node == null) return null;
+    final c = _centerOf(node);
+    const s = _focusScale;
+    return Matrix4.identity()
+      ..translateByDouble(
+        _graphW / 2 - s * c.dx,
+        _graphH * _focusYFraction - s * c.dy,
+        0,
+        1,
+      )
+      ..scaleByDouble(s, s, s, 1);
+  }
+
+  /// Interpolates the scale and translation of two pan/zoom transforms. Both
+  /// carry no rotation or skew, so `s·p + t` fully describes them.
+  static Matrix4 _lerpView(Matrix4 a, Matrix4 b, double t) {
+    final sa = a.getMaxScaleOnAxis();
+    final sb = b.getMaxScaleOnAxis();
+    final s = sa + (sb - sa) * t;
+    final ta = a.getTranslation();
+    final tb = b.getTranslation();
+    return Matrix4.identity()
+      ..translateByDouble(
+        ta.x + (tb.x - ta.x) * t,
+        ta.y + (tb.y - ta.y) * t,
+        0,
+        1,
+      )
+      ..scaleByDouble(s, s, s, 1);
+  }
+
+  void _driveCamera() {
+    final from = _flyFrom;
+    if (from == null) return;
+    // While flying to a node the destination is re-read every frame: the
+    // simulation is often still moving that node, and a destination frozen at
+    // take-off would land the camera where the node used to be.
+    final to = _flyTo ?? (_followNodeId == null ? null : _viewCentredOn(_followNodeId!));
+    if (to == null) return;
+    _viewer.value =
+        _lerpView(from, to, Curves.easeOutCubic.transform(_camera.value));
+  }
+
+  void _flyToNode(String id) {
+    if (_viewCentredOn(id) == null) return;
+    _preSearchView ??= _viewer.value.clone();
+    _flyFrom = _viewer.value.clone();
+    _flyTo = null;
+    _followNodeId = id;
+    _camera.forward(from: 0);
+  }
+
+  /// Returns to the view held before the search's first flight. No-op when the
+  /// camera never moved — closing a search you only typed into leaves the view
+  /// exactly where you left it.
+  void _restoreView() {
+    final target = _preSearchView;
+    _preSearchView = null;
+    _followNodeId = null;
+    if (target == null) return;
+    _flyFrom = _viewer.value.clone();
+    _flyTo = target;
+    _camera.forward(from: 0);
+  }
+
+  /// Any touch on the canvas takes the camera back: a flight in progress stops
+  /// and the lock on the focused node releases, so gestures are never fought.
+  void _releaseCamera() {
+    _camera.stop();
+    _followNodeId = null;
+  }
+
   @override
   void didUpdateWidget(GraphCanvas old) {
     super.didUpdateWidget(old);
@@ -356,11 +480,19 @@ class _GraphCanvasState extends State<GraphCanvas> {
       _prepareGraph(widget.nodes);
       setState(() {});
     }
+    if (widget.focusedNodeId != null &&
+        widget.focusedNodeId != old.focusedNodeId) {
+      _flyToNode(widget.focusedNodeId!);
+    } else if (widget.focusedNodeId == null && old.focusedNodeId != null) {
+      _restoreView();
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _camera.dispose();
+    _viewer.dispose();
     super.dispose();
   }
 
@@ -420,8 +552,11 @@ class _GraphCanvasState extends State<GraphCanvas> {
                 constrained: false,
                 minScale: 0.3,
                 maxScale: 4.0,
-                onInteractionStart: () =>
-                    widget.onInteractingChanged?.call(true),
+                controller: _viewer,
+                onInteractionStart: () {
+                  _releaseCamera();
+                  widget.onInteractingChanged?.call(true);
+                },
                 onInteractionEnd: () =>
                     widget.onInteractingChanged?.call(false),
                 child: Stack(
@@ -480,6 +615,7 @@ class _GraphCanvasState extends State<GraphCanvas> {
                           behavior: HitTestBehavior.opaque,
                           onTap: () => widget.onNodeTap(nodeId),
                           onPanStart: (_) {
+                            _releaseCamera();
                             _isDragging = true;
                             _draggingNode = node;
                             _pinned.remove(node);

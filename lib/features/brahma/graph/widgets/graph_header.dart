@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uniun/features/brahma/graph/bloc/graph_bloc.dart';
 import 'package:uniun/features/brahma/graph/models/graph_node_type.dart';
+import 'package:uniun/features/brahma/graph/widgets/graph_stepper.dart';
 import 'package:uniun/features/brahma/utils/brahma_scaffold_key.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/core/theme/app_custom_colors.dart';
@@ -101,6 +102,7 @@ class _GraphHeaderState extends State<GraphHeader> {
                           )
                         : const SizedBox.shrink(),
                   ),
+                  if (_searchOpen) const _SearchMatchStepper(),
                   IconButton(
                     icon: Icon(
                       _searchOpen ? Icons.close_rounded : Icons.search_rounded,
@@ -117,6 +119,37 @@ class _GraphHeaderState extends State<GraphHeader> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The header's [GraphStepper]: walks the search matches. Hidden until the
+/// query matches something; `0/7` means the matches are lit but the camera has
+/// not moved to any of them yet.
+class _SearchMatchStepper extends StatelessWidget {
+  const _SearchMatchStepper();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return BlocBuilder<GraphBloc, GraphState>(
+      buildWhen: (prev, curr) =>
+          prev.matchOrder.length != curr.matchOrder.length ||
+          prev.matchIndex != curr.matchIndex,
+      builder: (context, state) {
+        final total = state.matchOrder.length;
+        if (total == 0) return const SizedBox.shrink();
+        return GraphStepper(
+          current: state.matchIndex + 1,
+          total: total,
+          positionLabel:
+              l10n.graphStepPosition(state.matchIndex + 1, total),
+          prevTooltip: l10n.graphSearchPrevMatch,
+          nextTooltip: l10n.graphSearchNextMatch,
+          onStep: (delta) =>
+              context.read<GraphBloc>().add(StepGraphMatchEvent(delta)),
+        );
+      },
     );
   }
 }

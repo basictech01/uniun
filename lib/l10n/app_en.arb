@@ -1914,6 +1914,30 @@
   "@graphSearchClear": {
     "description": "Tooltip on the button that closes/clears graph search"
   },
+  "graphStepPosition": "{current}/{total}",
+  "@graphStepPosition": {
+    "description": "Position of the focused item in a graph stepper (search matches, node connections), e.g. 2/7. 0 means nothing is focused yet",
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "graphSearchPrevMatch": "Previous match",
+  "@graphSearchPrevMatch": {
+    "description": "Tooltip on the button that moves the graph camera to the previous search match"
+  },
+  "graphSearchNextMatch": "Next match",
+  "@graphSearchNextMatch": {
+    "description": "Tooltip on the button that moves the graph camera to the next search match"
+  },
+  "graphPrevConnection": "Previous connection",
+  "@graphPrevConnection": {
+    "description": "Tooltip on the button that moves the graph camera to the selected node's previous connection"
+  },
+  "graphNextConnection": "Next connection",
+  "@graphNextConnection": {
+    "description": "Tooltip on the button that moves the graph camera to the selected node's next connection"
+  },
   "groupEntryTitle": "Groups",
   "@groupEntryTitle": {
     "description": "Title of the public group entry/chooser screen"

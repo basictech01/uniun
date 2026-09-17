@@ -73,6 +73,85 @@ void main() {
     expect(find.byType(SafeInteractiveViewer), findsOneWidget);
   });
 
+  group('external controller (#208 — search has to drive the camera)', () {
+    Matrix4 renderedMatrix(WidgetTester tester) => tester
+        .widget<Transform>(
+          find.descendant(
+            of: find.byType(SafeInteractiveViewer),
+            matching: find.byType(Transform),
+          ),
+        )
+        .transform;
+
+    testWidgets('a supplied controller drives the rendered transform',
+        (tester) async {
+      final controller = TransformationController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SafeInteractiveViewer(
+              constrained: false,
+              controller: controller,
+              child: const SizedBox(width: 800, height: 800),
+            ),
+          ),
+        ),
+      );
+      expect(renderedMatrix(tester), Matrix4.identity());
+
+      controller.value = Matrix4.identity()..translateByDouble(40, 25, 0, 1);
+      await tester.pump();
+
+      expect(renderedMatrix(tester).getTranslation().x, 40);
+      expect(renderedMatrix(tester).getTranslation().y, 25);
+    });
+
+    testWidgets('a supplied controller outlives the viewer — the owner disposes it',
+        (tester) async {
+      final controller = TransformationController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SafeInteractiveViewer(
+              controller: controller,
+              child: const SizedBox(width: 800, height: 800),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+
+      // Touching a disposed ValueNotifier throws; this must not.
+      controller.value = Matrix4.identity();
+      expect(controller.value, Matrix4.identity());
+    });
+
+    testWidgets('gestures still move a supplied controller', (tester) async {
+      final controller = TransformationController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SafeInteractiveViewer(
+              constrained: false,
+              controller: controller,
+              child: const SizedBox(width: 800, height: 800),
+            ),
+          ),
+        ),
+      );
+      await tester.drag(find.byType(SafeInteractiveViewer), const Offset(-30, -20));
+      await tester.pump();
+
+      expect(controller.value, isNot(Matrix4.identity()));
+    });
+  });
+
   group('computeScaleChange (root-cause guard)', () {
     test('a zero gesture scale is a no-op (1.0), never 0', () {
       expect(

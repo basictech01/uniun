@@ -38,7 +38,8 @@ GraphNodeData _node({GraphNodeType type = GraphNodeType.own}) => GraphNodeData(
 /// graph never watches for, so without this the graph shows stale nodes and
 /// stale reply counts). Also pins that the reload carries the active Manas
 /// scope, that nothing is dispatched while the thread is still open, and that
-/// a closed bloc is never touched.
+/// a closed bloc is never touched. Also covers the connection stepper (#208):
+/// the no-search way to walk a node's edges.
 void main() {
   late _MockGraphBloc bloc;
   late _MockNoteCardCubit cardCubit;
@@ -170,6 +171,75 @@ void main() {
     await t.pumpAndSettle();
 
     verifyNever(() => bloc.add(any(that: isA<LoadGraphEvent>())));
+  });
+
+  /// State where `n1` is anchored with two connections.
+  GraphState anchored({int connectionIndex = -1}) => GraphState(
+        status: GraphStatus.loaded,
+        nodes: [
+          _node(),
+          GraphNodeData(
+            eventId: 'n2',
+            content: 'two',
+            eTagRefs: const [],
+            type: GraphNodeType.own,
+            created: DateTime(2026, 2, 1),
+          ),
+          GraphNodeData(
+            eventId: 'n3',
+            content: 'three',
+            eTagRefs: const [],
+            type: GraphNodeType.own,
+            created: DateTime(2026, 3, 1),
+          ),
+        ],
+        adjacency: const {
+          'n1': {'n2', 'n3'},
+          'n2': {'n1'},
+          'n3': {'n1'},
+        },
+        selectedNodeId: 'n1',
+        connectionAnchorId: 'n1',
+        connectionIndex: connectionIndex,
+      );
+
+  testWidgets('no connection stepper on a node with no edges', (t) async {
+    await t.pumpWidget(host(const GraphState(
+      status: GraphStatus.loaded,
+      selectedNodeId: 'n1',
+      connectionAnchorId: 'n1',
+    )));
+
+    expect(find.byIcon(Icons.keyboard_arrow_down_rounded), findsNothing);
+  });
+
+  testWidgets('an unwalked node reads 0/2 — its connections are there but the '
+      'camera has not moved to one', (t) async {
+    await t.pumpWidget(host(anchored()));
+
+    expect(find.text('0/2'), findsOneWidget);
+  });
+
+  testWidgets('the position reflects the focused connection', (t) async {
+    await t.pumpWidget(host(anchored(connectionIndex: 1)));
+
+    expect(find.text('2/2'), findsOneWidget);
+  });
+
+  testWidgets('the arrows walk the connections forwards and backwards',
+      (t) async {
+    await t.pumpWidget(host(anchored()));
+
+    await t.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
+    await t.tap(find.byIcon(Icons.keyboard_arrow_up_rounded));
+    await t.pump();
+
+    final deltas = verify(() => bloc.add(captureAny()))
+        .captured
+        .whereType<StepConnectedNodeEvent>()
+        .map((e) => e.delta)
+        .toList();
+    expect(deltas, [1, -1]);
   });
 
   testWidgets('the panel does not re-select the node — that would toggle the '

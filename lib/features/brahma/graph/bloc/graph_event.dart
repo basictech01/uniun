@@ -38,3 +38,17 @@ final class SearchGraphEvent extends GraphEvent {
   const SearchGraphEvent(this.query);
   final String query;
 }
+
+/// Move the search cursor [delta] matches (wrapping at both ends) and select
+/// the match it lands on, so the canvas flies to it and its panel opens.
+final class StepGraphMatchEvent extends GraphEvent {
+  const StepGraphMatchEvent(this.delta);
+  final int delta;
+}
+
+/// Same walk over the selected node's connections instead of search matches —
+/// the way to follow a note's edges without searching for anything.
+final class StepConnectedNodeEvent extends GraphEvent {
+  const StepConnectedNodeEvent(this.delta);
+  final int delta;
+}

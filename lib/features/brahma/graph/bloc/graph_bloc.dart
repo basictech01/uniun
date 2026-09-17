@@ -52,6 +52,8 @@ class GraphBloc extends Bloc<GraphEvent, GraphState> {
     on<DeselectGraphNodeEvent>(_onDeselect);
     on<DeleteDraftNodeEvent>(_onDeleteDraft);
     on<SearchGraphEvent>(_onSearch);
+    on<StepGraphMatchEvent>(_onStepMatch);
+    on<StepConnectedNodeEvent>(_onStepConnection);
 
     // Deleting a note tombstones it in deletedNoteModels and removes its
     // NoteModel row. Rebuild the graph so the deleted node disappears —
@@ -220,6 +222,11 @@ class GraphBloc extends Bloc<GraphEvent, GraphState> {
         ),
     ];
 
+    // Keep the active search consistent with the freshly-loaded node set.
+    final matches = state.searchQuery.isEmpty
+        ? const <String>[]
+        : _matchNodes(state.searchQuery, allNodes);
+
     emit(state.copyWith(
       status: GraphStatus.loaded,
       nodes: allNodes,
@@ -228,26 +235,35 @@ class GraphBloc extends Bloc<GraphEvent, GraphState> {
       scopedManasName: scopeName,
       scopedManasIconName: scopeIcon,
       clearScope: event.manasId == null,
-      // Keep the active search consistent with the freshly-loaded node set.
-      matchedNodeIds: state.searchQuery.isEmpty
-          ? const {}
-          : _matchNodes(state.searchQuery, allNodes),
+      matchedNodeIds: matches.toSet(),
+      matchOrder: matches,
+      // A reload can drop or reorder matches and connections, so the old
+      // cursors no longer point at the nodes the camera is on.
+      matchIndex: -1,
+      connectionIndex: -1,
+      clearConnections: !allNodes.any((n) => n.eventId == state.connectionAnchorId),
     ));
   }
 
   Future<void> _onSelect(
       SelectGraphNodeEvent event, Emitter<GraphState> emit) async {
     if (state.selectedNodeId == event.nodeId) {
-      emit(state.copyWith(clearSelection: true));
+      emit(state.copyWith(clearSelection: true, clearConnections: true));
       return;
     }
 
-    emit(state.copyWith(selectedNodeId: event.nodeId));
+    emit(state.copyWith(
+      selectedNodeId: event.nodeId,
+      connectionAnchorId: event.nodeId,
+      connectionIndex: -1,
+    ));
+    await _loadProfileForSelection(emit);
+  }
 
-    // Lazily load the selected node's author profile — profiles are only
-    // needed by the node panel, which only renders on selection.
-    final node = state.selectedNode;
-    final pubkey = node?.authorPubkey;
+  /// Lazily load the selected node's author profile — profiles are only
+  /// needed by the node panel, which only renders on selection.
+  Future<void> _loadProfileForSelection(Emitter<GraphState> emit) async {
+    final pubkey = state.selectedNode?.authorPubkey;
     if (pubkey == null || pubkey.isEmpty || state.profiles.containsKey(pubkey)) {
       return;
     }
@@ -258,26 +274,82 @@ class GraphBloc extends Bloc<GraphEvent, GraphState> {
   }
 
   void _onDeselect(DeselectGraphNodeEvent event, Emitter<GraphState> emit) {
-    emit(state.copyWith(clearSelection: true));
+    emit(state.copyWith(clearSelection: true, clearConnections: true));
   }
 
   void _onSearch(SearchGraphEvent event, Emitter<GraphState> emit) {
     final q = event.query.trim();
+    final matches = q.isEmpty ? const <String>[] : _matchNodes(q, state.nodes);
+    // The cursor starts off the list: every keystroke changes the match set, and
+    // auto-focusing would fly the camera on each one. The stepper moves it.
     emit(state.copyWith(
       searchQuery: q,
-      matchedNodeIds: q.isEmpty ? const {} : _matchNodes(q, state.nodes),
+      matchedNodeIds: matches.toSet(),
+      matchOrder: matches,
+      matchIndex: -1,
     ));
   }
 
-  /// Node ids whose content or hashtags contain [query] (case-insensitive).
-  static Set<String> _matchNodes(String query, List<GraphNodeData> nodes) {
+  Future<void> _onStepMatch(
+      StepGraphMatchEvent event, Emitter<GraphState> emit) async {
+    final total = state.matchOrder.length;
+    if (total == 0) return;
+    final index = _stepCursor(state.matchIndex, event.delta, total);
+    if (index < 0) {
+      // Back out to the overview: the camera returns to the view held before
+      // the first flight and the panel closes, with the matches still lit.
+      emit(state.copyWith(
+        matchIndex: -1,
+        clearSelection: true,
+        clearConnections: true,
+      ));
+      return;
+    }
+    emit(state.copyWith(
+      matchIndex: index,
+      selectedNodeId: state.matchOrder[index],
+      // The match becomes the node on screen, so its connections are what the
+      // panel's stepper should walk once the search closes.
+      connectionAnchorId: state.matchOrder[index],
+      connectionIndex: -1,
+    ));
+    await _loadProfileForSelection(emit);
+  }
+
+  Future<void> _onStepConnection(
+      StepConnectedNodeEvent event, Emitter<GraphState> emit) async {
+    final order = state.connectionOrder;
+    if (order.isEmpty) return;
+    final index = _stepCursor(state.connectionIndex, event.delta, order.length);
+    // The anchor deliberately survives every step: the walk stays in orbit
+    // around the node whose connections these are. Slot 0 of that orbit is the
+    // anchor itself — stepping out of the ring comes home to it rather than
+    // deselecting, which would take the stepper off screen with the panel.
+    emit(state.copyWith(
+      connectionIndex: index,
+      selectedNodeId: index < 0 ? state.connectionAnchorId : order[index],
+    ));
+    await _loadProfileForSelection(emit);
+  }
+
+  /// Advances a stepper cursor by [delta] over [total] items plus the unfocused
+  /// slot the walk starts in, wrapping through it at both ends. Returns -1 for
+  /// that slot: the camera has flown to nothing and belongs back where it was.
+  static int _stepCursor(int index, int delta, int total) =>
+      ((index + 1 + delta) % (total + 1)) - 1;
+
+  /// Node ids whose content or hashtags contain [query] (case-insensitive),
+  /// newest note first so stepping runs in a stable, meaningful order.
+  static List<String> _matchNodes(String query, List<GraphNodeData> nodes) {
     final q = query.toLowerCase();
-    return {
+    final matched = [
       for (final n in nodes)
         if (n.content.toLowerCase().contains(q) ||
             n.tTags.any((t) => t.toLowerCase().contains(q)))
-          n.eventId,
-    };
+          n,
+    ]..sort((a, b) => (b.created ?? DateTime(0)).compareTo(
+        a.created ?? DateTime(0)));
+    return [for (final n in matched) n.eventId];
   }
 
   Future<void> _onDeleteDraft(

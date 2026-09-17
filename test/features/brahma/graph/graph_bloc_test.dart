@@ -32,6 +32,8 @@ import '../../../_helpers/isar_test_harness.dart';
 ///   - `DeselectGraphNodeEvent`
 ///   - `DeleteDraftNodeEvent` → deletes via use case + reloads graph
 ///   - `SearchGraphEvent` (case-insensitive content + hashtag match)
+///   - `StepGraphMatchEvent` (camera cursor over the matches, #208)
+///   - `StepConnectedNodeEvent` (same walk over a node's edges, no search)
 ///   - `deletedNoteModels.watchLazy()` triggers a reload
 ///
 /// The 10 use case dependencies are stubbed via `implements` + `noSuchMethod`;
@@ -467,6 +469,366 @@ void main() {
       await waitFor(bloc, (s) => s.matchedNodeIds.isNotEmpty);
       bloc.add(const SearchGraphEvent('   '));
       await waitFor(bloc, (s) => s.matchedNodeIds.isEmpty);
+      expect(bloc.state.matchOrder, isEmpty);
+      expect(bloc.state.matchIndex, -1);
+      await bloc.close();
+    });
+
+    test('matchOrder runs newest note first', () async {
+      getOwn.notes = [
+        ownNote('old').copyWith(content: 'hit', created: DateTime(2026, 1, 1)),
+        ownNote('new').copyWith(content: 'hit', created: DateTime(2026, 3, 1)),
+        ownNote('mid').copyWith(content: 'hit', created: DateTime(2026, 2, 1)),
+      ];
+
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.matchOrder.isNotEmpty);
+      expect(bloc.state.matchOrder, ['new', 'mid', 'old']);
+      await bloc.close();
+    });
+
+    test('typing lights the matches but moves neither cursor nor selection — '
+        'the camera must not chase every keystroke', () async {
+      getOwn.notes = [ownNote('A').copyWith(content: 'hit')];
+
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.matchOrder.isNotEmpty);
+      expect(bloc.state.matchedNodeIds, {'A'});
+      expect(bloc.state.matchIndex, -1);
+      expect(bloc.state.focusedMatchId, isNull);
+      expect(bloc.state.selectedNodeId, isNull);
+      await bloc.close();
+    });
+  });
+
+  // ── StepGraphMatchEvent ─────────────────────────────────────────────────
+
+  group('StepGraphMatchEvent', () {
+    /// Three matching notes, newest first: n3, n2, n1.
+    Future<GraphBloc> searched() async {
+      getOwn.notes = [
+        ownNote('n1').copyWith(content: 'hit', created: DateTime(2026, 1, 1)),
+        ownNote('n2').copyWith(content: 'hit', created: DateTime(2026, 2, 1)),
+        ownNote('n3').copyWith(content: 'hit', created: DateTime(2026, 3, 1)),
+        ownNote('miss').copyWith(content: 'nope'),
+      ];
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.matchOrder.isNotEmpty);
+      return bloc;
+    }
+
+    test('first forward step focuses and selects the newest match', () async {
+      final bloc = await searched();
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == 0);
+      expect(bloc.state.focusedMatchId, 'n3');
+      expect(bloc.state.selectedNodeId, 'n3');
+      await bloc.close();
+    });
+
+    test('first backward step wraps to the last match', () async {
+      final bloc = await searched();
+      bloc.add(const StepGraphMatchEvent(-1));
+      await waitFor(bloc, (s) => s.matchIndex >= 0);
+      expect(bloc.state.matchIndex, 2);
+      expect(bloc.state.focusedMatchId, 'n1');
+      await bloc.close();
+    });
+
+    test('stepping past the last match lands on the overview slot, not back '
+        'on the first — the camera can return to the wide view', () async {
+      final bloc = await searched();
+      for (var i = 0; i < 3; i++) {
+        bloc.add(const StepGraphMatchEvent(1));
+        await waitFor(bloc, (s) => s.matchIndex == i);
+      }
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == -1);
+      expect(bloc.state.focusedMatchId, isNull, reason: 'nothing to fly to');
+      expect(bloc.state.selectedNodeId, isNull, reason: 'the panel closes');
+      // The matches stay lit — only the camera and the panel step out.
+      expect(bloc.state.matchedNodeIds, {'n1', 'n2', 'n3'});
+      await bloc.close();
+    });
+
+    test('a step on from the overview slot re-enters at the first match',
+        () async {
+      final bloc = await searched();
+      for (var i = 0; i < 4; i++) {
+        bloc.add(const StepGraphMatchEvent(1));
+        await waitFor(bloc, (s) => s.matchIndex == (i == 3 ? -1 : i));
+      }
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == 0);
+      expect(bloc.state.focusedMatchId, 'n3');
+      await bloc.close();
+    });
+
+    test('stepping back from the first match lands on the overview slot',
+        () async {
+      final bloc = await searched();
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == 0);
+      bloc.add(const StepGraphMatchEvent(-1));
+      await waitFor(bloc, (s) => s.matchIndex == -1);
+      expect(bloc.state.selectedNodeId, isNull);
+      await bloc.close();
+    });
+
+    test('stepping with no matches changes nothing', () async {
+      getOwn.notes = [ownNote('A').copyWith(content: 'nope')];
+
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.searchQuery == 'hit');
+
+      bloc.add(const StepGraphMatchEvent(1));
+      await pumpEventQueue();
+      expect(bloc.state.matchIndex, -1);
+      expect(bloc.state.selectedNodeId, isNull);
+      await bloc.close();
+    });
+
+    test('stepping onto a node loads its author profile, like tapping it',
+        () async {
+      getOwn.notes = [ownNote('A', pubkey: 'me-pub').copyWith(content: 'hit')];
+      profileLookup.profiles = {
+        'me-pub': ProfileEntity(
+          pubkey: 'me-pub',
+          name: 'Me',
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+      };
+
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.matchOrder.isNotEmpty);
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.profiles.containsKey('me-pub'));
+      expect(bloc.state.profiles['me-pub']?.name, 'Me');
+      await bloc.close();
+    });
+
+    test('a reload drops the cursor — the old index may point at a node that '
+        'is gone or has moved in the order', () async {
+      final bloc = await searched();
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == 0);
+
+      getOwn.notes = [ownNote('n2').copyWith(content: 'hit')];
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.nodes.length == 1);
+      expect(bloc.state.matchOrder, ['n2']);
+      expect(bloc.state.matchIndex, -1);
+      await bloc.close();
+    });
+  });
+
+  // ── StepConnectedNodeEvent ──────────────────────────────────────────────
+
+  group('StepConnectedNodeEvent', () {
+    /// `hub` references three notes, newest first: c, b, a. `lone` references
+    /// nothing.
+    Future<GraphBloc> withHub() async {
+      getOwn.notes = [
+        ownNote('hub', eTagRefs: ['a', 'b', 'c']),
+        ownNote('a').copyWith(created: DateTime(2026, 1, 1)),
+        ownNote('b').copyWith(created: DateTime(2026, 2, 1)),
+        ownNote('c').copyWith(created: DateTime(2026, 3, 1)),
+        ownNote('lone'),
+      ];
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      return bloc;
+    }
+
+    test('selecting a node anchors the walk on its connections', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      expect(bloc.state.connectionAnchorId, 'hub');
+      expect(bloc.state.connectionOrder, ['c', 'b', 'a']);
+      expect(bloc.state.connectionIndex, -1);
+      await bloc.close();
+    });
+
+    test('stepping selects each connection in turn, wrapping at the end',
+        () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+
+      // Slot 0 of the orbit is the anchor itself, so the ring is c, b, a, hub.
+      for (final expected in ['c', 'b', 'a', 'hub', 'c']) {
+        bloc.add(const StepConnectedNodeEvent(1));
+        await waitFor(bloc, (s) => s.selectedNodeId == expected);
+        expect(bloc.state.selectedNodeId, expected);
+      }
+      await bloc.close();
+    });
+
+    test('stepping out of the ring comes home to the anchor with the panel '
+        'still open, so the walk can continue', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      for (var i = 0; i < 3; i++) {
+        bloc.add(const StepConnectedNodeEvent(1));
+        await waitFor(bloc, (s) => s.connectionIndex == i);
+      }
+
+      bloc.add(const StepConnectedNodeEvent(1));
+      await waitFor(bloc, (s) => s.connectionIndex == -1);
+      expect(bloc.state.selectedNodeId, 'hub');
+      expect(bloc.state.connectionAnchorId, 'hub');
+      expect(bloc.state.focusedConnectionId, isNull, reason: 'camera goes back');
+      await bloc.close();
+    });
+
+    test('the walk stays in orbit — the anchor does not follow the selection, '
+        'so stepping back returns to the previous connection', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      bloc.add(const StepConnectedNodeEvent(1));
+      await waitFor(bloc, (s) => s.connectionIndex == 0);
+      bloc.add(const StepConnectedNodeEvent(1));
+      await waitFor(bloc, (s) => s.connectionIndex == 1);
+
+      expect(bloc.state.connectionAnchorId, 'hub');
+      bloc.add(const StepConnectedNodeEvent(-1));
+      await waitFor(bloc, (s) => s.connectionIndex == 0);
+      expect(bloc.state.selectedNodeId, 'c');
+      await bloc.close();
+    });
+
+    test('a first backward step wraps to the last connection', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      bloc.add(const StepConnectedNodeEvent(-1));
+      await waitFor(bloc, (s) => s.connectionIndex >= 0);
+      expect(bloc.state.connectionIndex, 2);
+      expect(bloc.state.selectedNodeId, 'a');
+      await bloc.close();
+    });
+
+    test('tapping a node re-anchors the walk on that node', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      bloc.add(const StepConnectedNodeEvent(1));
+      await waitFor(bloc, (s) => s.connectionIndex == 0);
+
+      bloc.add(const SelectGraphNodeEvent('b'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'b');
+      expect(bloc.state.connectionAnchorId, 'b');
+      expect(bloc.state.connectionOrder, ['hub']);
+      expect(bloc.state.connectionIndex, -1);
+      await bloc.close();
+    });
+
+    test('a node with no connections has nothing to step', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('lone'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'lone');
+      expect(bloc.state.connectionOrder, isEmpty);
+
+      bloc.add(const StepConnectedNodeEvent(1));
+      await pumpEventQueue();
+      expect(bloc.state.selectedNodeId, 'lone');
+      expect(bloc.state.connectionIndex, -1);
+      await bloc.close();
+    });
+
+    test('deselecting drops the anchor', () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.connectionAnchorId == 'hub');
+      bloc.add(const DeselectGraphNodeEvent());
+      await waitFor(bloc, (s) => s.selectedNodeId == null);
+      expect(bloc.state.connectionAnchorId, isNull);
+      expect(bloc.state.connectionOrder, isEmpty);
+      await bloc.close();
+    });
+
+    test('a reload keeps a surviving anchor but drops one whose node is gone',
+        () async {
+      final bloc = await withHub();
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.connectionAnchorId == 'hub');
+
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      expect(bloc.state.connectionAnchorId, 'hub');
+
+      getOwn.notes = [ownNote('other')];
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.nodes.length == 1);
+      expect(bloc.state.connectionAnchorId, isNull);
+      await bloc.close();
+    });
+
+    test('stepping a match anchors the walk on that match, so the panel can '
+        'follow its edges once the search closes', () async {
+      getOwn.notes = [
+        ownNote('hub', eTagRefs: ['a']).copyWith(content: 'hit'),
+        ownNote('a'),
+      ];
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.matchOrder.isNotEmpty);
+      bloc.add(const StepGraphMatchEvent(1));
+      await waitFor(bloc, (s) => s.matchIndex == 0);
+
+      expect(bloc.state.connectionAnchorId, 'hub');
+      expect(bloc.state.connectionOrder, ['a']);
+      await bloc.close();
+    });
+  });
+
+  // ── focusedNodeId (which cursor owns the camera) ────────────────────────
+
+  group('focusedNodeId', () {
+    test('an open search owns the camera; the connection walk takes it back '
+        'when the search closes', () async {
+      getOwn.notes = [
+        ownNote('hub', eTagRefs: ['a']).copyWith(content: 'hit'),
+        ownNote('a'),
+      ];
+      final bloc = build();
+      bloc.add(const LoadGraphEvent());
+      await waitFor(bloc, (s) => s.status == GraphStatus.loaded);
+
+      bloc.add(const SelectGraphNodeEvent('hub'));
+      await waitFor(bloc, (s) => s.selectedNodeId == 'hub');
+      bloc.add(const StepConnectedNodeEvent(1));
+      await waitFor(bloc, (s) => s.connectionIndex == 0);
+      expect(bloc.state.focusedNodeId, 'a');
+
+      bloc.add(const SearchGraphEvent('hit'));
+      await waitFor(bloc, (s) => s.isSearching);
+      expect(bloc.state.focusedNodeId, isNull, reason: 'search owns it, unstepped');
+
+      bloc.add(const SearchGraphEvent(''));
+      await waitFor(bloc, (s) => !s.isSearching);
+      expect(bloc.state.focusedNodeId, 'a');
       await bloc.close();
     });
   });

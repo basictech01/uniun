@@ -2834,6 +2834,36 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get graphSearchClear;
 
+  /// Position of the focused item in a graph stepper (search matches, node connections), e.g. 2/7. 0 means nothing is focused yet
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String graphStepPosition(int current, int total);
+
+  /// Tooltip on the button that moves the graph camera to the previous search match
+  ///
+  /// In en, this message translates to:
+  /// **'Previous match'**
+  String get graphSearchPrevMatch;
+
+  /// Tooltip on the button that moves the graph camera to the next search match
+  ///
+  /// In en, this message translates to:
+  /// **'Next match'**
+  String get graphSearchNextMatch;
+
+  /// Tooltip on the button that moves the graph camera to the selected node's previous connection
+  ///
+  /// In en, this message translates to:
+  /// **'Previous connection'**
+  String get graphPrevConnection;
+
+  /// Tooltip on the button that moves the graph camera to the selected node's next connection
+  ///
+  /// In en, this message translates to:
+  /// **'Next connection'**
+  String get graphNextConnection;
+
   /// Title of the public group entry/chooser screen
   ///
   /// In en, this message translates to:

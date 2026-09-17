@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -328,10 +330,18 @@ void main() {
       },
     );
 
+    // The handler emits no state, so there is nothing for blocTest to await:
+    // the stub itself signals, instead of a fixed `wait:` that a loaded CI
+    // runner outruns (this is the flake that failed the features shard).
+    late Completer<void> marked;
     blocTest<DmChatBloc, DmChatState>(
       'mark-all-seen resolves the conversation id then marks it seen',
       build: () {
-        when(() => markConversationSeen.call(any())).thenAnswer((_) async => const Right(unit));
+        marked = Completer<void>();
+        when(() => markConversationSeen.call(any())).thenAnswer((_) async {
+          if (!marked.isCompleted) marked.complete();
+          return const Right(unit);
+        });
         return build();
       },
       seed: () => const DmChatState(otherPubkey: 'peer'),
@@ -340,8 +350,8 @@ void main() {
             () => isar.dmConversationModels.put(DmConversationModel()..otherPubkey = 'peer'));
       },
       act: (b) => b.add(DmChatMarkAllSeenEvent()),
-      wait: const Duration(milliseconds: 20),
-      verify: (_) {
+      verify: (_) async {
+        await marked.future.timeout(const Duration(seconds: 10));
         verify(() => markConversationSeen.call(any())).called(1);
       },
     );

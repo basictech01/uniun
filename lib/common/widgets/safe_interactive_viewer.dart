@@ -25,6 +25,7 @@ class SafeInteractiveViewer extends StatefulWidget {
     this.minScale = 0.3,
     this.maxScale = 4.0,
     this.constrained = true,
+    this.controller,
     this.onInteractionStart,
     this.onInteractionEnd,
   }) : assert(minScale > 0 && minScale <= maxScale);
@@ -37,6 +38,12 @@ class SafeInteractiveViewer extends StatefulWidget {
   /// viewport) and the excess is clipped — mirrors `InteractiveViewer`'s
   /// `constrained: false`.
   final bool constrained;
+
+  /// Drives the camera from outside (animate to a point, restore a saved
+  /// view). When null the viewer owns a private controller and the camera can
+  /// only be moved by gesture. A supplied controller is NOT disposed here —
+  /// the owner created it and keeps it.
+  final TransformationController? controller;
 
   final VoidCallback? onInteractionStart;
   final VoidCallback? onInteractionEnd;
@@ -69,7 +76,8 @@ class SafeInteractiveViewer extends StatefulWidget {
 }
 
 class _SafeInteractiveViewerState extends State<SafeInteractiveViewer> {
-  final TransformationController _controller = TransformationController();
+  late final TransformationController _controller =
+      widget.controller ?? TransformationController();
 
   // Matrix scale at the start of the active gesture.
   double _scaleStart = 1.0;
@@ -78,7 +86,7 @@ class _SafeInteractiveViewerState extends State<SafeInteractiveViewer> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) _controller.dispose();
     super.dispose();
   }
 
