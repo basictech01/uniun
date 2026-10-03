@@ -1,16 +1,18 @@
-import 'dart:async';
 import 'dart:math' as math;
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:graphview/GraphView.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:uniun/common/widgets/markdown/strip_markdown.dart';
 import 'package:uniun/common/widgets/safe_interactive_viewer.dart';
 import 'package:uniun/core/theme/app_custom_colors.dart';
-import 'package:uniun/l10n/app_localizations.dart';
-import 'package:uniun/features/brahma/graph/layout/force_layout_tuning.dart';
+import 'package:uniun/features/brahma/graph/layout/graph_simulation.dart';
 import 'package:uniun/features/brahma/graph/models/graph_node_type.dart';
 import 'package:uniun/features/brahma/graph/painters/dot_pattern_painter.dart';
-import 'package:uniun/features/brahma/graph/painters/edge_painter.dart';
+import 'package:uniun/features/brahma/graph/painters/graph_painter.dart';
 import 'package:uniun/features/brahma/graph/widgets/graph_header.dart';
+import 'package:uniun/l10n/app_localizations.dart';
+
 // ── Graph canvas ───────────────────────────────────────────────────────────────
 
 class GraphCanvas extends StatefulWidget {
@@ -44,49 +46,54 @@ class GraphCanvas extends StatefulWidget {
   final String? focusedNodeId;
 
   @override
-  State<GraphCanvas> createState() => _GraphCanvasState();
+  State<GraphCanvas> createState() => GraphCanvasState();
 }
 
-class _GraphCanvasState extends State<GraphCanvas>
-    with SingleTickerProviderStateMixin {
-  late Graph _graph;
-  Timer? _timer;
+/// Node radius from its number of connections. The circle's diameter starts at
+/// 24 and grows by 3 per link, capped at 50 — so a hub is about twice a leaf,
+/// never more.
+double nodeRadiusFor(int connections) =>
+    (24.0 + connections * 3.0).clamp(24.0, 50.0) / 2;
+
+/// The label under a node is up to ~26 px tall and 88 px wide; the layout keeps
+/// this much clear around each circle so labels never sit on each other.
+const double kLabelFootprint = 24;
+
+/// The layout's constants for these nodes: the many-body strength scales with
+/// the square of the lengths (see [SimConfig]), so roomier nodes get a longer
+/// link and a stronger push.
+const SimConfig kGraphSimConfig = SimConfig(
+  charge: -1200,
+  linkDistance: 160,
+  centerStrength: 0.08,
+  collidePadding: 6,
+  collideExtra: kLabelFootprint,
+  distanceMax: 1600,
+);
+
+class GraphCanvasState extends State<GraphCanvas>
+    with TickerProviderStateMixin {
+  GraphSimulation? _sim;
+  late List<String> _ids;
+  late List<(int, int)> _links;
+  late final Ticker _ticker = createTicker((_) => _step());
   bool _initialized = false;
 
   double _graphW = 400;
   double _graphH = 800;
 
-  bool _isDragging = false;
-  Node? _draggingNode;
-  final Set<Node> _pinned = {};
+  /// Heat the layout holds while a node is being dragged, so its neighbours
+  /// follow it.
+  static const double _dragHeat = 0.3;
 
-  // ── d3-force-style simulation state ────────────────────────────────────────
-  // These four scale with node count (see _tuneForces) so a dense graph spreads
-  // out instead of compressing into a tangled hairball; defaults match the feel
-  // at small N. Everything below them stays fixed.
-  double _linkDistance = 240;
-  double _chargeStrength = -4000;
-  double _centerStrength = 0.025;
-  double _collidePadding = 6;
-  // sqrt-of-density scale factor (1.0 at small N), also used to widen the
-  // initial seed ring. Set by _tuneForces before the first tick.
-  double _spreadScale = 1.0;
-  // Each node widget is a circle + 5px gap + a 2-line label (~26px tall, 88px wide).
-  // Inflate the collision disc so the label of one node never overlaps the
-  // circle or label of another.
-  static const double _labelFootprint = 24;
-  // Label SizedBox width — drives Column intrinsic width, so the Positioned
-  // is shifted by (label - circle)/2 to keep node.x as the circle's top-left.
-  static const double _labelWidth = 88;
-  static const int _collideIters = 3;
-  static const double _velocityDecay = 0.4;
-  static const double _alphaMin = 0.001;
-  static const double _alphaDecay = 0.0228;
-  static const double _reheatAlpha = 0.3;
+  /// Extra reach around a node for a finger, in screen pixels.
+  static const double _touchSlop = 14;
 
-  double _alpha = 1.0;
-  final Map<Node, Offset> _velocity = {};
-  final Map<Node, int> _degree = {};
+  int? _draggingIndex;
+
+  /// Layout ticks run before the first frame, so the graph appears already
+  /// laid out and still. 300 is where it cools to rest.
+  static const int _warmUpTicks = 300;
 
   // ── Camera ─────────────────────────────────────────────────────────────────
   // Zoom level a search flight lands on, and where in the viewport it parks the
@@ -116,293 +123,131 @@ class _GraphCanvasState extends State<GraphCanvas>
   @override
   void initState() {
     super.initState();
+    _viewer.addListener(_onView);
     _prepareGraph(widget.nodes);
   }
 
+  void _onView() {
+    if (mounted) setState(() {});
+  }
+
   void _prepareGraph(List<GraphNodeData> nodes) {
-    // A new node set is re-seeded from scratch, so a camera position captured
+    // A new node set is laid out from scratch, so a camera position captured
     // against the old layout no longer points anywhere meaningful.
     _camera.stop();
     _followNodeId = null;
     _preSearchView = null;
     _initialized = false;
-    _isDragging = false;
-    _draggingNode = null;
-    _timer?.cancel();
-    _timer = null;
-    _velocity.clear();
-    _degree.clear();
-    _pinned.clear();
-    _alpha = 1.0;
-    _graph = _buildGraph(nodes);
-  }
-
-  double _sizeFor(String nodeId) {
-    final connections = widget.adjacency[nodeId]?.length ?? 0;
-    return nodeRadiusForConnections(connections);
-  }
-
-  Graph _buildGraph(List<GraphNodeData> nodes) {
-    final g = Graph()..isTree = false;
-    final nodeMap = <String, Node>{};
-    final allIds = {for (final n in nodes) n.eventId};
-
-    for (final n in nodes) {
-      final sz = _sizeFor(n.eventId);
-      final node = Node.Id(n.eventId);
-      node.size = Size(sz, sz);
-      nodeMap[n.eventId] = node;
-      g.addNode(node);
-    }
-
-    final added = <String>{};
+    _draggingIndex = null;
+    _ticker.stop();
+    _sim = null;
+    final all = {for (final n in nodes) n.eventId};
+    _ids = [for (final n in nodes) n.eventId];
+    final index = {for (var i = 0; i < _ids.length; i++) _ids[i]: i};
+    final seen = <String>{};
+    _links = [];
     for (final n in nodes) {
       // refEdges = canonical reference/reply parents (NIP-10 root excluded),
       // so the drawn graph matches the adjacency and the comment/reference
       // counts — one edge per pair, no thread-root hub.
       for (final ref in n.refEdges) {
-        if (allIds.contains(ref) && ref != n.eventId) {
+        if (all.contains(ref) && ref != n.eventId) {
           final key = ([n.eventId, ref]..sort()).join('|');
-          if (added.add(key)) {
-            g.addEdge(nodeMap[n.eventId]!, nodeMap[ref]!);
-          }
+          if (seen.add(key)) _links.add((index[n.eventId]!, index[ref]!));
         }
       }
     }
-    return g;
   }
 
-  // Scale the spreading forces with node count so per-node area grows ∝ N
-  // (constant visual density) and the dense core de-densifies as the graph
-  // grows, instead of compressing into a tangled hairball.
-  void _tuneForces(int n) {
-    final t = ForceLayoutTuning.forNodes(n);
-    _spreadScale = t.spreadScale;
-    _linkDistance = t.linkDistance;
-    _chargeStrength = t.chargeStrength;
-    _centerStrength = t.centerStrength;
-    _collidePadding = t.collidePadding;
-  }
+  double _radiusFor(String id) =>
+      nodeRadiusFor(widget.adjacency[id]?.length ?? 0);
 
-  void _initPhysics(double w, double h) {
+  void _initSimulation(double w, double h) {
     _graphW = w;
     _graphH = h;
-    _tuneForces(_graph.nodes.length);
-    final rng = math.Random(42);
-    final cx = w / 2;
-    final cy = h / 2;
-    // Seed positions in a random ring around center so forces can spread.
-    // Widen the ring with _spreadScale so large graphs don't start as a tight
-    // knot that settles into a tangled local minimum.
-    for (final node in _graph.nodes) {
-      final nodeId = node.key!.value as String;
-      final sz = _sizeFor(nodeId);
-      node.size = Size(sz, sz);
-      final seedRadius = math.min(w, h) * _spreadScale;
-      final r = seedRadius * (0.6 + rng.nextDouble() * 0.5);
-      final a = rng.nextDouble() * 2 * math.pi;
-      node.position = Offset(cx + r * math.cos(a), cy + r * math.sin(a));
-      _velocity[node] = Offset.zero;
-      _degree[node] = 0;
-    }
-    for (final edge in _graph.edges) {
-      _degree[edge.source] = (_degree[edge.source] ?? 0) + 1;
-      _degree[edge.destination] = (_degree[edge.destination] ?? 0) + 1;
-    }
-    _alpha = 1.0;
+    final sim = GraphSimulation(
+      ids: _ids,
+      radii: [for (final id in _ids) _radiusFor(id)],
+      links: _links,
+      config: kGraphSimConfig,
+      center: Offset2(w / 2, h / 2),
+    )..warmUp(_warmUpTicks);
+    _sim = sim;
     _initialized = true;
+    _fitIfNeeded();
   }
 
-  // Node center from top-left position + size.
-  Offset _centerOf(Node n) => Offset(n.x + n.width / 2, n.y + n.height / 2);
-
-  void _setCenter(Node n, Offset c) {
-    n.position = Offset(c.dx - n.width / 2, c.dy - n.height / 2);
+  /// Opens the view on the whole graph: zoomed out to fit when it is wider than
+  /// the screen, at natural size when it already fits.
+  void _fitIfNeeded() {
+    final sim = _sim;
+    if (sim == null || sim.count == 0) return;
+    var minX = double.infinity, minY = double.infinity;
+    var maxX = -double.infinity, maxY = -double.infinity;
+    for (var i = 0; i < sim.count; i++) {
+      final p = sim.position(i), r = sim.radius(i) + kLabelFootprint + 18;
+      minX = math.min(minX, p.dx - r);
+      maxX = math.max(maxX, p.dx + r);
+      minY = math.min(minY, p.dy - r);
+      maxY = math.max(maxY, p.dy + r);
+    }
+    final bw = maxX - minX, bh = maxY - minY;
+    final Matrix4 target;
+    if (bw <= _graphW && bh <= _graphH) {
+      target = Matrix4.identity();
+    } else {
+      final s = math.max(0.1, math.min(_graphW / bw, _graphH / bh) * 0.94);
+      final cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+      target = Matrix4.identity()
+        ..translateByDouble(_graphW / 2 - s * cx, _graphH / 2 - s * cy, 0, 1)
+        ..scaleByDouble(s, s, s, 1);
+    }
+    // Held off from the view listener: this runs while the canvas is built.
+    _viewer.removeListener(_onView);
+    _viewer.value = target;
+    _viewer.addListener(_onView);
   }
 
-  void _tick() {
-    final nodes = _graph.nodes;
-    if (nodes.isEmpty) return;
-
-    final forces = {for (final n in nodes) n: Offset.zero};
-    final cx = _graphW / 2;
-    final cy = _graphH / 2;
-
-    // 1. Many-body repulsion (charge)
-    for (int i = 0; i < nodes.length; i++) {
-      for (int j = i + 1; j < nodes.length; j++) {
-        final a = nodes[i];
-        final b = nodes[j];
-        final ca = _centerOf(a);
-        final cb = _centerOf(b);
-        var dx = ca.dx - cb.dx;
-        var dy = ca.dy - cb.dy;
-        var d2 = dx * dx + dy * dy;
-        if (d2 < 1) {
-          dx = (math.Random().nextDouble() - 0.5) * 2;
-          dy = (math.Random().nextDouble() - 0.5) * 2;
-          d2 = dx * dx + dy * dy;
-        }
-        final d = math.sqrt(d2);
-        final f = _chargeStrength / d2;
-        final fx = (dx / d) * f;
-        final fy = (dy / d) * f;
-        forces[a] = forces[a]! - Offset(fx, fy);
-        forces[b] = forces[b]! + Offset(fx, fy);
-      }
+  /// One frame of the layout. Stops itself once the graph has settled, so a
+  /// resting graph costs nothing.
+  void _step() {
+    final sim = _sim;
+    if (sim == null) return;
+    sim.tick();
+    if (_followNodeId != null && !_camera.isAnimating) {
+      _viewer.value = _viewCentredOn(_followNodeId!) ?? _viewer.value;
     }
-
-    // 2. Link spring
-    for (final edge in _graph.edges) {
-      final a = edge.source;
-      final b = edge.destination;
-      final ca = _centerOf(a);
-      final cb = _centerOf(b);
-      final dx = cb.dx - ca.dx;
-      final dy = cb.dy - ca.dy;
-      final d = math.sqrt(dx * dx + dy * dy).clamp(0.01, double.infinity);
-      final degA = _degree[a] ?? 1;
-      final degB = _degree[b] ?? 1;
-      final strength = 1.0 / math.max(degA, degB);
-      final disp = (d - _linkDistance) * strength;
-      final fx = (dx / d) * disp;
-      final fy = (dy / d) * disp;
-      // Bias split by degree (d3 default): heavier node moves less.
-      final bias = degA / (degA + degB);
-      forces[a] = forces[a]! + Offset(fx * (1 - bias), fy * (1 - bias));
-      forces[b] = forces[b]! - Offset(fx * bias, fy * bias);
-    }
-
-    // 2b. Edge-avoidance — push nodes away from unrelated edges so no node
-    // sits on top of a line connecting two others.
-    for (final edge in _graph.edges) {
-      final s = edge.source;
-      final e = edge.destination;
-      final p1 = _centerOf(s);
-      final p2 = _centerOf(e);
-      final ex = p2.dx - p1.dx;
-      final ey = p2.dy - p1.dy;
-      final elen2 = ex * ex + ey * ey;
-      if (elen2 < 1) continue;
-      for (final n in nodes) {
-        if (n == s || n == e) continue;
-        final cn = _centerOf(n);
-        // Project cn onto segment p1→p2.
-        var t = ((cn.dx - p1.dx) * ex + (cn.dy - p1.dy) * ey) / elen2;
-        if (t < 0 || t > 1) continue; // only push when inside the span
-        final px = p1.dx + ex * t;
-        final py = p1.dy + ey * t;
-        var dx = cn.dx - px;
-        var dy = cn.dy - py;
-        var d2 = dx * dx + dy * dy;
-        final r = n.width / 2 + _labelFootprint + _collidePadding;
-        if (d2 > r * r) continue;
-        if (d2 < 0.01) {
-          dx = -ey;
-          dy = ex;
-          d2 = ex * ex + ey * ey;
-        }
-        final d = math.sqrt(d2);
-        final push = (r - d) * 0.3; // gentle shove
-        forces[n] = forces[n]! + Offset((dx / d) * push, (dy / d) * push);
-      }
-    }
-
-    // 3. Center pull
-    for (final n in nodes) {
-      final c = _centerOf(n);
-      forces[n] =
-          forces[n]! +
-          Offset((cx - c.dx) * _centerStrength, (cy - c.dy) * _centerStrength);
-    }
-
-    // Integrate: velocity += force * alpha; velocity *= (1 - decay); pos += vel
-    for (final n in nodes) {
-      if (n == _draggingNode || _pinned.contains(n)) {
-        _velocity[n] = Offset.zero;
-        continue;
-      }
-      var v = (_velocity[n] ?? Offset.zero) + forces[n]! * _alpha;
-      v = v * (1 - _velocityDecay);
-      _velocity[n] = v;
-      _setCenter(n, _centerOf(n) + v);
-    }
-
-    // 4. Collide — hard non-overlap pass (iterated)
-    for (int iter = 0; iter < _collideIters; iter++) {
-      for (int i = 0; i < nodes.length; i++) {
-        for (int j = i + 1; j < nodes.length; j++) {
-          final a = nodes[i];
-          final b = nodes[j];
-          final ra = a.width / 2 + _labelFootprint;
-          final rb = b.width / 2 + _labelFootprint;
-          final minDist = ra + rb + _collidePadding;
-          final ca = _centerOf(a);
-          final cb = _centerOf(b);
-          var dx = cb.dx - ca.dx;
-          var dy = cb.dy - ca.dy;
-          var d2 = dx * dx + dy * dy;
-          final min2 = minDist * minDist;
-          if (d2 < min2 && d2 > 0) {
-            final d = math.sqrt(d2);
-            final overlap = (minDist - d) / 2;
-            final ox = (dx / d) * overlap;
-            final oy = (dy / d) * overlap;
-            if (a != _draggingNode && !_pinned.contains(a)) {
-              _setCenter(a, ca - Offset(ox, oy));
-            }
-            if (b != _draggingNode && !_pinned.contains(b)) {
-              _setCenter(b, cb + Offset(ox, oy));
-            }
-          } else if (d2 == 0) {
-            // Exact overlap — nudge apart.
-            if (b != _draggingNode && !_pinned.contains(b)) {
-              _setCenter(b, cb + const Offset(1, 0));
-            }
-          }
-        }
-      }
-    }
-
-    _alpha +=
-        (-_alpha) *
-        _alphaDecay; // alpha += (alphaTarget - alpha) * decay; target = 0
+    if (mounted) setState(() {});
+    if (sim.isSettled && _draggingIndex == null) _ticker.stop();
   }
 
-  void _startSimulation() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 16), (t) {
-      if (_alpha < _alphaMin && !_isDragging) {
-        t.cancel();
-        return;
-      }
-      _tick();
-      // Hold the focused node under the camera as the layout settles. During
-      // the flight itself _driveCamera already re-reads its position.
-      if (_followNodeId != null && !_camera.isAnimating) {
-        _viewer.value = _viewCentredOn(_followNodeId!) ?? _viewer.value;
-      }
-      if (mounted) setState(() {});
-    });
+  void _wake([double heat = _dragHeat]) {
+    _sim?.reheat(heat);
+    if (!_ticker.isActive) _ticker.start();
   }
 
-  void _reheat([double target = _reheatAlpha]) {
-    if (_alpha < target) _alpha = target;
-    if (_timer == null || !_timer!.isActive) _startSimulation();
+  // ── Camera helpers over the simulation ─────────────────────────────────────
+
+  Offset? _centreOf(String id) {
+    final sim = _sim;
+    final i = sim?.indexOf(id);
+    if (sim == null || i == null) return null;
+    final p = sim.position(i);
+    return Offset(p.dx, p.dy);
   }
 
-  Node? _nodeById(String id) {
-    for (final n in _graph.nodes) {
-      if (n.key?.value == id) return n;
-    }
-    return null;
-  }
+  /// The running layout, so a test can move a node as the layout would.
+  @visibleForTesting
+  GraphSimulation? get simulation => _sim;
+
+  /// Where node [id] sits in the canvas's own coordinates, for tests.
+  @visibleForTesting
+  Offset? nodeCentre(String id) => _centreOf(id);
 
   /// The transform that parks [id]'s current centre at the focus point.
   Matrix4? _viewCentredOn(String id) {
-    final node = _nodeById(id);
-    if (node == null) return null;
-    final c = _centerOf(node);
+    final c = _centreOf(id);
+    if (c == null) return null;
     const s = _focusScale;
     return Matrix4.identity()
       ..translateByDouble(
@@ -438,10 +283,15 @@ class _GraphCanvasState extends State<GraphCanvas>
     // While flying to a node the destination is re-read every frame: the
     // simulation is often still moving that node, and a destination frozen at
     // take-off would land the camera where the node used to be.
-    final to = _flyTo ?? (_followNodeId == null ? null : _viewCentredOn(_followNodeId!));
+    final to =
+        _flyTo ??
+        (_followNodeId == null ? null : _viewCentredOn(_followNodeId!));
     if (to == null) return;
-    _viewer.value =
-        _lerpView(from, to, Curves.easeOutCubic.transform(_camera.value));
+    _viewer.value = _lerpView(
+      from,
+      to,
+      Curves.easeOutCubic.transform(_camera.value),
+    );
   }
 
   void _flyToNode(String id) {
@@ -490,10 +340,74 @@ class _GraphCanvasState extends State<GraphCanvas>
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _ticker.dispose();
     _camera.dispose();
+    _viewer.removeListener(_onView);
     _viewer.dispose();
     super.dispose();
+  }
+
+  // ── Gestures ───────────────────────────────────────────────────────────────
+  // Every touch is taken over the whole canvas and converted to graph
+  // coordinates, never over the canvas's own box: a node laid out beyond that
+  // box is drawn but a box-shaped hit area would never see a finger there.
+
+  /// The node under a touch at [screen] (canvas-widget coordinates), with a
+  /// finger's worth of reach that stays the same size on screen at any zoom.
+  int? _hit(Offset screen) {
+    final zoom = _viewer.value.getMaxScaleOnAxis();
+    final world = _viewer.toScene(screen);
+    return _sim?.nodeAt(world.dx, world.dy, slop: _touchSlop / zoom);
+  }
+
+  /// The node a tap went down on. A tap belongs to what was under the finger
+  /// when it landed: the layout may have moved that node by the time it lifts.
+  int? _tapDownNode;
+
+  void _dragStart(int i) {
+    _releaseCamera();
+    _draggingIndex = i;
+    final sim = _sim!;
+    final p = sim.position(i);
+    sim.pin(i, p.dx, p.dy);
+    sim.alphaTarget = _dragHeat;
+    _wake(_dragHeat);
+    widget.onInteractingChanged?.call(true);
+  }
+
+  void _dragUpdate(Offset screenDelta) {
+    final i = _draggingIndex;
+    final sim = _sim;
+    if (i == null || sim == null) return;
+    final zoom = _viewer.value.getMaxScaleOnAxis();
+    final p = sim.position(i);
+    sim.pin(i, p.dx + screenDelta.dx / zoom, p.dy + screenDelta.dy / zoom);
+    if (mounted) setState(() {});
+  }
+
+  /// Letting go releases the node: the layout relaxes around where it was
+  /// dropped, as in Obsidian.
+  void _dragEnd() {
+    final i = _draggingIndex;
+    final sim = _sim;
+    if (i == null || sim == null) return;
+    sim.unpin(i);
+    sim.alphaTarget = 0;
+    _draggingIndex = null;
+    _wake(0.15);
+    widget.onInteractingChanged?.call(false);
+  }
+
+  void _tapDown(Offset screen) => _tapDownNode = _hit(screen);
+
+  void _tapUp() {
+    final i = _tapDownNode;
+    _tapDownNode = null;
+    if (i == null) {
+      widget.onCanvasTap();
+    } else {
+      widget.onNodeTap(_ids[i]);
+    }
   }
 
   @override
@@ -502,9 +416,10 @@ class _GraphCanvasState extends State<GraphCanvas>
       return Stack(
         children: [
           Positioned.fill(
-              child: CustomPaint(
-                  painter: DotPatternPainter(
-                      color: context.custom.graphDotPattern))),
+            child: CustomPaint(
+              painter: DotPatternPainter(color: context.custom.graphDotPattern),
+            ),
+          ),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -525,215 +440,220 @@ class _GraphCanvasState extends State<GraphCanvas>
     return Stack(
       children: [
         Positioned.fill(
-            child: CustomPaint(
-                painter: DotPatternPainter(
-                    color: context.custom.graphDotPattern))),
-
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: widget.onCanvasTap,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final w = constraints.maxWidth.isFinite
-                  ? constraints.maxWidth
-                  : 400.0;
-              final h = constraints.maxHeight.isFinite
-                  ? constraints.maxHeight
-                  : 800.0;
-
-              if (!_initialized) {
-                _initPhysics(w, h);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _startSimulation();
-                });
-              }
-
-              return SafeInteractiveViewer(
-                constrained: false,
-                minScale: 0.3,
-                maxScale: 4.0,
-                controller: _viewer,
-                onInteractionStart: () {
-                  _releaseCamera();
-                  widget.onInteractingChanged?.call(true);
-                },
-                onInteractionEnd: () =>
-                    widget.onInteractingChanged?.call(false),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CustomPaint(
-                      size: Size(_graphW, _graphH),
-                      painter: EdgePainter(
-                        graph: _graph,
-                        selectedNodeId: widget.selectedNodeId,
-                        dim: widget.isSearching,
-                        restColor: context.custom.neutral300,
-                        highlightColor:
-                            Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-
-                    ..._graph.nodes.map((node) {
-                      final nodeId = node.key!.value as String;
-                      final nodeData = widget.nodes
-                          .where((n) => n.eventId == nodeId)
-                          .firstOrNull;
-                      // Nodes are coloured by type (saved / own / draft) —
-                      // the same fixed palette for the unscoped Brahma graph
-                      // and every Manas-scoped view.
-                      final color = nodeData != null
-                          ? graphNodeTypeColorsOf(context)[nodeData.type]!
-                          : Theme.of(context).colorScheme.primary;
-                      final nodeSize = _sizeFor(nodeId);
-                      final isSelected = widget.selectedNodeId == nodeId;
-                      final isConnected =
-                          widget.selectedNodeId != null &&
-                          (widget.adjacency[widget.selectedNodeId]?.contains(
-                                nodeId,
-                              ) ??
-                              false);
-                      final hasSelection = widget.selectedNodeId != null;
-                      // A search match glows like a connected node; while
-                      // searching, search highlighting takes precedence over
-                      // the selection dim.
-                      final isSearchMatch = widget.isSearching &&
-                          widget.matchedNodeIds.contains(nodeId);
-                      final double opacity;
-                      if (widget.isSearching) {
-                        opacity = isSearchMatch ? 1.0 : 0.18;
-                      } else {
-                        opacity = hasSelection && !isSelected && !isConnected
-                            ? 0.25
-                            : 1.0;
-                      }
-
-                      return Positioned(
-                        left: node.x - (_labelWidth - nodeSize) / 2,
-                        top: node.y,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => widget.onNodeTap(nodeId),
-                          onPanStart: (_) {
-                            _releaseCamera();
-                            _isDragging = true;
-                            _draggingNode = node;
-                            _pinned.remove(node);
-                            _velocity[node] = Offset.zero;
-                            _reheat(0.5);
-                            widget.onInteractingChanged?.call(true);
-                          },
-                          onPanUpdate: (details) {
-                            node.position = node.position + details.delta;
-                            if (mounted) setState(() {});
-                          },
-                          onPanEnd: (_) {
-                            _isDragging = false;
-                            _pinned.add(node);
-                            _draggingNode = null;
-                            _reheat();
-                            widget.onInteractingChanged?.call(false);
-                          },
-                          onPanCancel: () {
-                            _isDragging = false;
-                            _pinned.add(node);
-                            _draggingNode = null;
-                            _reheat();
-                            widget.onInteractingChanged?.call(false);
-                          },
-                          onDoubleTap: () {
-                            _pinned.remove(node);
-                            _reheat();
-                          },
-                          child: Opacity(
-                            opacity: opacity,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  width: nodeSize,
-                                  height: nodeSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isSelected ||
-                                            isConnected ||
-                                            isSearchMatch
-                                        ? color
-                                        : color.withValues(alpha: 0.85),
-                                    border: isSelected || isSearchMatch
-                                        ? Border.all(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.7,
-                                            ),
-                                            width: 2.5,
-                                          )
-                                        : null,
-                                    boxShadow: isSelected || isSearchMatch
-                                        ? [
-                                            BoxShadow(
-                                              color: color.withValues(
-                                                alpha: 0.55,
-                                              ),
-                                              blurRadius: 18,
-                                              spreadRadius: 4,
-                                            ),
-                                          ]
-                                        : isConnected
-                                        ? [
-                                            BoxShadow(
-                                              color: color.withValues(
-                                                alpha: 0.3,
-                                              ),
-                                              blurRadius: 8,
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                SizedBox(
-                                  width: _labelWidth,
-                                  child: Text(
-                                    _labelFor(nodeId),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: isSelected || isSearchMatch
-                                          ? color
-                                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                                      fontWeight: isSelected || isSearchMatch
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      height: 1.2,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              );
-            },
+          child: CustomPaint(
+            painter: DotPatternPainter(color: context.custom.graphDotPattern),
           ),
-        ), // GestureDetector
+        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : 400.0;
+            final h = constraints.maxHeight.isFinite
+                ? constraints.maxHeight
+                : 800.0;
+            if (!_initialized) {
+              _initSimulation(w, h);
+            }
+            return RawGestureDetector(
+              // A drag only starts on a node: the recogniser declines any
+              // touch that lands on empty space, so the canvas still pans.
+              gestures: {
+                _NodeDragRecognizer:
+                    GestureRecognizerFactoryWithHandlers<_NodeDragRecognizer>(
+                      () => _NodeDragRecognizer(onNode: (p) => _hit(p) != null),
+                      (r) {
+                        r.onStart = (screen) {
+                          final i = _hit(screen);
+                          if (i != null) _dragStart(i);
+                        };
+                        r.onUpdate = _dragUpdate;
+                        r.onEnd = _dragEnd;
+                      },
+                    ),
+              },
+              // The raw pointer-down is where the finger really landed; a tap
+              // recogniser only reports it after its press timeout.
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: (e) => _tapDown(e.localPosition),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: (_) => _tapUp(),
+                  onTapCancel: () => _tapDownNode = null,
+                  child: SafeInteractiveViewer(
+                    constrained: false,
+                    minScale: 0.1,
+                    maxScale: 4.0,
+                    controller: _viewer,
+                    onInteractionStart: () {
+                      _releaseCamera();
+                      widget.onInteractingChanged?.call(true);
+                    },
+                    onInteractionEnd: () =>
+                        widget.onInteractingChanged?.call(false),
+                    child: CustomPaint(
+                      size: Size(_graphW, _graphH),
+                      painter: _painter(context),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ],
+    );
+  }
+
+  GraphPainter _painter(BuildContext context) {
+    final sim = _sim!;
+    final scheme = Theme.of(context).colorScheme;
+    final colors = graphNodeTypeColorsOf(context);
+    final byId = {for (final n in widget.nodes) n.eventId: n};
+    final selected = widget.selectedNodeId;
+    final hasSelection = selected != null;
+    final painted = <PaintedNode>[];
+    for (var i = 0; i < sim.count; i++) {
+      final id = _ids[i];
+      final data = byId[id];
+      final p = sim.position(i);
+      final isSelected = selected == id;
+      final isConnected =
+          hasSelection && (widget.adjacency[selected]?.contains(id) ?? false);
+      // A search match glows like a connected node; while searching, search
+      // highlighting takes precedence over the selection dim.
+      final isMatch = widget.isSearching && widget.matchedNodeIds.contains(id);
+      final double opacity;
+      if (widget.isSearching) {
+        opacity = isMatch ? 1.0 : 0.18;
+      } else {
+        opacity = hasSelection && !isSelected && !isConnected ? 0.2 : 1.0;
+      }
+      painted.add(
+        PaintedNode(
+          center: Offset(p.dx, p.dy),
+          radius: sim.radius(i),
+          color: data != null ? colors[data.type]! : scheme.primary,
+          label: _labelFor(id),
+          opacity: opacity,
+          isSelected: isSelected,
+          isConnected: isConnected,
+          isMatch: isMatch,
+        ),
+      );
+    }
+    return GraphPainter(
+      nodes: painted,
+      links: _links,
+      zoom: _viewer.value.getMaxScaleOnAxis(),
+      fadeLabels: false,
+      backdrop: Theme.of(context).scaffoldBackgroundColor,
+      restColor: context.custom.neutral300,
+      highlightColor: scheme.primary,
+      labelColor: scheme.onSurfaceVariant,
+      hasSelection: hasSelection,
+      isSearching: widget.isSearching,
     );
   }
 
   String _labelFor(String nodeId) {
     try {
       final node = widget.nodes.firstWhere((n) => n.eventId == nodeId);
-      final text = stripMarkdownPreview(node.content).trim().replaceAll('\n', ' ');
+      final text = stripMarkdownPreview(
+        node.content,
+      ).trim().replaceAll('\n', ' ');
       return text.length > 30 ? '${text.substring(0, 30)}…' : text;
     } catch (_) {
       return '…';
     }
   }
+}
+
+/// Drags a node: claims a touch that began on one once it has clearly moved —
+/// further than the wobble of a finger tapping, so a tap is never taken for a
+/// drag, yet before the canvas's own pan and pinch (which claim at 18 px) can
+/// take it.
+class _NodeDragRecognizer extends OneSequenceGestureRecognizer {
+  _NodeDragRecognizer({required this.onNode});
+
+  /// Whether a touch at this canvas position is on a node.
+  final bool Function(Offset local) onNode;
+
+  void Function(Offset local)? onStart;
+  void Function(Offset delta)? onUpdate;
+  VoidCallback? onEnd;
+
+  static const double _claimDistance = 14;
+
+  int? _pointer;
+  Offset _downGlobal = Offset.zero;
+  Offset _downLocal = Offset.zero;
+  bool _dragging = false;
+
+  /// Movement since the finger landed, handed to the drag when it starts so
+  /// the node ends up under the finger rather than [_claimDistance] behind it.
+  Offset _sinceDown = Offset.zero;
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (_pointer != null || !onNode(event.localPosition)) return;
+    _pointer = event.pointer;
+    _downGlobal = event.position;
+    _downLocal = event.localPosition;
+    _dragging = false;
+    _sinceDown = Offset.zero;
+    startTrackingPointer(event.pointer, event.transform);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event.pointer != _pointer) return;
+    if (event is PointerMoveEvent) {
+      if (_dragging) {
+        onUpdate?.call(event.delta);
+      } else {
+        _sinceDown += event.delta;
+        if ((event.position - _downGlobal).distance > _claimDistance) {
+          resolve(GestureDisposition.accepted);
+        }
+      }
+    } else if (event is PointerUpEvent) {
+      if (_dragging) {
+        _dragging = false;
+        onEnd?.call();
+      } else {
+        resolve(GestureDisposition.rejected);
+      }
+      stopTrackingPointer(event.pointer);
+    } else if (event is PointerCancelEvent) {
+      if (_dragging) {
+        _dragging = false;
+        onEnd?.call();
+      }
+      resolve(GestureDisposition.rejected);
+      stopTrackingPointer(event.pointer);
+    }
+  }
+
+  @override
+  void acceptGesture(int pointer) {
+    if (pointer != _pointer) return;
+    _dragging = true;
+    onStart?.call(_downLocal);
+    onUpdate?.call(_sinceDown);
+  }
+
+  @override
+  void rejectGesture(int pointer) {
+    if (pointer == _pointer) stopTrackingPointer(pointer);
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {
+    _pointer = null;
+  }
+
+  @override
+  String get debugDescription => 'node drag';
 }

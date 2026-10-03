@@ -11,37 +11,37 @@ void main() {
   const size = Size(400, 800);
 
   GraphNodeData node(String id) => GraphNodeData(
-        eventId: id,
-        content: id,
-        eTagRefs: const [],
-        type: GraphNodeType.own,
-        created: DateTime(2026, 1, 1),
-      );
+    eventId: id,
+    content: id,
+    eTagRefs: const [],
+    type: GraphNodeType.own,
+    created: DateTime(2026, 1, 1),
+  );
 
   final nodes = [node('alpha'), node('beta'), node('gamma')];
 
   Widget host({bool isSearching = false, String? focusedNodeId}) => MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: size.width,
-              height: size.height,
-              child: GraphCanvas(
-                nodes: nodes,
-                adjacency: const {},
-                selectedNodeId: focusedNodeId,
-                isSearching: isSearching,
-                matchedNodeIds: isSearching ? const {'beta'} : const {},
-                focusedNodeId: focusedNodeId,
-                onNodeTap: (_) {},
-                onCanvasTap: () {},
-              ),
-            ),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Center(
+        child: SizedBox(
+          width: size.width,
+          height: size.height,
+          child: GraphCanvas(
+            nodes: nodes,
+            adjacency: const {},
+            selectedNodeId: focusedNodeId,
+            isSearching: isSearching,
+            matchedNodeIds: isSearching ? const {'beta'} : const {},
+            focusedNodeId: focusedNodeId,
+            onNodeTap: (_) {},
+            onCanvasTap: () {},
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Matrix4 camera(WidgetTester tester) => tester
       .widget<Transform>(
@@ -59,19 +59,19 @@ void main() {
     return Offset(canvas.center.dx, canvas.top + canvas.height * 0.3);
   }
 
-  /// Screen centre of a node's circle (the point the camera aims at) — its
-  /// label hangs below it, so the label is not the thing to measure.
-  Offset circleCentre(WidgetTester tester, String label) => tester.getCenter(
-        find.descendant(
-          of: find
-              .ancestor(of: find.text(label), matching: find.byType(Column))
-              .first,
-          matching: find.byType(AnimatedContainer),
-        ),
-      );
+  /// Screen centre of a node's circle (the point the camera aims at): its
+  /// position on the canvas, carried through the current pan and zoom.
+  Offset circleCentre(WidgetTester tester, String id) {
+    final state = tester.state<GraphCanvasState>(find.byType(GraphCanvas));
+    final local = state.nodeCentre(id)!;
+    final canvas = tester.getRect(find.byType(GraphCanvas));
+    final p = MatrixUtils.transformPoint(camera(tester), local);
+    return canvas.topLeft + p;
+  }
 
-  testWidgets('a focused match is flown to the focus point and zoomed in',
-      (tester) async {
+  testWidgets('a focused match is flown to the focus point and zoomed in', (
+    tester,
+  ) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
     expect(camera(tester), Matrix4.identity());
@@ -101,8 +101,9 @@ void main() {
     expect(landed.dy, closeTo(target.dy, 1));
   });
 
-  testWidgets('closing the search restores the view held before the flight',
-      (tester) async {
+  testWidgets('closing the search restores the view held before the flight', (
+    tester,
+  ) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
     await tester.pumpWidget(host(isSearching: true, focusedNodeId: 'beta'));
@@ -144,14 +145,18 @@ void main() {
     expect(camera(tester), Matrix4.identity());
   });
 
-  testWidgets('panning during a flight takes the camera back from it',
-      (tester) async {
+  testWidgets('panning during a flight takes the camera back from it', (
+    tester,
+  ) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
     await tester.pumpWidget(host(isSearching: true, focusedNodeId: 'beta'));
     await tester.pump(const Duration(milliseconds: 100));
 
-    await tester.drag(find.byType(SafeInteractiveViewer), const Offset(-50, -40));
+    await tester.drag(
+      find.byType(SafeInteractiveViewer),
+      const Offset(-50, -40),
+    );
     await tester.pump();
     final afterDrag = camera(tester).clone();
     await tester.pumpAndSettle();
