@@ -15,9 +15,9 @@ final `coverage.info` artifact, and uploads that same report through
 
 ## Design
 
-Add a repository-root `codecov.yml`. It is configuration for the existing
+Update the existing repository-root `codecov.yml`. It configures the existing
 Codecov upload; no GitHub Actions job, token, or test command changes are
-needed.
+needed. Preserve its generated-code and localization ignore rules.
 
 ### Pull Request Comment
 
@@ -57,6 +57,11 @@ coverage:
         target: auto
         threshold: 0%
         informational: true
+
+ignore:
+  - "**/*.g.dart"
+  - "**/*.freezed.dart"
+  - "lib/l10n/**"
 ```
 
 ## Acceptance Criteria
