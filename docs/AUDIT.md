@@ -6,6 +6,134 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-01 — in-app jump to the cited page or section (#237) — work in progress
+
+Tapping a PDF source opens pdfrx's viewer on the cited page; a Word source opens an in-app text view scrolled to and tinting the cited heading's section. Both keep an "Open in another app" action. Design and limits: `docs/SHIVA/rag.md` → "Opening a citation".
+
+- **Verified against real PDFium** (not a double): a widget test opens the committed 7-page NIST PDF through the real viewer and reads the controller — it lands on page 5 for a citation on page 5. An out-of-range page ends on a real page.
+- **A clamp I added turned out redundant:** sabotage showed pdfrx corrects an out-of-range start page by itself after it settles, so the clamp was removed rather than kept untested.
+- Sabotage — each turned its tests red: viewer always page 1; non-numeric label not falling back; open-in-other-app shown for a missing file; heading disambiguation by passage; the scroll to the section; the tint on it; the tile routing to the wrong route; the tile skipping the file-exists check.
+- Strings in `app_en.arb` and `app_hi.arb`.
+- **Highlighting built.** The first 12 words of the cited chunk are found in the viewer's text for the cited page and painted. Two traps found by testing against real PDFium: pdfrx's multi-page `PdfTextSearcher` returned no matches here (abandoned for a direct search of the one cited page), and a page's text is empty until the page is loaded (`ensureLoaded`). The painting and its right-page filter are tested on a mock canvas; each break turns a test red.
+- **On the phone (real app viewer):** a generated PDF opens on page 6 with highlights on page 6 only; a generated Word file scrolls to and tints its section; tapping a real Sources tile opens the viewer on the cited page.
+- **Word tables and pictures built.** The Word view draws tables as a grid and large pictures inline, using the existing extraction (` | ` rows and picture markers); no second parser. Pictures are extracted into a temp folder that is removed when the view closes. Device-tested with a real generated .docx holding a table and a picture. Known limit: a prose line with a spaced pipe is indistinguishable from a one-row table.
+- Not done: Word styling and small pictures; iOS check; the full chat-to-citation flow with a live model answer (the tile-to-viewer path and the viewer are each tested; the model step was not driven).
+
+---
+
+## 2026-09-29 — selective OCR for PDF pages and DOCX pictures (#242) — work in progress
+
+A PDF is now read page by page: the text layer where it is good, OCR where a page is scanned or its text layer is garbled, and OCR of one large pasted picture beside a typed page's text. Large pictures inside a DOCX are OCRed where they sit. Rules, thresholds and costs: `docs/SHIVA/rag.md` → "Scanned pages and pasted pictures".
+
+### Built on PDFium directly — pdfrx exposes none of the signals
+
+- Per-page signals (text-render mode, unmapped glyphs, font names, image bounds including images wrapped in form XObjects, characters drawn over the largest image) come from `pdfium_dart` 0.2.5's bindings, run through `PdfrxEntryFunctions.instance.compute` on pdfrx's own PDFium worker with the document handle from `useNativeDocumentHandle`. PDFium is not thread-safe; a second loader or thread would race pdfrx's calls.
+- Verified against real PDFium, not a double: the NIST publication plans no OCR on any page; a Pillow-built scan, a LibreOffice typed page with a pasted photo, and a `pdfunite` mixed circular each get the expected plan; invisible (render mode 3) text and a `KrutiDev010` base font are recognised; a page renders at 200 dpi to a one-channel PNG, and a region renders at the region's size.
+- A fixture finding recorded in `PROVENANCE.md`: the pasted photo at 10 × 12.5 cm covered only ~20 % of an A4 page — under the 25 % region threshold, so it would have gone unread. That threshold is a guess; it must be measured on real circulars.
+
+### Behaviour changes worth knowing
+
+- **A scanned PDF is no longer `notSearchable`** — it is OCRed and cited by page. So is a scanned annexure inside a typed circular, which the old whole-document gate silently dropped.
+- With page signals, the gate is per page (≥ 16 chars, ≥ 15 % letters), so a short but real one-page PDF is now indexed. Without signals (PDFium failed after the text layer opened) the old whole-document 200-character gate still applies.
+- One page that fails to render or OCR costs only that page; one corrupt DOCX picture costs only that picture, never the document's text.
+- Every render and extracted picture is a temp file deleted once read.
+
+### Sabotage — each break turned its tests red
+
+Service: falling back to a garbled layer when OCR finds nothing, not deleting renders, the whole-document gate over planned pages, an OCR failure failing the document, the region OCR reading the whole page, DOCX pictures not substituted, the picture folder not removed. PDFium analysis: invisible text not counted, legacy fonts not detected, images inside form XObjects missed. DOCX reader: repeats not deduplicated, the area floor, the picture cap, each pixel floor on its own, a heading label carrying a marker, a corrupt picture failing the document.
+
+Three checks that survived their sabotage were removed rather than kept untested: PDFium's "generated character" flag (the whitespace filter already drops those), the `TargetMode="External"` check (a linked picture's URL names no zip entry) and the empty-section and blank-line cleanup in the service (the chunker already does both). A PNG/JPEG-only rule for DOCX pictures was dropped too — it rested on nothing measured; anything the decoder can size is read.
+
+### Real-document retrieval on a phone found the search index, not OCR, was the limit
+
+Two real phone-scanned sale-deed bundles (18 and 20 pages; both read by OCR at ~3 s a page, English text exact against the page images) were indexed with the real Gecko embedder (42 and 41 chunks) and asked 15 messy user-style questions. Result: every top-3 hit came from the first file; the second file's chunks never came back. A **self-retrieval check** — each stored chunk searching for its own text — found only **20 of 83 (24 %)** reachable. ToStore's approximate index cannot reach most vectors once it holds a few dozen, so stored chunks were invisible to every question, whatever the wording or language.
+
+- **Fix:** vectors now live on `DocumentChunkModel` (`List<float>`, 4 KB a chunk) and search is an exact cosine scan (`IsarDocumentVectorRepositoryImpl`), 400 rows a step. The document ToStore, its module entry and its tests are gone. The indexer writes the chunk row first and attaches the vector second, so a row with no vector is never returned and a purge removes vectors with rows (no orphans). The feature was unreleased, so nothing migrates.
+- Tests: exact-search unit tests (200 chunks each find themselves; >1 read batch; ordering; dimension mismatch; purge), a flow test that every chunk of the 20-chunk NIST PDF is retrievable by its own text. Sabotage: first-batch-only scan, no sort, no `minScore`, no dimension guard, null vectors counted, no kind guard, upsert writing nothing — each red (two were initially green and the tests were strengthened).
+- **Measured after (same phone, screen on, clean store, 3 documents = 93 chunks):** 91 of 93 chunks (98 %) find themselves (was 24 % of 83); the 2019 deed 5/6 questions in the top 3, the Aranya PDF 12/13 answerable ones in the top 3 (11 first), all 29 questions: right page first 17, answer text in the top 3 for 20. The second (Hindi-heavy) deed now appears in results at all; its Hindi/Hinglish questions still mostly miss (Gecko is English-centred; Devanagari OCR is noisier) — 2/6 first.
+- **Speed trap:** with the phone's screen off, Android ran the app on the slow cores and embedding took 65 s a chunk instead of 12 s (`tool/rag_docs_e2e.sh` now wakes and unlocks the phone and keeps it awake while plugged in). Indexing: 42 chunks in 549 s, 41 in 532 s, 10 in 123 s.
+- Interrupted device runs leave stale documents that answer alongside the fresh one (every hit duplicated, self-retrieval 0/10); the test now clears `e2e*` rows first.
+- **Hybrid search built and measured.** Keyword (BM25) evidence added to the cosine, stopwords dropped, identifiers boosted, a bonus that grows with match strength. 49 answerable questions over 3 documents: Recall@1 28 → 34, Recall@3 38 → 42, Recall@5 42 → 46, MRR 0.677 → 0.773. A 180-setting grid shows a plateau (any weight 0.05–1.0 gives 34–35 at Recall@1), so the default (0.3) is not a tuned point; stopword removal is worth ~2 more right-first answers; the number boost barely matters on these questions. Per document: Aranya 16 → 21 of 23 first; 2026 deed (Hindi-heavy) 3 → 5 of 11; 2019 deed 8 → 7 of 13 first but 10 → 12 in the top 5. Note search is unchanged (same exact-scan fix still to do for notes).
+- **Notes still use ToStore** and very likely have the same limit past a few dozen notes. Not changed here; worth its own issue.
+- Trap-question finding: scores for a question not answered anywhere (0.72) sit inside the band of real answers (0.65–0.79), so no score cutoff separates "the document doesn't say".
+- Hindi digits from the Devanagari recogniser can come out as Bengali-style look-alikes (`০.০০` for `0.00`), and form rows lose label/value pairing.
+
+### Still open
+
+- **Not yet run on a device.** The device group (`--plain-name 'selective OCR'`) builds scanned, mixed and pasted-photo PDFs and a DOCX with a pasted notice on the phone and runs real PDFium + ML Kit + Gecko; `--dart-define=OCR_TIMING_PDF=…` prints each page's plan with render and OCR time for a real circular. Speed must be measured before the thresholds are trusted.
+- Unmeasured thresholds: 50 % mostly-image, 25 % region, 20 characters over an image, the DOCX size floors, 20 pictures per DOCX.
+- Pictures in DOCX text boxes and legacy VML (`w:pict`) are not read.
+- iOS unverified (no Mac).
+- Not committed; pending review.
+
+---
+
+## 2026-09-28 — images in Shiv's RAG: on-device OCR and labels (#240) — work in progress
+
+Text inside images on the user's own feed notes and saved notes is read with ML Kit, embedded, and cited with the image itself. No LLM at index time. Design and scope: #240 and `docs/SHIVA/rag.md` → "Images — the text inside them".
+
+### Dependency — checked before building on it
+
+- `google_mlkit_text_recognition` 0.17.1 (plugin MIT; the ML Kit SDK beneath it is Google's free-to-use, closed binary). A debug APK was built first, as the go/no-go gate, before any code depended on it.
+- **Trap found in the plugin's own build file:** it bundles only the Latin recogniser (`implementation`) and declares Devanagari, Chinese, Japanese and Korean `compileOnly`. Without an app-level `text-recognition-devanagari` dependency (`android/app/build.gradle.kts`) and the `GoogleMLKit/TextRecognitionDevanagari` pod (`ios/Podfile`), Hindi text goes unread at runtime while the build passes. Bundled cost from Google's documentation: ~4 MB per script per CPU architecture.
+- The enum value is spelled `TextRecognitionScript.devanagiri` in the plugin — caught by reading its source before the first compile.
+- **Settled on a device:** Google does not document whether the Devanagari recogniser also reads Latin script. On a vivo 1933 it does — a rendered mixed notice came back as `कार्यालय आदेश / सभी कर्मचारियों के लिए / OFFICE ORDER / Leave rules 2026`, both languages intact. Both recognisers still run, and English-only pages still take the Latin result.
+
+### Code review of the OCR diff — all eight findings verified and fixed
+
+- **The PDF prose gate buried short real text.** Images went through `looksLikeProse`'s 200-character floor, so a sign, receipt or chat caption was recorded `notSearchable` — permanently. Images now use `kMinImageTextChars` (16) with the same letter-ratio check against noise.
+- **One try/catch around both recognisers** meant a failing Devanagari pass discarded a successful Latin result and marked every image unreadable. Each pass now fails on its own.
+- **One misread glyph flipped the script choice** for a whole English page. The Devanagari result now needs ≥ 3 Devanagari letters and ≥ 10 % of all letters (`isMostlyDevanagari`, unit-tested).
+- Two recognisers were created and closed per image; they now load once for the app's lifetime.
+- **Every reconcile scanned every cached image** — thousands of feed photos, on a pass that runs after each note write — only to discard the uncitable ones. The indexer now looks up only citable files through the cache's unique index.
+- The Sources thumbnail decoded full-resolution photos (~48 MB each for a 12 MP image) for a 44-point square; it now decodes at tile size.
+- Tapping an image whose cached file had since been removed opened `MediaDetailPage`, which waits forever when the cache row is gone (a latent viewer defect the gallery never reaches). The tile now says the image is no longer on the device.
+- `main.dart` still called the indexer idle until a document is cached; the first launch after upgrading in fact works through the backlog of existing images.
+
+### Test findings
+
+- A tile test passed alone and failed in its file: every image case loaded the same path, and a load left in flight by one test was reused from Flutter's image cache by the next and never completed. Fixed by clearing the image cache between those tests — not by lengthening a delay.
+- The document flow test timed out once under full-suite load (30 s default, real PDF indexing with a flush per chunk). The file now carries a two-minute timeout with the reason beside it.
+- Sabotage: 13 deliberate breaks (images not a kind, no gate on OCR noise, the image gate at 200, the gate's letter ratio, no `(image)` prompt marker, OS viewer instead of in-app, no "text in image" line, saving not fetching images, DM images indexed, an image labelled like a page, the stray-glyph rule, a vanished image opening the viewer, full-resolution thumbnails) — each turned its tests red.
+
+### Image labels — what photos without text show
+
+- ML Kit's bundled base labeler (`google_mlkit_image_labeling` 0.16.1; 400+ general labels, confidence ≥ 0.6, top 6) turns a photo into a passage `Photo showing: dog, beach, sky`, kept **separate** from the OCR text so each matches the questions it is about. No LLM.
+- **The plugin hard-depends on Firebase** — `com.google.mlkit:linkfirebase` → `firebase-common` + `firebase-iid` (Firebase Instance ID) — solely for Firebase-hosted custom models, against the project's no-Firebase rule. Found by reading the resolved Gradle dependency tree, not the plugin's README. Excluded in `android/app/build.gradle.kts` (the base labeler's code path never touches it) with a matching R8 `-dontwarn`. **Verified in the minified release code:** no `com.google.firebase` package and no `linkfirebase` class; only two dangling type references in the plugin's never-called remote branch. `firebase-components`/`firebase-encoders` remain — already present through `mobile_scanner`, ML Kit plumbing rather than Firebase services.
+- Labeled images need no tile or scope change: same `DocumentKind.image`, same own/saved rule. The tile line reads "Found in image" (was "Text in image") since the passage can now be either.
+- Sabotage: 5 breaks (labels ignored, labels merged into the OCR passage, labels put through the prose gate, a labeling failure hiding OCR text, an unreadable file indexed) — each red.
+
+### Release builds were broken — found by building one
+
+- **Every release build of this branch failed in R8** once OCR landed: `google_mlkit_text_recognition` declares the Chinese/Japanese/Korean recognisers `compileOnly` and references them from a switch UNIUN never takes. Debug builds skip R8, so the debug APK, the device tests and the full suite were all green while a release build could not be produced. Fixed with `-dontwarn` for those three packages in `proguard-rules.pro`; the release build now gets through R8 and stops only at signing (no release keystore on the dev machine — expected).
+- Lesson recorded: for a native plugin, **build a release APK**, not only a debug one.
+
+### Verified on a device (vivo 1933, Android 11)
+
+`integration_test/document_rag_e2e_test.dart`, real Gecko embedder, real ML Kit, real PDFium — **6/6 pass**:
+
+| Test | Result |
+|---|---|
+| PDF, semantic retrieval | tomato question → page 2, score 0.813 |
+| DOCX, semantic retrieval | → "Growing Tomatoes", score 0.811 |
+| English OCR | read exactly |
+| Mixed Hindi/English OCR | both languages kept |
+| Image, semantic retrieval | tomato question → the tomato image, score 0.813 |
+| Photo without text | `notSearchable (noTextLayer)` in 0 s |
+
+- The first run failed 4 of 6 — in the **test**, not the app: its hand-built `SavedNoteModel` left three `late` list fields unset. The analyzer cannot see an uninitialised `late` field, and this code runs only on a phone, so it had never executed. Fixed; the re-run passed.
+- **Indexing costs ~12 s per chunk on this device** (2 chunks → 24 s; one image → 12 s). That is the embedder, not OCR, and it is what made a 17-chunk DOCX take ~4 minutes. It is also the first-launch backlog cost per image.
+
+### Still open
+
+- **Image labels have not run on a device yet** — the phone disconnected before the labeling device tests (`--dart-define=LABEL_PHOTOS_DIR`, four real public-domain photographs) could run. How useful the labels are in practice is therefore still unmeasured.
+- The manual kit (`~/Desktop/uniun-pdf-test/IMAGE_QUESTIONS_TO_ASK.md`) — real photos in the real app, Sources tile included — has not been run.
+- **Selective OCR for PDFs and DOCX** (built since — see the #242 entry above): decide per page, not per document. The current whole-document gate silently drops scanned annexure pages inside otherwise born-digital PDFs. PDFium exposes every signal needed (image coverage, invisible text render mode, unmapped unicode, font names — via `pdfium_dart`, not pdfrx's API); legacy Hindi fonts (Kruti Dev and similar) extract as letter-rich gibberish that passes today's gate. Embedding (~12 s per chunk), not OCR, dominates cost — so the rule that matters is never to index OCR text on top of a good text layer for the same area.
+- iOS — the Podfile change cannot be built from the Linux machine.
+- Not committed; pending review.
+
+---
+
 ## 2026-09-28 — document RAG: PDF (#226, PR #229) and DOCX (#238) — work in progress toward v2.4.0 (unreleased)
 
 Shiv now answers from PDFs and Word files attached to notes and cites where the answer came from — the **page** of a PDF, the **heading** of a DOCX section. Design and behaviour: `docs/SHIVA/rag.md` → "Documents (PDF, DOCX)"; specs in `docs/superpowers/specs/2026-09-19-pdf-rag-design.md` and `2026-09-26-docx-rag-design.md`.

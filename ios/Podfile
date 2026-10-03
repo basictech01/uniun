@@ -42,6 +42,9 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  # Hindi/Devanagari OCR for Shiv's image search — google_mlkit_text_recognition
+  # pulls only the Latin recogniser. Version tracks the plugin's GoogleMLKit pin.
+  pod 'GoogleMLKit/TextRecognitionDevanagari', '~> 9.0.0'
 
   target 'RunnerTests' do
     inherit! :search_paths

@@ -66,3 +66,42 @@ embeddings are doing semantic work rather than the plumbing merely running.
 sets them letter-spaced, so the extracted text contains single characters
 separated by spaces. Assertions must also survive curly quotes (page 5), which is
 what `normalizePdfText()` in `test/_helpers/pdf_fixtures.dart` is for.
+
+---
+
+## Selective-OCR fixtures (#242)
+
+Built for this repository to exercise the per-page OCR decision with a real PDF
+producer — each page's structure is known, so the expected plan is known.
+Photo source: `record_room_notice_photo.jpg`, a rendered notice photographed-style
+image made for the manual test kit (no third-party content).
+
+| File | Built with | Structure | Expected plan |
+|---|---|---|---|
+| `scanned_notice.pdf` | Pillow: the notice photo, grayscale, alone on one page (150 dpi) | 1 page, one full-page image, **no text layer** | OCR the whole page |
+| `typed_report_with_pasted_notice.pdf` | LibreOffice 24.2 from `typed_report_with_pasted_notice.source.html` | 1 A4 page: ~700 characters of typed text + the notice pasted at 12.5 × 15.5 cm (~31 % of the page) | keep the text layer and OCR the image region |
+| `mixed_circular_with_scanned_annexure.pdf` | LibreOffice (`…source.html`) for page 1, `pdfunite` with `scanned_notice.pdf` | page 1 typed, page 2 scanned | page 1 text layer, page 2 OCR |
+
+sha256:
+- `scanned_notice.pdf` — `0e599cbf914cc30c9b57366e3c52b2c234ebfdefc9ae23a004b5512eef8ed8cc`
+- `typed_report_with_pasted_notice.pdf` — `d2fc3ad18e22bd75a598b4fc9ce792920764f3bd7242f52d18d122fbc38cdfae`
+- `mixed_circular_with_scanned_annexure.pdf` — `957010123eac5e5f54697e1d4a0fa03409b5b6b5680dc7088fe8a79b07d957cc`
+
+Measured while building: at 10 × 12.5 cm the pasted notice covered only ~20 % of
+the page — under the 25 % region threshold, so it would have been left unread.
+That threshold is unmeasured on real documents (#242: measure on a device
+first); the fixture uses the larger size to exercise the region path.
+
+## Aranya land-records review (device retrieval test)
+
+`aranya_land_records_review_q2_2026.pdf` — a fictional 8-page government review
+(state "Aranya", invented figures) built for `integration_test/document_rag_e2e_test.dart`
+by `aranya_land_records_review_q2_2026.build.py` (LibreOffice for the typed pages,
+Pillow for the skewed scan, the phone-photo notice and the Hindi/English scan,
+matplotlib for the chart; `pdfunite` joins them). One page type each: typed,
+typed + photographed notice, scanned order, logo/signature + Hindi, chart,
+blank scan, Hindi/English scan, table. 385 KB — over the 300 KB guideline
+because three fonts and a photo are embedded; scans are downsampled to keep it
+there. No real person or record. `aranya_land_records_review_q2_2026.queries.json`
+holds 16 messy user-style questions (typos, Hinglish, Hindi script, fragments)
+with the page each answer is on. Run with `tool/rag_docs_e2e.sh <device-id>`.

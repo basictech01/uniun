@@ -307,13 +307,14 @@ class PromptBuilder {
     var any = false;
     for (final c in chunks) {
       // A DOCX label is a heading, not a page: "(p.Annual Leave)" would tell
-      // the model something false.
-      final where = c.label.isEmpty
-          ? ''
-          : switch (c.kind) {
-              DocumentKind.pdf => '(p.${c.label}) ',
-              DocumentKind.docx => '(${c.label}) ',
-            };
+      // the model something false. Image text is marked as such so the model
+      // does not present what OCR read as something the user wrote.
+      final where = switch (c.kind) {
+        DocumentKind.image => '(image) ',
+        _ when c.label.isEmpty => '',
+        DocumentKind.pdf => '(p.${c.label}) ',
+        DocumentKind.docx => '(${c.label}) ',
+      };
       final line = '• $where${c.content}\n';
       final lineTokens = PromptBudget.estimateTokens(line);
       if (used + lineTokens > tokenCap && any) break;

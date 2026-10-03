@@ -194,18 +194,20 @@
                                                             
 ---
 
-## Documents (PDF, DOCX)
+## Documents and images (PDF, DOCX, images)
 
-A PDF or Word (`.docx`) file attached to a note has its text extracted, chunked
-and embedded, so Shiv can answer from it and cite where it came from — the
-**page** of a PDF, the **heading** of a DOCX section. Designs:
+A PDF, a Word (`.docx`) file or an **image** attached to a note has its text
+extracted, chunked and embedded, so Shiv can answer from it and cite where it
+came from — the **page** of a PDF, the **heading** of a DOCX section, or the
+**image itself**, whose text is read by on-device OCR. Designs:
 `docs/superpowers/specs/2026-09-19-pdf-rag-design.md` (PDF) and
 `docs/superpowers/specs/2026-09-26-docx-rag-design.md` (DOCX).
 
 `DocumentKind` (`lib/core/enum/document_kind.dart`) is the single answer to
 "which mimes are documents": the indexer's filter, the vector search and the
-citation resolver all ask it. Legacy `.doc` and `.odt` are not documents — they
-attach and open, and are never read.
+citation resolver all ask it. `image` matches every `image/*` mime by prefix.
+Legacy `.doc` and `.odt` are not documents — they attach and open, and are
+never read.
 
 ### How a document becomes searchable
 
@@ -221,13 +223,18 @@ attach and open, and are never read.
  │ 1. READ    by DocumentKind:                              │
  │            PDF  → PdfrxTextSource → PDFium, pages 1..N   │
  │                   → labels "1", "2", …                   │
+ │                   each page planned: text layer, OCR the │
+ │                   page, OCR one pasted image, or skip    │
  │            DOCX → ArchiveDocxTextSource (zip + XML, in   │
  │                   Isolate.run) → one section per heading │
  │                   → labels "Annual Leave", …, or ""      │
+ │                   large pictures OCRed where they sit    │
  ├──────────────────────────────────────────────────────────┤
  │ 2. GATE    looksLikeProse()                              │
- │            ≥200 chars AND ≥15% Unicode letters?          │
- │            NO  → status notSearchable, stop  (a scan)    │
+ │            PDF: per page, ≥16 chars AND ≥15% letters     │
+ │            (whole document ≥200 chars if PDFium gave no  │
+ │            page signals)                                 │
+ │            nothing left → notSearchable, stop            │
  │            YES ↓                                         │
  ├──────────────────────────────────────────────────────────┤
  │ 3. CHUNK   chunkSections() — ≤700 chars, never across    │
@@ -238,9 +245,9 @@ attach and open, and are never read.
  │            Gecko embedder → vector                       │
  │            (embedding only — no LLM call)                │
  ├──────────────────────────────────────────────────────────┤
- │ 5. STORE   text   → Isar    DocumentChunkModel           │
- │            vector → ToStore document store               │
- │            both keyed  "<sha256>:<ordinal>"              │
+ │ 5. STORE   text + vector → Isar DocumentChunkModel       │
+ │            (row first, then the vector is attached)      │
+ │            keyed  "<sha256>:<ordinal>"                   │
  ├──────────────────────────────────────────────────────────┤
  │ 6. MARK    DocumentIndexModel = indexed   ← written LAST │
  │            so a crash retries rather than lying          │
@@ -258,13 +265,13 @@ ties the vector store to the text, and the text to the page:
                        │                    └── which chunk
                        └── which document
 
- ┌── the same id addresses BOTH stores ──────────────────────────┐
- │  ToStore (vectors)            Isar DocumentChunkModel         │
- │  ───────────────────          ──────────────────────          │
- │  id  : "a3f9…:12"             sha256  : "a3f9…"               │
- │  vec : [0.02, -0.11, …]       ordinal : 12                    │
- │                               label   : "5"   ← THE PAGE      │
- │                               text    : "Expense Reimburse…"  │
+ ┌── one Isar row holds everything ──────────────────────────────┐
+ │  DocumentChunkModel                                           │
+ │  ──────────────────                                           │
+ │  sha256  : "a3f9…"     ordinal : 12                           │
+ │  label   : "5"   ← THE PAGE                                   │
+ │  text    : "Expense Reimbursement…"                           │
+ │  vector  : [0.02, -0.11, …]   (1024 float32)                  │
  └───────────────────────────────────────────────────────────────┘
 
  "what is the deadline for expense claims?"
@@ -273,7 +280,7 @@ ties the vector store to the text, and the text to the page:
    embed the question → query vector
             │
             ▼
-   ToStore nearest-neighbour  →  id "a3f9…:12"
+   exact cosine scan of every chunk vector  →  "a3f9…:12"
             │
             ▼
    parseChunkId()  →  (sha256 "a3f9…", ordinal 12)
@@ -360,7 +367,7 @@ index row, document not cached or no longer
 | Document attached to | Indexed |
 |---|---|
 | one of your own **feed notes** (kind 1) | yes |
-| a **saved note** — any kind, including a saved DM or group message | yes, **whether or not you opened it**: saving downloads its PDF/DOCX (`SaveNoteUseCase`) |
+| a **saved note** — any kind, including a saved DM or group message | yes, **whether or not you opened it**: saving downloads its PDF/DOCX and images (`SaveNoteUseCase`) |
 | someone else's feed note, a group, or a DM, merely opened | no — opening a file is not asking Shiv to learn it; saving is |
 | your own DM or group message | no |
 
@@ -374,8 +381,9 @@ places, one of them `CleanupManager` in the Gateway isolate, which deletes cache
 rows directly. A crash mid-index is retried because the index row is written
 **last**.
 
-Vectors live in a **separate** ToStore at `tostore_docs_1024d`, never the note
-store. Embedding goes through `EmbeddingQueue`, bounding concurrency at 2.
+Vectors live on the chunk rows themselves (`DocumentChunkModel.vector`, 4 KB
+each), never in the note ToStore. Embedding goes through `EmbeddingQueue`,
+bounding concurrency at 2.
 
 **Retrieval** — unscoped chat only. `RagPipeline` searches notes and chunks
 independently (chunk top-K = `max(1, topK ~/ 2)`); chunks skip memory and graph
@@ -385,6 +393,73 @@ Sources sheet, which resolves them on open via `DocumentSourceRepository`.
 
 A Manas-scoped chat never searches documents: it scopes by note membership, and
 a document blob has none (#236).
+
+### Images — the text inside them, and what they show
+
+An image is read twice, both **on device**, and each result goes through the
+same chunker, embedder, store and citation path as a document. No LLM is
+involved at index time.
+
+- **Its text** — OCR (`MlKitOcrTextSource`, `lib/data/datasources/ocr/`, ML Kit
+  Text Recognition v2).
+- **What it shows** — labeling (`MlKitImageLabelSource`,
+  `lib/data/datasources/image_labels/`, ML Kit's bundled base labeler, 400+
+  general categories, confidence ≥ 0.6, top 6). The labels become one passage,
+  `Photo showing: dog, beach, sky` (English, LLM-facing, not localised).
+
+Text and contents are **separate passages**, so "the photo of my dog" matches
+the labels and "what does the notice say" matches the OCR text. A photo with
+no readable text is still indexed by its labels; one with neither is
+`notSearchable`.
+
+- **Two recognisers, both bundled:** Latin and Devanagari, ~4 MB each per CPU
+  architecture (so ~8 MB per install from the Play Store). ML Kit's Flutter
+  plugin bundles only Latin and declares the rest `compileOnly`, so the app
+  adds `text-recognition-devanagari` in `android/app/build.gradle.kts` and
+  `GoogleMLKit/TextRecognitionDevanagari` in `ios/Podfile`.
+- **Both run on every image, independently.** Whether the Devanagari model
+  also reads Latin text is undocumented, so its result is used only when
+  Devanagari is a real part of it — at least three Devanagari letters and a
+  tenth of all letters (`isMostlyDevanagari`), so one misread glyph cannot flip
+  an English page — and the Latin result otherwise. Each pass has its own
+  failure handling: a missing or failing Devanagari recogniser still leaves
+  English readable. The recognisers load once and live for the app's lifetime.
+  On a device the Devanagari recogniser also reads Latin: a rendered mixed
+  Hindi/English notice came back with both languages intact (the device test
+  requires it).
+- **Label** `''` — an image has no pages or headings. The prompt marks the
+  passage `• (image) …` so the model does not present OCR text as something the
+  user wrote. The Sources tile shows a **thumbnail** and "Found in image", and
+  tapping opens the in-app image viewer (`AppRoutes.mediaDetail`) — or says
+  the image is no longer on the device, since that viewer waits forever for a
+  cache row that is gone. The thumbnail decodes at tile size, not the photo's.
+- **A gate, with a much lower floor than PDFs:** at least
+  `kMinImageTextChars` (16) characters and the usual 15 % letters. A sign, a
+  receipt or a chat caption is short and genuine, and the PDF floor of 200
+  would bury it for good; the letter ratio still rejects OCR noise. A photo
+  without text is recorded `notSearchable` once, never re-read. Such a photo is still found through its note's text, which is
+  embedded like any note.
+- **Same scope as documents:** only images on the user's own feed notes and on
+  saved notes; saving a note downloads its images for this.
+- **The first launch after upgrading works through a backlog:** every image
+  already on the user's own and saved notes is read and embedded, one at a
+  time, in the background. The indexer looks up only citable files through the
+  cache's unique index, never a scan of every cached image.
+- ML Kit runs only on Android and iOS — never under `flutter test`. CI covers
+  images through `FakeOcrTextSource`; `integration_test/` runs real OCR.
+
+**Labeling ships without Firebase.** `google_mlkit_image_labeling` hard-depends
+on `com.google.mlkit:linkfirebase` — which brings `firebase-common` and
+`firebase-iid` — solely for Firebase-hosted custom models. UNIUN uses only the
+bundled base labeler, so `android/app/build.gradle.kts` excludes `linkfirebase`
+and `proguard-rules.pro` tells R8 the unused branch's references are expected.
+The `firebase-components`/`firebase-encoders` utility libraries that remain
+were already in the app through `mobile_scanner`; they are ML Kit plumbing, not
+Firebase services.
+
+Not built: CLIP-style image embeddings (TinyCLIP is MIT but weak; MobileCLIP's
+weights are research-only; SigLIP 2 is too large for a phone), and captions
+from a vision LLM.
 
 **Indexing is not instant, and says so in the log.** Each chunk is embedded on
 device, competing with the LLM for the phone: a 17-chunk DOCX took ~4 minutes on
@@ -402,13 +477,94 @@ retrieval bug. Watch it with `adb logcat | grep DocumentIndexer`:
 
 Nothing in the app UI shows indexing progress yet.
 
-**Scans are kept, not indexed.** No text layer, or text that fails the quality
-gate, is recorded `notSearchable`: the document still attaches and opens, it is
-simply never cited. The same holds for a DOCX that cannot be read (not a zip,
+**Scans are read by OCR, page by page** — see *Scanned pages and pasted
+pictures* below. A PDF where no page yields readable text, even after OCR, is
+recorded `notSearchable`: the document still attaches and opens, it is simply
+never cited. The same holds for a DOCX that cannot be read (not a zip,
 password-protected, malformed XML) or holds no text at all. The prose gate itself
 is **PDF-only**: it catches scans and broken font encodings, which a DOCX cannot
 have, so a short DOCX memo or a table of figures is indexed. An embedder that is not ready is different — it leaves the
 document *unindexed* so a later reconcile retries it.
+
+### Scanned pages and pasted pictures (selective OCR, #242)
+
+OCR costs about a second a page and every chunk it adds costs an embedding, so
+only the pages and pictures that need it are read. OCR text never lands on top
+of a good text layer for the same area — that would index each passage twice.
+
+**PDF: one plan per page** (`planPage`, `lib/features/shiv/rag/extraction/page_ocr_plan.dart`),
+from what PDFium reports about the page (`PdfPageSignals`, read in
+`pdfium_page_analysis.dart` on pdfrx's own PDFium worker — pdfrx exposes none
+of it):
+
+| Page | Plan |
+|---|---|
+| < 10 characters and no image ≥ 25 % of the page | skip |
+| garbled layer: < 15 % letters, > 10 % unmapped glyphs, or a legacy Hindi font (Kruti Dev, DevLys, Chanakya…) | OCR the page, drop the layer |
+| images ≥ 85 % of the page and < 200 characters (a scan) | OCR the page |
+| images ≥ 50 % and < 200 characters (a photo with a header line) | OCR the page, keep the longer of the two readings |
+| one image ≥ 25 % of the page with < 20 characters drawn over it | keep the layer **and** OCR just that image |
+| otherwise | the text layer |
+
+A scan with a good invisible OCR layer (≥ 200 real characters) is trusted, not
+re-read. Legacy Hindi fonts are caught by name because their text extracts as
+Latin gibberish that passes the letter ratio. On a rotated page the image rule
+reads the whole page instead of mapping the rectangle.
+
+A page to OCR is rendered at 200 dpi (long side capped at 3000 px) to a
+grayscale PNG, read by `OcrTextSource`, and deleted. Each page is gated on its
+own (≥ 16 chars, ≥ 15 % letters), so a page OCR could not read — or a render or
+OCR failure — costs only that page.
+
+**DOCX: large pictures only.** With a picture directory, the reader writes out
+each embedded picture drawn at least 2.5 in wide and about 5 × 4 in in area,
+with at least 500 × 100 pixels, and leaves a marker in its section's text; the
+service swaps each marker for the picture's OCR text, so it keeps its place
+and its heading. Logos, signatures, vector drawings (EMF/WMF/SVG), linked
+pictures and repeats of one picture are skipped; at most 20 per document.
+
+**The thresholds are unmeasured.** The 85 % scan and 10-character/10 % unmapped
+figures come from published tools (bibr, Apache Tika); the 50 %, 25 %,
+20-character and DOCX sizes are guesses. Measure on real circulars on a phone
+before trusting them — the device test prints each page's plan and its render
+and OCR time:
+
+```
+flutter test integration_test/document_rag_e2e_test.dart -d <device-id> \
+  --plain-name 'selective OCR' \
+  --dart-define=OCR_TIMING_PDF=/sdcard/Download/circular.pdf
+```
+
+### Opening a citation (#237)
+
+Tapping a document source opens `DocumentViewerPage`
+(`lib/features/shiv/document_viewer/`) at the cited place, not at the top:
+
+- **PDF** — pdfrx's `PdfViewer` on the cited page (`initialPageNumber`), with the
+  start of the cited passage highlighted on that page. The chunk is the PDF's own
+  extracted text, so its first 12 words are searched in the viewer's text for the
+  cited page only (whitespace-tolerant: the viewer re-flows lines), and the match
+  is painted. A page that was read with OCR has no text layer, so it gets the
+  page but no highlight. Pages are placeholders until loaded, so the page is
+  loaded before its text is read; pdfrx's multi-page `PdfTextSearcher` was tried
+  first and found nothing here, so the single cited page is searched directly.
+- **Word** — no Word renderer exists in the app, so the view is built from what
+  the reader already extracts: one block per heading section, scrolled to the
+  cited section and tinted. Paragraphs are text; a table (extracted as
+  `cell | cell` rows) is drawn as a grid, scrollable sideways; a large picture
+  (the same ones the reader writes out for OCR) is drawn inline. The section is
+  found by heading, and by the start of the cited passage when headings repeat
+  (`locateSection`). Styling, small pictures (logos, signatures) and page layout
+  are not shown, and a note says so. A prose line that uses a spaced ` | ` looks
+  exactly like a table row and is drawn as one.
+- **Both** — an "Open in another app" action hands the file to the OS viewer,
+  which is the better place to *read* rather than check. A file that left the
+  cache since the answer shows a message instead of a blank viewer. Images still
+  open in the media viewer.
+
+The citation travels as the route's `extra` (a path cannot carry the heading); a
+cold deep link has none and is redirected home. iOS rendering through pdfrx is
+unverified (no Mac here).
 
 ### Constraints worth knowing before changing this
 
@@ -417,16 +573,17 @@ smallest local model 1024 tokens total and `buildUserMessage` drops any section
 that would overshoot. A page-sized chunk would make the document silently vanish
 from the prompt.
 
-**Vectors are never deleted.** ToStore 3.1.0 destroys a table's *entire* vector
-index on any row delete — measured: delete 1 of 3 rows and `vectorSearch`
-returns nothing, and it does not recover across a close/reopen. So Isar owns
-chunk existence: purging deletes the Isar rows, search skips hits it cannot
-resolve, and `search` over-fetches to absorb the orphans. Enough
-equally-similar orphans can still crowd out a real chunk; the fix is a rebuild
-(wipe the store, re-embed from the surviving rows), which is not implemented.
-tostore 3.5.1 fixes the delete bug but silently reads back an empty index from a
-store written by 3.1.0 — upgrading needs a version-bumped store path so the data
-re-embeds instead of disappearing.
+**Search is an exact scan, not an index.** `IsarDocumentVectorRepositoryImpl`
+compares the question with every chunk's vector (read 400 rows at a time,
+keeping the best K). ToStore's approximate index was tried first and dropped:
+on a phone only **20 of 83 chunks** (24 %) found themselves as their own top
+hit, so a stored chunk could never come back for any question — every hit came
+from the first file indexed and none from the second. A scan is exact, and at a
+few thousand 1024-dim vectors it costs milliseconds. Purging a document deletes
+its chunk rows, and its vectors with them — so there are no orphaned vectors.
+The document feature had not shipped, so no stored data needed migrating. If a
+library ever reaches hundreds of thousands of chunks, revisit an index — an
+exact-recall one.
 
 **ToStore is pinned to 3.1.2.** 3.1.0 declares `struct statvfs` as 88 bytes where
 glibc and 64-bit bionic use 112, so each disk-space check wrote 24 bytes past a
@@ -435,21 +592,53 @@ this way), with Android on the same code path. 3.1.2 fixes the struct and reads
 3.1.0 stores unchanged (verified: 25/25 rows and vectors). 3.1.1 and 3.1.3 are
 retracted.
 
-**ToStore's vector index cannot reach every stored vector.** Measured on 3.1.0
-and 3.1.2 alike, querying each stored vector with itself: it is its own top hit
-for 100% of 10 vectors, 80% of 25 and 33% of 60 — and only 55% of 60 even with
-topK = every row, so some nodes are unreachable from the graph's entry point,
-not merely ranked low. This bounds retrieval quality for notes and documents
-alike as a library grows, and is not specific to documents.
+**Ranking is meaning plus keywords (hybrid).** Meaning-only search blurs exact
+things — a helpline number, a registration number, a name — because such tokens
+look alike to an embedder. `HybridRanker` (`lib/core/text/hybrid_ranker.dart`)
+adds keyword evidence to each chunk's cosine similarity: BM25
+(`lib/core/text/bm25.dart`) over the question's words, with
+
+- **stopwords dropped** (English, Hinglish and Hindi function words — and, or,
+  the, kya, hai, है — `lib/core/text/stopwords.dart`),
+- **identifiers boosted** (a word of 3+ characters with a digit counts double),
+- **a saturating bonus**: `weight × s / (s + 2)` for a chunk with BM25 score `s`,
+  so a weak match on a common word adds little and a strong match on rare words
+  nearly the full `weight` (0.3). The returned `ScoredChunk.score` stays the
+  cosine.
+
+Only the question's words are scored, in the same pass that computes cosines.
+Chosen on a phone-indexed set of 3 documents, 93 chunks and 49 answerable
+questions (typos, Hinglish, Hindi script, fragments), scored by Recall@1/3/5 and
+MRR where a chunk is relevant if it is from the right document and on the right
+page **or** contains the answer text:
+
+| | R@1 | R@3 | R@5 | MRR |
+|---|---|---|---|---|
+| meaning only | 28/49 | 38/49 | 42/49 | 0.677 |
+| hybrid (default) | 34/49 | 42/49 | 46/49 | 0.773 |
+
+The gain is not one lucky setting: any keyword weight from 0.05 to 1.0 scores
+34–35/49 at Recall@1, and dropping stopwords is worth ~2 more right-first
+answers. Try variants without a phone: the device run dumps every chunk and
+question vector, and `flutter pub run tool/eval_retrieval.dart` ranks them for a
+grid of settings in seconds. Hindi and Hinglish questions still lag — the
+embedder is English-centred and Devanagari OCR is noisy, which no ranking
+change fixes.
+
+**The notes' vector search has the same limit.** Measured on 3.1.0 and 3.1.2
+alike, querying each stored vector with itself: it is its own top hit for 100 %
+of 10 vectors, 80 % of 25 and 33 % of 60 — and only 55 % of 60 even with topK =
+every row. Note retrieval still uses ToStore, so a library past a few dozen
+notes likely misses some. Not fixed here.
 
 ### Testing
 
 | Tier | Where | Real | Faked |
 |---|---|---|---|
-| Unit | `test/features/shiv/rag/extraction/`, `test/domain/entities/shiv/`, `test/core/enum/` | chunker, gate, extraction dispatch, chunk ids, `DocumentKind` | PDF/DOCX sources |
-| Component | `test/features/shiv/rag/indexing/`, `test/data/...` | real PDFium + the committed PDF, the real DOCX reader + committed Word/LibreOffice files, real Isar, real ToStore | embedder |
-| Pipeline | `test/integration/document_rag_flow_test.dart` | everything above, assembled, PDF and DOCX | embedder |
-| Device | `integration_test/document_rag_e2e_test.dart` | **everything, incl. the real Gecko embedder** | nothing |
+| Unit | `test/features/shiv/rag/extraction/`, `test/domain/entities/shiv/`, `test/core/enum/` | chunker, gate, extraction dispatch, per-page OCR plans, chunk ids, `DocumentKind` | PDF/DOCX/OCR sources |
+| Component | `test/features/shiv/rag/indexing/`, `test/data/...` | real PDFium + the committed PDFs (page signals and OCR renders too), the real DOCX reader + committed Word/LibreOffice files, real Isar (vectors on the chunk rows) | embedder |
+| Pipeline | `test/integration/document_rag_flow_test.dart` | everything above, assembled, PDF, DOCX and images | embedder, OCR |
+| Device | `integration_test/document_rag_e2e_test.dart` | **everything, incl. the real Gecko embedder and real ML Kit OCR** | nothing |
 
 The device tier exists because the embedder loads a 145 MB Git-LFS asset that
 CI does not check out, and `EmbeddingService.embed` returns `[]` instead of
@@ -465,6 +654,6 @@ a plain `flutter test`. `test/_helpers/pdfium_test_lib.dart` downloads it once
 and points pdfrx at it, mirroring what `ensureIsarCore()` already does for
 Isar's native binary.
 
-**Not built:** in-app page-jump viewer (#237), documents in Manas-scoped chat
-(#236), a `notSearchable` badge, OCR for scans, `.doc`/`.odt`, DOCX headers,
+**Not built:** documents in Manas-scoped chat
+(#236), a `notSearchable` badge, OCR of pictures inside DOCX text boxes, headers or tables' VML, `.doc`/`.odt`, DOCX headers,
 footers and footnotes.

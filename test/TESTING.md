@@ -110,11 +110,13 @@ below, or add one if the shape is missing.
 | `fake_note_relations.dart` | `FakeNoteRelations` | Any repo that reads from `NoteRelationRepository`. Seed `.children[parentId]` / `.parents[childId]` before the test runs. |
 | `stub_user_repository.dart` | `StubUserRepository` | Any repo that calls `UserRepository.getActiveKeysHex()` or `getActiveUser()` (both derive from `.keys`). Set `.keys = null` to simulate a logged-out identity. |
 | `stub_followed_users.dart` | `StubFollowedUsers` | Any repo that reads the follow list via `FollowedUserRepository.getAllPubkeys()`. Seed `.pubkeys`; set `.leftOnGetAllPubkeys` to simulate failure. |
-| `pdf_fixtures.dart` | `pdfFixture(name)`, `packageRoot()`, `normalizePdfText(...)`, `minimalPdf(pages)` | Anything touching PDFs. `pdfFixture` resolves a committed fixture from the package root; `normalizePdfText` folds ligatures/NBSP/curly quotes so assertions survive extractor differences; `minimalPdf` generates a synthetic PDF for negative cases. |
+| `pdf_fixtures.dart` | `pdfFixture(name)`, `packageRoot()`, `normalizePdfText(...)`, `minimalPdf(pages, renderMode:, baseFont:)`, `imagePdf(inForm:)` | Anything touching PDFs. `pdfFixture` resolves a committed fixture from the package root; `normalizePdfText` folds ligatures/NBSP/curly quotes so assertions survive extractor differences; `minimalPdf` generates a synthetic PDF for negative cases (`renderMode: 3` = invisible text, `baseFont` for a legacy-font case); `imagePdf` is one page holding one picture, optionally wrapped in a form XObject. |
 | `pdfium_test_lib.dart` | `ensurePdfium()` | Any test that opens a real PDF. `flutter test` does not run native-asset build hooks, so PDFium is missing; this downloads it once and points pdfrx at it — the same shape as `ensureIsarCore()`. Call it before `pdfrxFlutterInitialize()`, and install `FakePathProviderPlatform` first (pdfrx resolves its cache dir through path_provider). |
-| `fake_pdf_text_source.dart` | `FakePdfTextSource` | Extraction code that needs page text without native PDFium. |
-| `docx_fixtures.dart` | `docxFixture(name)`, `minimalDocx(document:, styles:, extra:)`, `wDocument`, `wP`, `wTable`, `wStyles`, `englishHeadingStyles`, `withDeclaredSize(...)`, `writeTempDocx(...)` | Anything touching DOCX. Build each case as exact XML with `minimalDocx` rather than committing a file per case; `withDeclaredSize` rewrites a zip entry's declared size so the size-cap test needs no 50 MB fixture. |
+| `fake_pdf_text_source.dart` | `FakePdfTextSource` | Extraction code that needs page text without native PDFium. Seed `.signals[path]` for per-page OCR plans (unset = no signals, text layer only); `.renders` records each render request, `renderKey(...)` is the path each answers (key `FakeOcrTextSource.texts` on it), `.failRenderPages` fails some, and `.renderDir` writes real files so a test can check they are deleted. |
+| `docx_fixtures.dart` | `docxFixture(name)`, `minimalDocx(document:, styles:, extra:, media:)`, `wDocument`, `wP`, `wTable`, `wDrawing`, `wRels`, `wStyles`, `englishHeadingStyles`, `withDeclaredSize(...)`, `withCorruptData(...)`, `writeTempDocx(...)` | Anything touching DOCX. Build each case as exact XML with `minimalDocx` rather than committing a file per case; `withDeclaredSize` rewrites a zip entry's declared size so the size-cap test needs no 50 MB fixture. `wDrawing` + `wRels` + `media:` build an embedded picture; `withCorruptData` makes one entry fail to inflate while the zip still opens. |
 | `fake_docx_text_source.dart` | `FakeDocxTextSource` | Extraction and indexing code that needs DOCX sections without a real file. |
+| `fake_ocr_text_source.dart` | `FakeOcrTextSource` | Anything that reads text from images. ML Kit runs only on Android/iOS, never under `flutter test`; `''` is an image with no text, `null` an unreadable one. `.reader` answers paths not known in advance (a page rendered to a temp file). Real OCR is covered in `integration_test/document_rag_e2e_test.dart`. |
+| `fake_image_label_source.dart` | `FakeImageLabelSource` | Anything that labels images. A missing path means nothing recognisable (`[]`); a `null` entry is an unreadable file. Real labeling runs in `integration_test/document_rag_e2e_test.dart` against real photographs passed via `--dart-define=LABEL_PHOTOS_DIR`. |
 | `fake_document_vectors.dart` | `FakeDocumentVectors` | Anything reading or writing document chunk vectors. |
 | `fake_path_provider.dart` | `FakePathProviderPlatform` | Code that calls `getApplicationDocumentsDirectory()` / `getApplicationSupportDirectory()`. Install via `PathProviderPlatform.instance = FakePathProviderPlatform(docs: ..., support: ...)` pointing at temp dirs. |
 | `mesh_test_helpers.dart` | `stubSecureStorageChannel()`, `MeshIdentity` | Any mesh test. The stub silences flutter_secure_storage's channel (NIP-44 PBKDF2 path) — call once at the top of `main()`. `MeshIdentity.generate()` = real Schnorr keypair + bound `MeshEventCodec`; generate a second one to play the attacker in signed-by-another-identity drop tests. |
@@ -130,11 +132,27 @@ Never call `Isar.initializeIsarCore(download: true)` yourself — under
 parallel `flutter test` it races and under `TestWidgetsFlutterBinding` its
 download can never succeed (mocked HTTP 400).
 
+### Device retrieval test with your own documents
+
+`tool/rag_docs_e2e.sh <device-id> [extra-dir]` pushes the committed Aranya PDF and
+its messy-question file to the phone, indexes it with the real Gecko embedder,
+runs a self-retrieval check (every stored chunk must find itself) and asks each
+question, printing whether the right page came first, in the top 3, or missed.
+`[extra-dir]` may hold your own `*.pdf` and a `queries.json` (same format; `doc`
+is the file name without `.pdf`) — keep private documents out of the repo.
+Indexing costs about 13 s a chunk, provided the phone's screen stays on (the
+script wakes it): with the screen off Android runs the app on the slow cores and
+it takes ~5x longer. It also prints Recall@1/3/5 and MRR for meaning-only against
+hybrid ranking, and pulls a dump of all vectors to `/tmp/rag_dump.json` (holds
+document text — keep it out of the repo); `flutter pub run
+tool/eval_retrieval.dart` re-ranks that dump for a grid of settings offline.
+
 ### Binary fixtures — `test/_helpers/fixtures/`
 
 Real-world binaries a test needs, with a `PROVENANCE.md` per directory recording
 source URL, date, licence and sha256 for each. `pdf/` holds a public-domain NIST
-PDF; `docx/` holds two public-domain Microsoft Word templates (NIST, USPTO) and
+PDF and three selective-OCR fixtures built for this repo (a scan, a typed page
+with a pasted photo, a mixed circular); `docx/` holds two public-domain Microsoft Word templates (NIST, USPTO) and
 one LibreOffice export — each proving the reader against what a real producer
 writes rather than what we generated.
 

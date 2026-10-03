@@ -6,10 +6,14 @@ enum DocumentKind {
   pdf('application/pdf'),
   docx(
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  );
+  ),
+
+  /// Any `image/*` — read by OCR for the text inside it.
+  image('image/');
 
   const DocumentKind(this.mime);
 
+  /// The mime, or for [image] the mime prefix, this kind matches.
   final String mime;
 
   /// Prefix match, case-insensitive, so `; charset=` parameters still match.

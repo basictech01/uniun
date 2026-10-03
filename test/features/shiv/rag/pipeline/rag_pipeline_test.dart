@@ -93,7 +93,9 @@ void main() {
       manasLoader,
     );
 
-    when(() => getActiveModel.call()).thenAnswer((_) async => const Right(null));
+    when(
+      () => getActiveModel.call(),
+    ).thenAnswer((_) async => const Right(null));
   });
 
   group('init', () {
@@ -108,12 +110,15 @@ void main() {
 
   group('buildSystemInstruction', () {
     test('loads personalization once and caches it across calls', () async {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
-      when(() => getOwnProfile.call('pk1'))
-          .thenAnswer((_) async => Right(aProfile(name: 'Alice')));
-      when(() => promptBuilder.buildSystemInstruction(any()))
-          .thenReturn('SYSTEM');
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
+      when(
+        () => getOwnProfile.call('pk1'),
+      ).thenAnswer((_) async => Right(aProfile(name: 'Alice')));
+      when(
+        () => promptBuilder.buildSystemInstruction(any()),
+      ).thenReturn('SYSTEM');
 
       final first = await pipeline.buildSystemInstruction();
       final second = await pipeline.buildSystemInstruction();
@@ -123,13 +128,15 @@ void main() {
       verify(() => getActiveUser.call()).called(1); // cached on 2nd call
     });
 
-    test('no active user — builds with null personalization fields',
-        () async {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => const Left(Failure.errorFailure('no user')));
-      when(() => promptBuilder.buildSystemInstruction(any()))
-          .thenAnswer((invocation) {
-        final ctx = invocation.positionalArguments.single as PersonalizationContext;
+    test('no active user — builds with null personalization fields', () async {
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('no user')));
+      when(() => promptBuilder.buildSystemInstruction(any())).thenAnswer((
+        invocation,
+      ) {
+        final ctx =
+            invocation.positionalArguments.single as PersonalizationContext;
         expect(ctx.userName, isNull);
         expect(ctx.userBio, isNull);
         return 'SYSTEM';
@@ -143,13 +150,17 @@ void main() {
 
     test('a profile load failure still yields a valid (null-name) '
         'personalization context', () async {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
-      when(() => getOwnProfile.call('pk1'))
-          .thenAnswer((_) async => const Left(Failure.errorFailure('x')));
-      when(() => promptBuilder.buildSystemInstruction(any()))
-          .thenAnswer((invocation) {
-        final ctx = invocation.positionalArguments.single as PersonalizationContext;
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
+      when(
+        () => getOwnProfile.call('pk1'),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('x')));
+      when(() => promptBuilder.buildSystemInstruction(any())).thenAnswer((
+        invocation,
+      ) {
+        final ctx =
+            invocation.positionalArguments.single as PersonalizationContext;
         expect(ctx.userName, isNull);
         return 'SYSTEM';
       });
@@ -157,21 +168,26 @@ void main() {
       await pipeline.buildSystemInstruction();
     });
 
-    test('clearCache forces personalization to reload on the next call',
-        () async {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
-      when(() => getOwnProfile.call(any()))
-          .thenAnswer((_) async => Right(aProfile(name: 'Alice')));
-      when(() => promptBuilder.buildSystemInstruction(any()))
-          .thenReturn('SYSTEM');
+    test(
+      'clearCache forces personalization to reload on the next call',
+      () async {
+        when(
+          () => getActiveUser.call(),
+        ).thenAnswer((_) async => Right(aUserKey(pubkeyHex: 'pk1')));
+        when(
+          () => getOwnProfile.call(any()),
+        ).thenAnswer((_) async => Right(aProfile(name: 'Alice')));
+        when(
+          () => promptBuilder.buildSystemInstruction(any()),
+        ).thenReturn('SYSTEM');
 
-      await pipeline.buildSystemInstruction();
-      pipeline.clearCache();
-      await pipeline.buildSystemInstruction();
+        await pipeline.buildSystemInstruction();
+        pipeline.clearCache();
+        await pipeline.buildSystemInstruction();
 
-      verify(() => getActiveUser.call()).called(2);
-    });
+        verify(() => getActiveUser.call()).called(2);
+      },
+    );
   });
 
   group('buildBranchContextSummary', () {
@@ -185,7 +201,9 @@ void main() {
           createdAt: DateTime(2026, 1, 1),
         ),
       ];
-      when(() => promptBuilder.buildBranchContextSummary(any())).thenReturn('SUMMARY');
+      when(
+        () => promptBuilder.buildBranchContextSummary(any()),
+      ).thenReturn('SUMMARY');
 
       final result = pipeline.buildBranchContextSummary(branch);
 
@@ -196,14 +214,17 @@ void main() {
 
   group('buildMessage — vector-seeded retrieval (no manasIds)', () {
     setUp(() {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => const Left(Failure.errorFailure('x')));
-      when(() => promptBuilder.buildUserMessage(
-            userQuestion: any(named: 'userQuestion'),
-            context: any(named: 'context'),
-            budget: any(named: 'budget'),
-            userName: any(named: 'userName'),
-          )).thenReturn('USER_MESSAGE');
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('x')));
+      when(
+        () => promptBuilder.buildUserMessage(
+          userQuestion: any(named: 'userQuestion'),
+          context: any(named: 'context'),
+          budget: any(named: 'budget'),
+          userName: any(named: 'userName'),
+        ),
+      ).thenReturn('USER_MESSAGE');
     });
 
     test('embedder returns empty — empty context, contextCount 0', () async {
@@ -213,18 +234,22 @@ void main() {
 
       expect(result.contextCount, 0);
       expect(result.sourceNoteIds, isEmpty);
-      verifyNever(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          ));
+      verifyNever(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      );
     });
 
     test('no vector hits — empty context, no graph/memory calls', () async {
       when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
-      when(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          )).thenAnswer((_) async => const []);
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer((_) async => const []);
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
 
@@ -235,12 +260,16 @@ void main() {
     test('full pipeline: seed notes -> memories -> graph expand -> nodes '
         '-> expanded memories, all merged into contextCount', () async {
       when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
-      when(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          )).thenAnswer((_) async => const [
-            ScoredNote(noteId: 'seed1', score: 0.9, content: 'seed one'),
-          ]);
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer(
+        (_) async => const [
+          ScoredNote(noteId: 'seed1', score: 0.9, content: 'seed one'),
+        ],
+      );
       // List/tuple args are compared by identity, not value, so every stub
       // below matches on `any()` and inspects the real argument via
       // `invocation` instead of relying on literal-list `==`.
@@ -269,24 +298,28 @@ void main() {
           ),
         ]);
       });
-      when(() => getNeighbours.call(any())).thenAnswer((_) async => Right([
-            GraphEdgeEntity(
-              sourceKey: 'cats',
-              targetKey: 'dogs',
-              relationType: 'related',
-              sourceNoteId: 'expanded1',
-              createdAt: DateTime(2026, 1, 1),
-            ),
-          ]));
-      when(() => getNodesByKeys.call(any())).thenAnswer((_) async => Right([
-            GraphNodeEntity(
-              key: 'cats',
-              name: 'Cats',
-              type: 'concept',
-              createdAt: DateTime(2026, 1, 1),
-              updatedAt: DateTime(2026, 1, 1),
-            ),
-          ]));
+      when(() => getNeighbours.call(any())).thenAnswer(
+        (_) async => Right([
+          GraphEdgeEntity(
+            sourceKey: 'cats',
+            targetKey: 'dogs',
+            relationType: 'related',
+            sourceNoteId: 'expanded1',
+            createdAt: DateTime(2026, 1, 1),
+          ),
+        ]),
+      );
+      when(() => getNodesByKeys.call(any())).thenAnswer(
+        (_) async => Right([
+          GraphNodeEntity(
+            key: 'cats',
+            name: 'Cats',
+            type: 'concept',
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          ),
+        ]),
+      );
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
 
@@ -296,17 +329,25 @@ void main() {
       expect(result.contextCount, 4);
     });
 
-    test('expanded note ids already among the seeds are not re-fetched',
-        () async {
-      when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
-      when(() => vectorSearch.search(
+    test(
+      'expanded note ids already among the seeds are not re-fetched',
+      () async {
+        when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
+        when(
+          () => vectorSearch.search(
             queryVector: any(named: 'queryVector'),
             topK: any(named: 'topK'),
-          )).thenAnswer((_) async => const [
+          ),
+        ).thenAnswer(
+          (_) async => const [
             ScoredNote(noteId: 'seed1', score: 0.9, content: 'seed one'),
-          ]);
-      when(() => getMemories.call(any())).thenAnswer((_) async => const Right([]));
-      when(() => getNeighbours.call(any())).thenAnswer((_) async => Right([
+          ],
+        );
+        when(
+          () => getMemories.call(any()),
+        ).thenAnswer((_) async => const Right([]));
+        when(() => getNeighbours.call(any())).thenAnswer(
+          (_) async => Right([
             GraphEdgeEntity(
               sourceKey: 'k1',
               targetKey: 'k2',
@@ -314,30 +355,43 @@ void main() {
               sourceNoteId: 'seed1', // same as the seed — must not re-fetch
               createdAt: DateTime(2026, 1, 1),
             ),
-          ]));
-      when(() => getNodesByKeys.call(any())).thenAnswer((_) async => const Right([]));
+          ]),
+        );
+        when(
+          () => getNodesByKeys.call(any()),
+        ).thenAnswer((_) async => const Right([]));
 
-      await pipeline.buildMessage(userQuestion: 'q');
+        await pipeline.buildMessage(userQuestion: 'q');
 
-      // Only the seed-ids call — the expanded set is empty (its only note
-      // id, 'seed1', is already among the seeds), so the second
-      // (expandedNoteIds-driven) getMemories call never happens.
-      verify(() => getMemories.call(any())).called(1);
-    });
+        // Only the seed-ids call — the expanded set is empty (its only note
+        // id, 'seed1', is already among the seeds), so the second
+        // (expandedNoteIds-driven) getMemories call never happens.
+        verify(() => getMemories.call(any())).called(1);
+      },
+    );
 
     test('a getNeighbours failure degrades to no graph expansion, not a '
         'crash', () async {
       when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
-      when(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          )).thenAnswer((_) async => const [
-            ScoredNote(noteId: 'seed1', score: 0.9, content: 'x'),
-          ]);
-      when(() => getMemories.call(any())).thenAnswer((_) async => const Right([]));
-      when(() => getNeighbours.call(any()))
-          .thenAnswer((_) async => const Left(Failure.errorFailure('graph down')));
-      when(() => getNodesByKeys.call(any())).thenAnswer((_) async => const Right([]));
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer(
+        (_) async => const [
+          ScoredNote(noteId: 'seed1', score: 0.9, content: 'x'),
+        ],
+      );
+      when(
+        () => getMemories.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => getNeighbours.call(any()),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('graph down')));
+      when(
+        () => getNodesByKeys.call(any()),
+      ).thenAnswer((_) async => const Right([]));
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
 
@@ -346,7 +400,9 @@ void main() {
 
     test('an uncaught exception anywhere in retrieval degrades to empty '
         'context rather than propagating', () async {
-      when(() => embedding.embed(any())).thenThrow(Exception('embedder crashed'));
+      when(
+        () => embedding.embed(any()),
+      ).thenThrow(Exception('embedder crashed'));
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
 
@@ -366,60 +422,80 @@ void main() {
     );
 
     setUp(() {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => const Left(Failure.errorFailure('x')));
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('x')));
       when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
-      when(() => promptBuilder.buildUserMessage(
-            userQuestion: any(named: 'userQuestion'),
-            context: any(named: 'context'),
-            budget: any(named: 'budget'),
-            userName: any(named: 'userName'),
-          )).thenReturn('USER_MESSAGE');
-      when(() => getMemories.call(any()))
-          .thenAnswer((_) async => const Right([]));
-      when(() => getNeighbours.call(any()))
-          .thenAnswer((_) async => const Right([]));
-      when(() => getNodesByKeys.call(any()))
-          .thenAnswer((_) async => const Right([]));
-      when(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          )).thenAnswer((_) async => const []);
+      when(
+        () => promptBuilder.buildUserMessage(
+          userQuestion: any(named: 'userQuestion'),
+          context: any(named: 'context'),
+          budget: any(named: 'budget'),
+          userName: any(named: 'userName'),
+        ),
+      ).thenReturn('USER_MESSAGE');
+      when(
+        () => getMemories.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => getNeighbours.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => getNodesByKeys.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer((_) async => const []);
     });
 
-    void stubChunks(List<ScoredChunk> chunks) =>
-        when(() => vectorSearch.searchChunks(
-              queryVector: any(named: 'queryVector'),
-              topK: any(named: 'topK'),
-            )).thenAnswer((_) async => chunks);
+    void stubChunks(List<ScoredChunk> chunks) => when(
+      () => vectorSearch.searchChunks(
+        queryVector: any(named: 'queryVector'),
+        queryText: any(named: 'queryText'),
+        topK: any(named: 'topK'),
+      ),
+    ).thenAnswer((_) async => chunks);
 
-    test('a chunk-only match still produces context and a source chunk id',
-        () async {
-      stubChunks(const [chunk]);
+    test(
+      'a chunk-only match still produces context and a source chunk id',
+      () async {
+        stubChunks(const [chunk]);
 
-      final result = await pipeline.buildMessage(userQuestion: 'q');
+        final result = await pipeline.buildMessage(userQuestion: 'q');
 
-      expect(result.sourceChunkIds, ['s:0']);
-      expect(result.sourceNoteIds, isEmpty);
-      expect(result.contextCount, 1);
-      verifyNever(() => getMemories.call(any()));
-      verifyNever(() => getNeighbours.call(any()));
-      final ctx = verify(() => promptBuilder.buildUserMessage(
-            userQuestion: any(named: 'userQuestion'),
-            context: captureAny(named: 'context'),
-            budget: any(named: 'budget'),
-            userName: any(named: 'userName'),
-          )).captured.single as EnrichedContext;
-      expect(ctx.seedChunks.single.chunkId, 's:0');
-    });
+        expect(result.sourceChunkIds, ['s:0']);
+        expect(result.sourceNoteIds, isEmpty);
+        expect(result.contextCount, 1);
+        verifyNever(() => getMemories.call(any()));
+        verifyNever(() => getNeighbours.call(any()));
+        final ctx =
+            verify(
+                  () => promptBuilder.buildUserMessage(
+                    userQuestion: any(named: 'userQuestion'),
+                    context: captureAny(named: 'context'),
+                    budget: any(named: 'budget'),
+                    userName: any(named: 'userName'),
+                  ),
+                ).captured.single
+                as EnrichedContext;
+        expect(ctx.seedChunks.single.chunkId, 's:0');
+      },
+    );
 
     test('notes and chunks together both reach the result', () async {
-      when(() => vectorSearch.search(
-                queryVector: any(named: 'queryVector'),
-                topK: any(named: 'topK'),
-              ))
-          .thenAnswer((_) async =>
-              const [ScoredNote(noteId: 'n1', score: 0.9, content: 'a note')]);
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer(
+        (_) async => const [
+          ScoredNote(noteId: 'n1', score: 0.9, content: 'a note'),
+        ],
+      );
       stubChunks(const [chunk]);
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
@@ -429,30 +505,48 @@ void main() {
       expect(result.contextCount, 2);
     });
 
-    test('chunk top-K is half the note top-K (min 1), notes unchanged',
-        () async {
-      stubChunks(const []);
+    test(
+      'chunk top-K is half the note top-K (min 1), notes unchanged',
+      () async {
+        stubChunks(const []);
 
-      await pipeline.buildMessage(userQuestion: 'q');
+        await pipeline.buildMessage(userQuestion: 'q');
 
-      // No active model → the local default budget's topK is 3.
-      verify(() => vectorSearch.search(
-          queryVector: any(named: 'queryVector'), topK: 3)).called(1);
-      verify(() => vectorSearch.searchChunks(
-          queryVector: any(named: 'queryVector'), topK: 1)).called(1);
-    });
+        // No active model → the local default budget's topK is 3.
+        verify(
+          () => vectorSearch.search(
+            queryVector: any(named: 'queryVector'),
+            topK: 3,
+          ),
+        ).called(1);
+        verify(
+          () => vectorSearch.searchChunks(
+            queryVector: any(named: 'queryVector'),
+            queryText: 'q',
+            topK: 1,
+          ),
+        ).called(1);
+      },
+    );
 
     test('a chunk search that throws degrades to notes only', () async {
-      when(() => vectorSearch.search(
-                queryVector: any(named: 'queryVector'),
-                topK: any(named: 'topK'),
-              ))
-          .thenAnswer((_) async =>
-              const [ScoredNote(noteId: 'n1', score: 0.9, content: 'a note')]);
-      when(() => vectorSearch.searchChunks(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          )).thenThrow(Exception('store unavailable'));
+      when(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenAnswer(
+        (_) async => const [
+          ScoredNote(noteId: 'n1', score: 0.9, content: 'a note'),
+        ],
+      );
+      when(
+        () => vectorSearch.searchChunks(
+          queryVector: any(named: 'queryVector'),
+          queryText: any(named: 'queryText'),
+          topK: any(named: 'topK'),
+        ),
+      ).thenThrow(Exception('store unavailable'));
 
       final result = await pipeline.buildMessage(userQuestion: 'q');
 
@@ -472,65 +566,93 @@ void main() {
 
   group('buildMessage — Manas-scoped retrieval', () {
     setUp(() {
-      when(() => getActiveUser.call())
-          .thenAnswer((_) async => const Left(Failure.errorFailure('x')));
-      when(() => promptBuilder.buildUserMessage(
-            userQuestion: any(named: 'userQuestion'),
-            context: any(named: 'context'),
-            budget: any(named: 'budget'),
-            userName: any(named: 'userName'),
-          )).thenReturn('USER_MESSAGE');
-      when(() => getMemories.call(any())).thenAnswer((_) async => const Right([]));
-      when(() => getNeighbours.call(any())).thenAnswer((_) async => const Right([]));
-      when(() => getNodesByKeys.call(any())).thenAnswer((_) async => const Right([]));
+      when(
+        () => getActiveUser.call(),
+      ).thenAnswer((_) async => const Left(Failure.errorFailure('x')));
+      when(
+        () => promptBuilder.buildUserMessage(
+          userQuestion: any(named: 'userQuestion'),
+          context: any(named: 'context'),
+          budget: any(named: 'budget'),
+          userName: any(named: 'userName'),
+        ),
+      ).thenReturn('USER_MESSAGE');
+      when(
+        () => getMemories.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => getNeighbours.call(any()),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => getNodesByKeys.call(any()),
+      ).thenAnswer((_) async => const Right([]));
     });
 
     test('a non-empty manasIds list uses ManasContextLoader.merge, not the '
         'vector index directly', () async {
-      when(() => manasLoader.merge(
-            manasIds: any(named: 'manasIds'),
-            budget: any(named: 'budget'),
-            relevanceQuery: any(named: 'relevanceQuery'),
-          )).thenAnswer((_) async => [
-            PackedNote(
-                id: 'n1',
-                content: 'packed note',
-                created: DateTime(2026, 1, 1),
-                source: PackedNoteSource.own),
-          ]);
+      when(
+        () => manasLoader.merge(
+          manasIds: any(named: 'manasIds'),
+          budget: any(named: 'budget'),
+          relevanceQuery: any(named: 'relevanceQuery'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          PackedNote(
+            id: 'n1',
+            content: 'packed note',
+            created: DateTime(2026, 1, 1),
+            source: PackedNoteSource.own,
+          ),
+        ],
+      );
 
-      final result =
-          await pipeline.buildMessage(userQuestion: 'q', manasIds: const ['m1']);
+      final result = await pipeline.buildMessage(
+        userQuestion: 'q',
+        manasIds: const ['m1'],
+      );
 
       expect(result.sourceNoteIds, ['n1']);
       expect(result.sourceChunkIds, isEmpty);
       verifyNever(() => embedding.embed(any()));
-      verifyNever(() => vectorSearch.search(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          ));
-      verifyNever(() => vectorSearch.searchChunks(
-            queryVector: any(named: 'queryVector'),
-            topK: any(named: 'topK'),
-          ));
+      verifyNever(
+        () => vectorSearch.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+        ),
+      );
+      verifyNever(
+        () => vectorSearch.searchChunks(
+          queryVector: any(named: 'queryVector'),
+          queryText: any(named: 'queryText'),
+          topK: any(named: 'topK'),
+        ),
+      );
     });
 
     test('caps Manas-scoped seed notes to the budget\'s topK', () async {
-      when(() => manasLoader.merge(
-            manasIds: any(named: 'manasIds'),
-            budget: any(named: 'budget'),
-            relevanceQuery: any(named: 'relevanceQuery'),
-          )).thenAnswer((_) async => List.generate(
-            20,
-            (i) => PackedNote(
-                id: 'n$i',
-                content: 'note $i',
-                created: DateTime(2026, 1, 1),
-                source: PackedNoteSource.own),
-          ));
+      when(
+        () => manasLoader.merge(
+          manasIds: any(named: 'manasIds'),
+          budget: any(named: 'budget'),
+          relevanceQuery: any(named: 'relevanceQuery'),
+        ),
+      ).thenAnswer(
+        (_) async => List.generate(
+          20,
+          (i) => PackedNote(
+            id: 'n$i',
+            content: 'note $i',
+            created: DateTime(2026, 1, 1),
+            source: PackedNoteSource.own,
+          ),
+        ),
+      );
 
-      final result =
-          await pipeline.buildMessage(userQuestion: 'q', manasIds: const ['m1']);
+      final result = await pipeline.buildMessage(
+        userQuestion: 'q',
+        manasIds: const ['m1'],
+      );
 
       // PromptBudget.forActiveModel(null) picks the smallest local tier —
       // whatever its topK is, the seed list must never exceed it.
@@ -538,18 +660,24 @@ void main() {
       expect(result.sourceNoteIds.length, budget.topK);
     });
 
-    test('an empty Manas note pool yields empty context, not a crash',
-        () async {
-      when(() => manasLoader.merge(
+    test(
+      'an empty Manas note pool yields empty context, not a crash',
+      () async {
+        when(
+          () => manasLoader.merge(
             manasIds: any(named: 'manasIds'),
             budget: any(named: 'budget'),
             relevanceQuery: any(named: 'relevanceQuery'),
-          )).thenAnswer((_) async => const []);
+          ),
+        ).thenAnswer((_) async => const []);
 
-      final result =
-          await pipeline.buildMessage(userQuestion: 'q', manasIds: const ['m1']);
+        final result = await pipeline.buildMessage(
+          userQuestion: 'q',
+          manasIds: const ['m1'],
+        );
 
-      expect(result.contextCount, 0);
-    });
+        expect(result.contextCount, 0);
+      },
+    );
   });
 }

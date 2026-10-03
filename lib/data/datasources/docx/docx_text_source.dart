@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:archive/archive.dart';
+import 'package:image/image.dart' as img;
 import 'package:injectable/injectable.dart';
 import 'package:xml/xml.dart';
 
@@ -20,15 +21,48 @@ const int kMaxDocxXmlBytes = 10 * 1024 * 1024;
 /// The same guard for `word/styles.xml`, which is normally tens of KB.
 const int kMaxDocxStylesBytes = 2 * 1024 * 1024;
 
+/// An embedded picture is worth OCR only when it is drawn at least this wide
+/// — 2.5 in (6.35 cm) in EMU, 914,400 per inch — and this large in area
+/// (about 5 × 4 in). Logos, signatures and icons fall below it. Unmeasured.
+const int kMinDocxImageWidthEmu = 2286000;
+const double kMinDocxImageAreaEmu2 = 3.34e12;
+
+/// ...and has at least this many pixels: a small bitmap stretched to fill the
+/// page holds too little detail for OCR to read.
+const int kMinDocxImagePixelsWide = 500;
+const int kMinDocxImagePixelsHigh = 100;
+
+/// Pictures read per document, and the largest one extracted. Each costs
+/// about a second of OCR, and the file came from another user. Unmeasured.
+const int kMaxDocxImages = 20;
+const int kMaxDocxImageBytes = 15 * 1024 * 1024;
+
 const int _maxLabelChars = 100;
 const String _w =
     'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const String _wp =
+    'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing';
+const String _a = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+const String _r =
+    'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+/// Marks where an extracted picture sat in a section's text: its file path
+/// between two U+FFFC OBJECT REPLACEMENT CHARACTERs, which never occur in
+/// real text.
+String docxImageMarker(String path) => '\uFFFC$path\uFFFC';
+
+/// Matches a [docxImageMarker]; group 1 is the path.
+final RegExp docxImageMarkerPattern = RegExp('\uFFFC([^\uFFFC]*)\uFFFC');
 
 /// Seam over the DOCX reader, so callers can be tested without real files.
 abstract class DocxTextSource {
   /// Sections in reading order, or `null` when the file cannot be read as a
   /// Word document.
-  Future<List<DocxSection>?> sectionsText(String path);
+  ///
+  /// With [imageDir], each embedded picture large enough to hold text is
+  /// written there and left in its section's text as a [docxImageMarker];
+  /// the caller reads and deletes them. Without it pictures are ignored.
+  Future<List<DocxSection>?> sectionsText(String path, {String? imageDir});
 }
 
 /// Reads `word/document.xml` straight out of the zip.
@@ -38,16 +72,21 @@ abstract class DocxTextSource {
 @LazySingleton(as: DocxTextSource)
 class ArchiveDocxTextSource implements DocxTextSource {
   @override
-  Future<List<DocxSection>?> sectionsText(String path) async {
+  Future<List<DocxSection>?> sectionsText(
+    String path, {
+    String? imageDir,
+  }) async {
     try {
-      return await Isolate.run(() => _parse(File(path).readAsBytesSync()));
+      return await Isolate.run(
+        () => _parse(File(path).readAsBytesSync(), imageDir),
+      );
     } catch (_) {
       return null;
     }
   }
 }
 
-List<DocxSection>? _parse(List<int> bytes) {
+List<DocxSection>? _parse(List<int> bytes, String? imageDir) {
   final zip = ZipDecoder().decodeBytes(bytes);
   final doc = zip.findFile('word/document.xml');
   // The declared size stops an honest bomb before inflating anything; a header
@@ -62,6 +101,9 @@ List<DocxSection>? _parse(List<int> bytes) {
   if (body == null) return null;
 
   final headings = _headingStyles(zip.findFile('word/styles.xml'));
+  final pictures = imageDir == null
+      ? null
+      : _Pictures(zip, _imageTargets(zip), imageDir);
   final sections = <DocxSection>[];
   var label = '';
   var buf = StringBuffer();
@@ -80,17 +122,17 @@ List<DocxSection>? _parse(List<int> bytes) {
   void walk(XmlElement container) {
     for (final el in container.childElements) {
       if (_isW(el, 'p')) {
-        final text = _paragraphText(el);
+        final text = _paragraphText(el, pictures);
         if (text.trim().isEmpty) continue;
         final heading = _isHeading(el, headings);
         if (heading) {
           if (hasBody) flush();
-          label = _cap(_collapse(text));
+          label = _cap(_collapse(text.replaceAll(docxImageMarkerPattern, '')));
         }
         buf.write('$text\n\n');
         if (!heading) hasBody = true;
       } else if (_isW(el, 'tbl')) {
-        final text = _tableText(el);
+        final text = _tableText(el, pictures);
         if (text.isEmpty) continue;
         buf.write('$text\n\n');
         hasBody = true;
@@ -120,14 +162,17 @@ XmlElement? _child(XmlElement e, String local) =>
 /// `w:t` text, tabs and breaks, in order. Deleted text (`w:delText`) and field
 /// codes (`w:instrText`) are different elements and so never match; text
 /// boxes are skipped because their `mc:Fallback` copy would repeat them.
-String _paragraphText(XmlElement p) {
+String _paragraphText(XmlElement p, [_Pictures? pictures]) {
   final out = StringBuffer();
   void walk(XmlElement e) {
     for (final c in e.childElements) {
       // A text move keeps its old copy in `w:moveFrom` as ordinary `w:t`, so
       // reading it would index the moved text twice.
       if (_isW(c, 'txbxContent') || _isW(c, 'moveFrom')) continue;
-      if (_isW(c, 't')) {
+      if (_isW(c, 'drawing')) {
+        final path = pictures?.extract(c);
+        if (path != null) out.write('\n${docxImageMarker(path)}\n');
+      } else if (_isW(c, 't')) {
         out.write(c.innerText);
       } else if (_isW(c, 'tab')) {
         out.write('\t');
@@ -143,14 +188,17 @@ String _paragraphText(XmlElement p) {
   return out.toString();
 }
 
-String _tableText(XmlElement tbl) => tbl.childElements
+String _tableText(XmlElement tbl, [_Pictures? pictures]) => tbl.childElements
     .where((r) => _isW(r, 'tr'))
     .map(
       (row) => row.childElements
           .where((c) => _isW(c, 'tc'))
           .map(
-            (cell) =>
-                _collapse(_paragraphsIn(cell).map(_paragraphText).join(' ')),
+            (cell) => _collapse(
+              _paragraphsIn(
+                cell,
+              ).map((p) => _paragraphText(p, pictures)).join(' '),
+            ),
           )
           .join(' | '),
     )
@@ -243,4 +291,89 @@ String _cap(String s) {
   final last = s.codeUnitAt(end - 1);
   if (last >= 0xD800 && last <= 0xDBFF) end--;
   return '${s.substring(0, end)}…';
+}
+
+/// Relationship id → zip entry for every target of `word/document.xml`. A
+/// linked picture's URL names no entry, so it is never found in the zip.
+Map<String, String> _imageTargets(Archive zip) {
+  final file = zip.findFile('word/_rels/document.xml.rels');
+  if (file == null || file.size > kMaxDocxStylesBytes) return const {};
+  try {
+    final raw = file.readBytes();
+    if (raw == null) return const {};
+    final rels = XmlDocument.parse(utf8.decode(raw));
+    return {
+      for (final r in rels.descendantElements.where(
+        (e) => e.name.local == 'Relationship',
+      ))
+        if (r.getAttribute('Id') != null && r.getAttribute('Target') != null)
+          r.getAttribute('Id')!: _resolve(r.getAttribute('Target')!),
+    };
+  } catch (_) {
+    return const {};
+  }
+}
+
+/// A target is relative to `word/`, or absolute from the package root.
+String _resolve(String target) =>
+    target.startsWith('/') ? target.substring(1) : 'word/$target';
+
+/// Writes the pictures worth reading to [dir], each at most once.
+class _Pictures {
+  _Pictures(this._zip, this._targets, this._dir);
+
+  final Archive _zip;
+  final Map<String, String> _targets;
+  final String _dir;
+  final Set<String> _seen = {};
+  var _written = 0;
+
+  /// The file [drawing]'s picture was written to, or `null` when it is too
+  /// small, not a bitmap OCR reads, linked rather than embedded, or already
+  /// read at an earlier position.
+  String? extract(XmlElement drawing) {
+    // A malformed picture costs only itself, never the document's text.
+    try {
+      return _extract(drawing);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _extract(XmlElement drawing) {
+    if (_written >= kMaxDocxImages) return null;
+    final extent = drawing.descendantElements
+        .where((e) => e.name.local == 'extent' && e.name.namespaceUri == _wp)
+        .firstOrNull;
+    final cx = int.tryParse(extent?.getAttribute('cx') ?? '') ?? 0;
+    final cy = int.tryParse(extent?.getAttribute('cy') ?? '') ?? 0;
+    if (cx < kMinDocxImageWidthEmu ||
+        cx.toDouble() * cy < kMinDocxImageAreaEmu2) {
+      return null;
+    }
+
+    final blip = drawing.descendantElements
+        .where((e) => e.name.local == 'blip' && e.name.namespaceUri == _a)
+        .firstOrNull;
+    final entry = _targets[blip?.getAttribute('embed', namespace: _r)];
+    // A picture pasted twice holds the same text twice.
+    if (entry == null || !_seen.add(entry)) return null;
+
+    final file = _zip.findFile(entry);
+    if (file == null || file.size > kMaxDocxImageBytes) return null;
+    final bytes = file.readBytes();
+    if (bytes == null || bytes.length > kMaxDocxImageBytes) return null;
+    // EMF, WMF and SVG are vector drawings with no decoder, and nothing to
+    // OCR.
+    final info = img.findDecoderForData(bytes)?.startDecode(bytes);
+    if (info == null ||
+        info.width < kMinDocxImagePixelsWide ||
+        info.height < kMinDocxImagePixelsHigh) {
+      return null;
+    }
+
+    final out = '$_dir/image_${_written++}.${entry.split('.').last}';
+    File(out).writeAsBytesSync(bytes);
+    return out;
+  }
 }

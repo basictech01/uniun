@@ -63,4 +63,21 @@ void main() {
       expect(looksLikeProse('😀' * 300), isFalse);
     });
   });
+
+  group('custom minimum length', () {
+    test('a lower minimum admits short genuine text', () {
+      expect(looksLikeProse('PLATFORM 3 → DELHI 14:20', minChars: 16), isTrue);
+      expect(looksLikeProse('PLATFORM 3 → DELHI 14:20'), isFalse,
+          reason: 'the default stays the PDF-calibrated 200');
+    });
+
+    test('the letter ratio still applies at a lower minimum', () {
+      expect(looksLikeProse('|| ;; 1 / . - = ~ 42', minChars: 16), isFalse);
+    });
+
+    test('exactly at the minimum passes; one below fails', () {
+      expect(looksLikeProse('a' * 16, minChars: 16), isTrue);
+      expect(looksLikeProse('a' * 15, minChars: 16), isFalse);
+    });
+  });
 }

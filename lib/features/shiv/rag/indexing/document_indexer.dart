@@ -146,33 +146,24 @@ class DocumentIndexer {
   Future<void> _purgeOrphans(Set<String> citable) async {
     final indexed = await _isar.documentIndexModels.where().findAll();
     for (final row in indexed) {
-      final cached = await _isar.mediaCacheModels
-          .filter()
-          .sha256EqualTo(row.sha256)
-          .findFirst();
+      final cached = await _isar.mediaCacheModels.getBySha256(row.sha256);
       if (cached == null || !citable.contains(row.sha256)) {
         await _purge(row.sha256);
       }
     }
   }
 
+  /// Looks up only the citable files, through the cache's unique index — never
+  /// a scan of every cached blob: images made that thousands of feed photos,
+  /// on a pass that runs after every note write.
   Future<void> _indexPending(Set<String> citable) async {
-    final docs = await _isar.mediaCacheModels
-        .filter()
-        .anyOf(
-          DocumentKind.values,
-          (q, k) => q.mimeStartsWith(k.mime, caseSensitive: false),
-        )
-        .findAll();
-    for (final row in docs) {
-      if (!citable.contains(row.sha256)) continue;
-      final done = await _isar.documentIndexModels
-          .filter()
-          .sha256EqualTo(row.sha256)
-          .findFirst();
-      if (done != null) continue;
-      // Non-null: the filter above admitted exactly these mimes.
-      await _index(row.sha256, row.localPath, DocumentKind.fromMime(row.mime)!);
+    for (final sha in citable) {
+      final row = await _isar.mediaCacheModels.getBySha256(sha);
+      if (row == null) continue; // attached but never downloaded
+      final kind = DocumentKind.fromMime(row.mime);
+      if (kind == null) continue; // a video or other non-document attachment
+      if (await _isar.documentIndexModels.getBySha256(sha) != null) continue;
+      await _index(sha, row.localPath, kind);
     }
   }
 
@@ -202,6 +193,20 @@ class DocumentIndexer {
         // cannot leave a half-indexed document with stale chunks.
         await _purgeChunks(sha);
         for (final c in chunks) {
+          // The row first, the vector second: embedding attaches the vector to
+          // this row. A row with no vector is never returned by search.
+          await _isar.writeTxn(
+            () => _isar.documentChunkModels.put(
+              DocumentChunkModel()
+                ..sha256 = sha
+                ..ordinal = c.ordinal
+                ..label = c.label
+                ..text = c.text,
+            ),
+          );
+          debugPrint(
+            '📄 DocumentIndexer: $id chunk ${c.ordinal + 1}/${chunks.length}',
+          );
           final stored = await _embedAndStore.call((
             chunkIdOf(sha, c.ordinal),
             c.text,
@@ -214,15 +219,6 @@ class DocumentIndexer {
             );
             return;
           }
-          await _isar.writeTxn(
-            () => _isar.documentChunkModels.put(
-              DocumentChunkModel()
-                ..sha256 = sha
-                ..ordinal = c.ordinal
-                ..label = c.label
-                ..text = c.text,
-            ),
-          );
         }
         // Written last: chunks and vectors first, so a crash part-way leaves a
         // retriable state rather than a document recorded as done but empty.
@@ -263,9 +259,7 @@ class DocumentIndexer {
     await _isar.writeTxn(() => _isar.documentIndexModels.deleteBySha256(sha));
   }
 
-  /// Drops a document's chunk rows. The vectors stay — ToStore cannot delete
-  /// without destroying the whole index (see [DocumentVectorRepository]) — and
-  /// are filtered out at search time because they no longer resolve to a row.
+  /// Drops a document's chunk rows — and with them their vectors.
   Future<void> _purgeChunks(String sha) => _isar.writeTxn(
     () => _isar.documentChunkModels
         .where()

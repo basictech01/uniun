@@ -5,9 +5,10 @@ part 'document_chunk_model.g.dart';
 /// One retrievable piece of an indexed document.
 ///
 /// RAG infrastructure, not a Note — it sits beside `MemoryNodeModel`, so the
-/// one-Note-collection rule is untouched. The chunk's embedding lives in
-/// ToStore under `chunkIdOf(sha256, ordinal)`, never here: Isar holds the text,
-/// the vector store holds the vector, joined by that id.
+/// one-Note-collection rule is untouched. The chunk's embedding
+/// is stored beside its text as [vector], so a question is answered by an exact
+/// comparison against every chunk — an approximate index cannot reach every
+/// stored vector (measured: 24 % of 83 chunks found themselves).
 @Collection(ignore: {'copyWith'})
 @Name('DocumentChunk')
 class DocumentChunkModel {
@@ -25,4 +26,9 @@ class DocumentChunkModel {
   late String label;
 
   late String text;
+
+  /// The embedding, stored as 32-bit floats (4 KB for 1024 dimensions), or
+  /// `null` until the chunk has been embedded — a chunk with no vector is
+  /// never returned by search.
+  List<float>? vector;
 }

@@ -15,6 +15,7 @@ import 'package:uniun/features/brahma/graph/pages/graph_compose_page.dart';
 import 'package:uniun/features/brahma/graph/pages/graph_page.dart';
 import 'package:uniun/features/brahma/manas/pages/manas_form_page.dart';
 import 'package:uniun/features/shiv/chat/bloc/shiv_ai_bloc.dart';
+import 'package:uniun/features/shiv/document_viewer/pages/document_viewer_page.dart';
 import 'package:uniun/features/shiv/gana/detail/pages/gana_detail_page.dart';
 import 'package:uniun/features/shiv/gana/form/pages/gana_form_page.dart';
 import 'package:uniun/features/shiv/gana/list/pages/gana_list_page.dart';
@@ -40,6 +41,7 @@ import 'package:uniun/features/private_groups/join/pages/join_private_group_page
 import 'package:uniun/features/profile/pages/user_profile_page.dart';
 import 'package:uniun/features/receive_share/pages/receive_share_sheet_page.dart';
 import 'package:uniun/features/receive_share/widgets/shared_incoming.dart';
+import 'package:uniun/domain/entities/shiv/document_citation.dart';
 import 'package:uniun/features/media/pages/media_detail_page.dart';
 import 'package:uniun/features/media/pages/media_gallery_page.dart';
 import 'package:uniun/features/saved_notes/pages/saved_notes_page.dart';
@@ -170,6 +172,16 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) => MediaDetailPage(
         sha256: state.pathParameters['sha256']!,
       ),
+    ),
+    GoRoute(
+      name: AppRoutes.documentViewer,
+      path: '/document/:sha256',
+      // The citation rides as `extra`: the viewer needs its page or heading,
+      // which a path cannot carry. A cold deep link has no extra and no
+      // meaning here, so it is sent back rather than shown empty.
+      redirect: (_, state) => state.extra is DocumentCitation ? null : '/',
+      builder: (_, state) =>
+          DocumentViewerPage(citation: state.extra! as DocumentCitation),
     ),
     GoRoute(
       name: AppRoutes.blockedUsers,

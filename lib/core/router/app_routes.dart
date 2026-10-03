@@ -39,6 +39,7 @@ abstract class AppRoutes {
   static const receiveShare = 'receiveShare';
   static const mediaGallery = 'mediaGallery';
   static const mediaDetail = 'mediaDetail';
+  static const documentViewer = 'documentViewer';
   static const brahmaManasForm = 'brahmaManasForm';
   static const shivGanaList = 'shivGanaList';
   static const shivGanaForm = 'shivGanaForm';

@@ -12,7 +12,18 @@ void main() {
     expect(DocumentKind.fromMime(docxMime), DocumentKind.docx);
   });
 
-  test('each kind round-trips through its own mime', () {
+  test('every image mime is an image', () {
+    for (final mime in ['image/jpeg', 'image/png', 'image/webp', 'image/heic',
+        'Image/GIF']) {
+      expect(DocumentKind.fromMime(mime), DocumentKind.image, reason: mime);
+    }
+  });
+
+  test('pdf stays the first value — the default Isar reads for older rows', () {
+    expect(DocumentKind.values.first, DocumentKind.pdf);
+  });
+
+  test('each kind round-trips through its own mime prefix', () {
     for (final k in DocumentKind.values) {
       expect(DocumentKind.fromMime(k.mime), k);
     }
@@ -31,8 +42,10 @@ void main() {
       'application/msword',
       'application/vnd.oasis.opendocument.text',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'image/jpeg',
+      'video/mp4',
+      'audio/ogg',
       'application/octet-stream',
+      'imagex/fake',
       '',
     ]) {
       expect(DocumentKind.fromMime(mime), isNull, reason: mime);

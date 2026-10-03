@@ -188,7 +188,11 @@ class RagPipeline {
         seedNotes = await _vectorSearch.search(queryVector: vec, topK: topK);
         // Documents are unscoped-chat only: a Manas scopes by note membership,
         // which a PDF blob has none of.
-        seedChunks = await _safeChunkSearch(vec, math.max(1, topK ~/ 2));
+        seedChunks = await _safeChunkSearch(
+          vec,
+          query,
+          math.max(1, topK ~/ 2),
+        );
       }
       if (seedNotes.isEmpty && seedChunks.isEmpty) return EnrichedContext.empty;
       // A document-only match has nothing to expand: chunks are not graph nodes
@@ -250,9 +254,17 @@ class RagPipeline {
 
   /// Chunk retrieval must never cost a turn its notes: a failing document store
   /// degrades to notes-only rather than losing the whole context.
-  Future<List<ScoredChunk>> _safeChunkSearch(List<double> vec, int topK) async {
+  Future<List<ScoredChunk>> _safeChunkSearch(
+    List<double> vec,
+    String query,
+    int topK,
+  ) async {
     try {
-      return await _vectorSearch.searchChunks(queryVector: vec, topK: topK);
+      return await _vectorSearch.searchChunks(
+        queryVector: vec,
+        queryText: query,
+        topK: topK,
+      );
     } catch (_) {
       return const [];
     }

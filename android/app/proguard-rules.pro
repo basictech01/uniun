@@ -25,3 +25,15 @@
 # Kotlinx coroutines
 -keep class kotlinx.coroutines.** { *; }
 -dontwarn kotlinx.coroutines.**
+
+# google_mlkit_image_labeling: the Firebase-hosted custom-model branch
+# references linkfirebase, which build.gradle.kts excludes. UNIUN never takes
+# that branch (base on-device labeler only).
+-dontwarn com.google.mlkit.linkfirebase.**
+
+# google_mlkit_text_recognition declares the Chinese/Japanese/Korean
+# recognisers compileOnly and references them from a switch UNIUN never takes
+# (Latin + Devanagari only). Without these, R8 fails every release build.
+-dontwarn com.google.mlkit.vision.text.chinese.**
+-dontwarn com.google.mlkit.vision.text.japanese.**
+-dontwarn com.google.mlkit.vision.text.korean.**

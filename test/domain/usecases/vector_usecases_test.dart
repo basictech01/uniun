@@ -173,31 +173,79 @@ void main() {
       useCase = SearchDocumentChunksUseCase(repo);
     });
 
-    test('forwards vector/topK/minScore and wraps the result in Right',
-        () async {
-      when(() => repo.search([1.0, 2.0], topK: 7, minScore: 0.6))
-          .thenAnswer((_) async => const [hit]);
+    test(
+      'forwards vector/text/topK/minScore and wraps the result in Right',
+      () async {
+        when(
+          () => repo.search(
+            [1.0, 2.0],
+            queryText: 'leave rules',
+            topK: 7,
+            minScore: 0.6,
+          ),
+        ).thenAnswer((_) async => const [hit]);
 
-      final result = await useCase(([1.0, 2.0], 7, 0.6));
+        final result = await useCase(([1.0, 2.0], 7, 0.6, 'leave rules'));
 
-      expect(result.getOrElse(() => []), [hit]);
-      verify(() => repo.search([1.0, 2.0], topK: 7, minScore: 0.6)).called(1);
-    });
+        expect(result.getOrElse(() => []), [hit]);
+        verify(
+          () => repo.search(
+            [1.0, 2.0],
+            queryText: 'leave rules',
+            topK: 7,
+            minScore: 0.6,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'a null query text is passed on as null (meaning-only ranking)',
+      () async {
+        when(
+          () => repo.search(
+            any(),
+            queryText: any(named: 'queryText'),
+            topK: any(named: 'topK'),
+            minScore: any(named: 'minScore'),
+          ),
+        ).thenAnswer((_) async => const [hit]);
+
+        await useCase(([1.0], 3, 0.3, null));
+
+        verify(
+          () => repo.search([1.0], queryText: null, topK: 3, minScore: 0.3),
+        ).called(1);
+      },
+    );
 
     test('an empty result set is a Right, not a failure', () async {
-      when(() => repo.search(any(),
-              topK: any(named: 'topK'), minScore: any(named: 'minScore')))
-          .thenAnswer((_) async => const []);
+      when(
+        () => repo.search(
+          any(),
+          queryText: any(named: 'queryText'),
+          topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
+        ),
+      ).thenAnswer((_) async => const []);
 
-      expect((await useCase(([1.0], 3, 0.3))).getOrElse(() => [hit]), isEmpty);
+      expect(
+        (await useCase(([1.0], 3, 0.3, null))).getOrElse(() => [hit]),
+        isEmpty,
+      );
     });
 
     test('a throwing repository becomes a Left, never an exception', () async {
-      when(() => repo.search(any(),
-              topK: any(named: 'topK'), minScore: any(named: 'minScore')))
-          .thenThrow(Exception('store unavailable'));
+      when(
+        () => repo.search(
+          any(),
+          queryText: any(named: 'queryText'),
+          topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
+        ),
+      ).thenThrow(Exception('store unavailable'));
 
-      final result = await useCase(([1.0], 3, 0.3));
+      final result = await useCase(([1.0], 3, 0.3, null));
 
       expect(result.isLeft(), isTrue);
     });
@@ -216,8 +264,9 @@ void main() {
     });
 
     test('embeds as a document and upserts under the chunk id', () async {
-      when(() => embedding.embed(any(), isDocument: any(named: 'isDocument')))
-          .thenAnswer((_) async => [1.0, 0.0]);
+      when(
+        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      ).thenAnswer((_) async => [1.0, 0.0]);
 
       final stored = await useCase(('sha:3', 'the passage'));
 
@@ -227,36 +276,46 @@ void main() {
     });
 
     test('an empty vector means "retry later" — nothing is stored', () async {
-      when(() => embedding.embed(any(), isDocument: any(named: 'isDocument')))
-          .thenAnswer((_) async => <double>[]);
+      when(
+        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      ).thenAnswer((_) async => <double>[]);
 
       final stored = await useCase(('sha:0', 'text'));
 
-      expect(stored, isFalse,
-          reason: 'the embedder answers [] when not ready; that is not a '
-              'document without text');
+      expect(
+        stored,
+        isFalse,
+        reason:
+            'the embedder answers [] when not ready; that is not a '
+            'document without text',
+      );
       verifyNever(() => vectors.upsert(any(), any()));
     });
 
     test('a throwing embedder reports failure rather than escaping', () async {
-      when(() => embedding.embed(any(), isDocument: any(named: 'isDocument')))
-          .thenThrow(Exception('model exploded'));
+      when(
+        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      ).thenThrow(Exception('model exploded'));
 
       expect(await useCase(('sha:0', 'text')), isFalse);
       verifyNever(() => vectors.upsert(any(), any()));
     });
 
     test('a throwing store reports failure rather than escaping', () async {
-      when(() => embedding.embed(any(), isDocument: any(named: 'isDocument')))
-          .thenAnswer((_) async => [1.0]);
-      when(() => vectors.upsert(any(), any())).thenThrow(Exception('disk full'));
+      when(
+        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      ).thenAnswer((_) async => [1.0]);
+      when(
+        () => vectors.upsert(any(), any()),
+      ).thenThrow(Exception('disk full'));
 
       expect(await useCase(('sha:0', 'text')), isFalse);
     });
 
     test('many chunks all get stored despite the concurrency bound', () async {
-      when(() => embedding.embed(any(), isDocument: any(named: 'isDocument')))
-          .thenAnswer((_) async => [1.0]);
+      when(
+        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      ).thenAnswer((_) async => [1.0]);
 
       final results = await Future.wait([
         for (var i = 0; i < 12; i++) useCase(('sha:$i', 'chunk $i')),

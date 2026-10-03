@@ -1,10 +1,16 @@
+// Every test indexes real files — the 20-chunk NIST PDF, writing Isar per
+// chunk — so under full-suite contention one can pass the 30 s default (it
+// did, once). Minutes, not seconds, is the honest budget for this file.
+@Timeout(Duration(minutes: 2))
+library;
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:isar_community/isar.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:tostore/tostore.dart';
 import 'package:uniun/core/enum/document_kind.dart';
 import 'package:uniun/data/datasources/docx/docx_text_source.dart';
 import 'package:uniun/data/datasources/llm/embedding_queue.dart';
@@ -15,7 +21,7 @@ import 'package:uniun/data/models/media/media_cache_model.dart';
 import 'package:uniun/data/models/notes/note_model.dart';
 import 'package:uniun/data/models/saved_note_model.dart';
 import 'package:uniun/data/repositories/document_source_repository_impl.dart';
-import 'package:uniun/data/repositories/tostore_document_vector_repository_impl.dart';
+import 'package:uniun/data/repositories/isar_document_vector_repository_impl.dart';
 import 'package:uniun/domain/entities/llm/llm_model_info.dart';
 import 'package:uniun/domain/entities/profile/profile_entity.dart';
 import 'package:uniun/domain/entities/shiv/scored_chunk.dart';
@@ -40,30 +46,33 @@ import 'package:uniun/core/error/failures.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../_helpers/docx_fixtures.dart';
+import '../_helpers/fake_image_label_source.dart';
+import '../_helpers/fake_ocr_text_source.dart';
 import '../_helpers/fake_path_provider.dart';
 import '../_helpers/isar_seeds.dart';
 import '../_helpers/isar_test_harness.dart';
 import '../_helpers/pdf_fixtures.dart';
 import '../_helpers/pdfium_test_lib.dart';
 
-/// End-to-end document RAG flow against real PDF and DOCX files, real PDFium,
-/// the real DOCX reader, real Isar and a real ToStore: cache row → extract →
-/// chunk → embed → store → retrieve → citation. Only the embedder is faked
+/// End-to-end document RAG flow against real PDF and DOCX files, real PDFium
+/// (including which pages it renders for OCR), the real DOCX reader, real
+/// Isar (vectors stored on the chunk rows) — and images through a faked OCR step: cache row → extract → chunk → embed → store → retrieve →
+/// citation. Only the embedder is faked
 /// (deterministic vectors) — it needs flutter_gemma, which is device-only;
 /// `integration_test/` covers the real one.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Isar isar;
-  late ToStore store;
-  late Directory tmp;
   late DocumentIndexer indexer;
-  late TostoreDocumentVectorRepositoryImpl vectors;
+  late IsarDocumentVectorRepositoryImpl vectors;
   late DocumentSourceRepositoryImpl sources;
   late _StubEmbedding embedding;
   late ResolveDocumentCitationsUseCase resolveCitations;
   late VectorSearchService searchService;
   late _FakeNoteVectors noteVectors;
+  late FakeOcrTextSource ocr;
+  late FakeImageLabelSource labels;
 
   const sha = 'nistsha';
   const docxSha = 'leavesha';
@@ -71,12 +80,8 @@ void main() {
   /// Leaves only DOCX in the cache, so retrieval runs against the DOCX's own
   /// handful of vectors.
   ///
-  /// Needed for search, not for correctness of the pipeline: ToStore 3.1.x's
-  /// vector index cannot reach every stored vector once it holds a few dozen
-  /// (measured: a stored vector is its own top hit for only 80% of 25 and 33%
-  /// of 60, even with topK = every row). With the PDF's ~20 chunks alongside,
-  /// a DOCX chunk can be unreachable, and these tests are about DOCX wiring,
-  /// not that limit.
+  /// Keeps these tests about DOCX wiring rather than about which of many
+  /// chunks ranks first.
   Future<void> dropPdf() =>
       isar.writeTxn(() => isar.mediaCacheModels.deleteBySha256(sha));
 
@@ -129,12 +134,7 @@ void main() {
 
   setUp(() async {
     isar = await openTestIsar();
-    tmp = await Directory.systemTemp.createTemp('pdf_rag_flow');
-    store = await ToStore.open(
-      dbPath: tmp.path,
-      schemas: [documentChunkEmbeddingsSchema],
-    );
-    vectors = TostoreDocumentVectorRepositoryImpl(store, isar);
+    vectors = IsarDocumentVectorRepositoryImpl(isar);
     sources = DocumentSourceRepositoryImpl(isar);
     embedding = _StubEmbedding();
     // Real use cases and service on top of the real repositories — only the
@@ -147,7 +147,14 @@ void main() {
     );
     indexer = DocumentIndexer(
       isar,
-      DocumentExtractionService(PdfrxTextSource(), ArchiveDocxTextSource()),
+      // Real PDF and DOCX readers; OCR and labeling are faked — ML Kit runs
+      // only on a phone, and integration_test/ covers the real ones.
+      DocumentExtractionService(
+        PdfrxTextSource(),
+        ArchiveDocxTextSource(),
+        ocr = FakeOcrTextSource(),
+        labels = FakeImageLabelSource(),
+      ),
       // Real use case over the real vector repository — only the embedder
       // itself is stubbed.
       EmbedAndStoreChunkUseCase(embedding, vectors, EmbeddingQueue()),
@@ -171,8 +178,6 @@ void main() {
 
   tearDown(() async {
     await indexer.dispose();
-    await store.close();
-    await tmp.delete(recursive: true);
     await isar.close(deleteFromDisk: true);
   });
 
@@ -219,6 +224,25 @@ void main() {
     expect(citations, hasLength(1));
     expect(citations.single.localPath, endsWith('nist_sp800-145.pdf'));
     expect(citations.single.label, target.label);
+  });
+
+  test('every indexed chunk is retrievable by its own text', () async {
+    await indexer.reconcile();
+    final chunks = await chunksOf(sha);
+    expect(chunks.length, greaterThan(15));
+
+    final missed = <int>[];
+    for (final c in chunks) {
+      final top = (await vectors.search(
+        embedding.vectorFor(c.text),
+        topK: 1,
+      )).single;
+      if (top.chunkId != chunkIdOf(sha, c.ordinal)) missed.add(c.ordinal);
+    }
+
+    // An approximate index reached only 24 % of chunks on a phone; an exact
+    // scan must reach all of them.
+    expect(missed, isEmpty);
   });
 
   test('the attaching note names the document in its citation', () async {
@@ -270,9 +294,7 @@ void main() {
     expect(
       await vectors.search(query, topK: 3),
       isEmpty,
-      reason:
-          'purged chunks must stop surfacing even though the vector '
-          'cannot be deleted from the store',
+      reason: 'purging a document removes its vectors with its chunk rows',
     );
     expect((await sources.resolve([id])).getOrElse(() => []), isEmpty);
     expect(await isar.documentIndexModels.count(), 0);
@@ -469,6 +491,28 @@ void main() {
       expect(citation.localPath, endsWith('leave-policy-libreoffice.docx'));
     });
 
+    test('an image passage reaches the prompt marked as from an image', () async {
+      await dropPdf();
+      ocr.texts['/photos/n.jpg'] =
+          'OFFICE ORDER. Earned leave may be carried forward up to 15 days '
+          'into the next calendar year, and encashment requests must reach the '
+          'Establishment Section before 31 January of that year. This order '
+          'is issued with the approval of the competent authority.';
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow('nsha', localPath: '/photos/n.jpg', mime: 'image/jpeg'),
+        ),
+      );
+      await saveNoteWith('nsha', 'image/jpeg');
+      await indexer.reconcile();
+      final chunk = (await chunksOf('nsha')).single;
+
+      final msg = await pipeline.buildMessage(userQuestion: chunk.text);
+
+      expect(msg.sourceChunkIds, contains(chunkIdOf('nsha', chunk.ordinal)));
+      expect(msg.userMessage, contains('• (image) OFFICE ORDER'));
+    });
+
     test('a document purged after indexing is no longer cited', () async {
       await indexer.reconcile();
       final target =
@@ -488,6 +532,265 @@ void main() {
       final after = await pipeline.buildMessage(userQuestion: target.text);
       expect(after.sourceChunkIds, isEmpty);
       expect(after.userMessage, isNot(contains('Relevant Documents')));
+    });
+  });
+
+  group('image', () {
+    const imageSha = 'noticesha';
+    const notice =
+        'OFFICE ORDER. With effect from 1 October 2026 every '
+        'employee may carry forward up to 15 days of earned leave into the '
+        'next calendar year. Requests for encashment of leave must reach the '
+        'Establishment Section before 31 January. This order is issued with '
+        'the approval of the competent authority.';
+
+    Future<void> cacheNotice() async {
+      await dropPdf();
+      ocr.texts['/photos/notice.jpg'] = notice;
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow(
+            imageSha,
+            localPath: '/photos/notice.jpg',
+            mime: 'image/jpeg',
+          ),
+        ),
+      );
+      await saveNoteWith(imageSha, 'image/jpeg');
+    }
+
+    test(
+      'a photographed notice becomes searchable and cites the image',
+      () async {
+        await cacheNotice();
+
+        await indexer.reconcile();
+
+        final row = await isar.documentIndexModels
+            .filter()
+            .sha256EqualTo(imageSha)
+            .findFirst();
+        expect(row?.status, DocumentIndexStatus.indexed);
+        expect(row?.kind, DocumentKind.image);
+
+        final chunk = (await chunksOf(imageSha)).single;
+        final hit = (await vectors.search(
+          embedding.vectorFor(chunk.text),
+          topK: 3,
+        )).first;
+        expect(hit.kind, DocumentKind.image);
+
+        final citation = (await sources.resolve([
+          hit.chunkId,
+        ])).getOrElse(() => []).single;
+        expect(citation.kind, DocumentKind.image);
+        expect(citation.localPath, '/photos/notice.jpg');
+      },
+    );
+
+    test('a photo without text is found by what is in it', () async {
+      await dropPdf();
+      ocr.texts['/photos/dog.jpg'] = '';
+      labels.labels['/photos/dog.jpg'] = ['Dog', 'Beach', 'Sky'];
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow(
+            'dogsha',
+            localPath: '/photos/dog.jpg',
+            mime: 'image/jpeg',
+          ),
+        ),
+      );
+      await saveNoteWith('dogsha', 'image/jpeg');
+
+      await indexer.reconcile();
+
+      final chunk = (await chunksOf('dogsha')).single;
+      expect(chunk.text, 'Photo showing: dog, beach, sky');
+      final hit = (await vectors.search(
+        embedding.vectorFor(chunk.text),
+        topK: 3,
+      )).first;
+      final citation = (await sources.resolve([
+        hit.chunkId,
+      ])).getOrElse(() => []).single;
+      expect(citation.kind, DocumentKind.image);
+      expect(citation.localPath, '/photos/dog.jpg');
+    });
+
+    test('a photo with no text is kept but never cited', () async {
+      await dropPdf();
+      ocr.texts['/photos/beach.jpg'] = '';
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow(
+            'beachsha',
+            localPath: '/photos/beach.jpg',
+            mime: 'image/jpeg',
+          ),
+        ),
+      );
+      await saveNoteWith('beachsha', 'image/jpeg');
+
+      await indexer.reconcile();
+
+      final row = await isar.documentIndexModels
+          .filter()
+          .sha256EqualTo('beachsha')
+          .findFirst();
+      expect(row?.status, DocumentIndexStatus.notSearchable);
+      expect(await chunksOf('beachsha'), isEmpty);
+    });
+  });
+
+  group('selective OCR', () {
+    const annexure =
+        'ANNEXURE. Approval of the competent authority for the revised '
+        'office timings, conveyed by the Secretary on 20 October 2026.';
+    const photoNotice =
+        'NOTICE. The record room will remain closed for digitisation from '
+        '3 to 7 November. Urgent certified-copy requests go to the Tehsil office.';
+
+    /// Every file OCR was asked to read, with its pixel size.
+    late List<({String path, int width, int height})> read;
+
+    setUp(() {
+      read = [];
+      ocr.reader = (path) {
+        final png = img.decodePng(File(path).readAsBytesSync())!;
+        read.add((path: path, width: png.width, height: png.height));
+        return path.endsWith('_1.png') ? annexure : photoNotice;
+      };
+    });
+
+    Future<void> cachePdf(String sha, String fixture) async {
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow(
+            sha,
+            localPath: pdfFixture(fixture),
+            mime: 'application/pdf',
+          ),
+        ),
+      );
+      await saveNoteWith(sha, 'application/pdf');
+    }
+
+    Future<DocumentIndexModel?> rowOf(String sha) =>
+        isar.documentIndexModels.filter().sha256EqualTo(sha).findFirst();
+
+    test('a typed publication is never rendered for OCR', () async {
+      await indexer.reconcile();
+
+      expect((await rowOf(sha))?.status, DocumentIndexStatus.indexed);
+      expect(ocr.calls, 0);
+    });
+
+    test(
+      'a scanned PDF, once unsearchable, is read and cited by page',
+      () async {
+        await dropPdf();
+        await cachePdf('scansha', 'scanned_notice.pdf');
+
+        await indexer.reconcile();
+
+        expect((await rowOf('scansha'))?.status, DocumentIndexStatus.indexed);
+        final chunk = (await chunksOf('scansha')).single;
+        expect(chunk.text, photoNotice);
+        expect(chunk.label, '1');
+        final page = (await PdfrxTextSource().pageSignals(
+          pdfFixture('scanned_notice.pdf'),
+        ))!.single;
+        expect(
+          read.single.width,
+          closeTo(page.width * 200 / 72, 2),
+          reason: 'the whole page, at 200 dpi',
+        );
+        expect(
+          File(read.single.path).existsSync(),
+          isFalse,
+          reason: 'the render is deleted once read',
+        );
+      },
+    );
+
+    test('only the scanned annexure of a mixed circular is OCRed', () async {
+      await dropPdf();
+      await cachePdf('mixedsha', 'mixed_circular_with_scanned_annexure.pdf');
+
+      await indexer.reconcile();
+
+      final chunks = await chunksOf('mixedsha');
+      expect(read, hasLength(1));
+      expect(read.single.path, endsWith('_1.png'));
+      expect(
+        chunks.where((c) => c.label == '1').map((c) => c.text).join(' '),
+        contains('Revised Office Timings'),
+      );
+      expect(chunks.where((c) => c.label == '2').single.text, annexure);
+    });
+
+    test('a pasted photo is read on its own, beside the typed text', () async {
+      await dropPdf();
+      await cachePdf('reportsha', 'typed_report_with_pasted_notice.pdf');
+
+      await indexer.reconcile();
+
+      final text = (await chunksOf('reportsha')).map((c) => c.text).join('\n');
+      expect(text, contains('District Record Room'));
+      expect(text, contains(photoNotice));
+      expect(
+        read.single.width,
+        lessThan(595 * 200 / 72 * 0.8),
+        reason: 'just the photo is rendered, not the page',
+      );
+    });
+
+    test('a large picture in a DOCX is read where it sits', () async {
+      await dropPdf();
+      final dir = await Directory.systemTemp.createTemp('flow_docx');
+      addTearDown(() => dir.delete(recursive: true));
+      final path = '${dir.path}/memo.docx';
+      await File(path).writeAsBytes(
+        minimalDocx(
+          document: wDocument(
+            wP('Memo on the record room closure.') +
+                wDrawing('rId1') +
+                wP('Please plan certified-copy work accordingly.'),
+          ),
+          extra: {
+            'word/_rels/document.xml.rels': wRels({'rId1': 'media/image1.png'}),
+          },
+          media: {
+            'word/media/image1.png': img.encodePng(
+              img.Image(width: 1200, height: 800),
+            ),
+          },
+        ),
+      );
+      await isar.writeTxn(
+        () => isar.mediaCacheModels.put(
+          mediaCacheRow(
+            'memosha',
+            localPath: path,
+            mime: DocumentKind.docx.mime,
+          ),
+        ),
+      );
+      await saveNoteWith('memosha', DocumentKind.docx.mime);
+
+      await indexer.reconcile();
+
+      final text = (await chunksOf('memosha')).map((c) => c.text).join('\n');
+      expect(text, contains('Memo on the record room closure.'));
+      expect(
+        text.indexOf(photoNotice),
+        allOf(
+          greaterThan(text.indexOf('Memo')),
+          lessThan(text.indexOf('Please plan')),
+        ),
+      );
+      expect(File(read.single.path).existsSync(), isFalse);
     });
   });
 
@@ -724,11 +1027,7 @@ class _MockManasLoader extends Mock implements ManasContextLoader {}
 /// Identical text embeds identically (cosine 1), and texts sharing words sit
 /// closer than texts that do not — a crude but real similarity structure, like
 /// a real embedder's. Real semantic behaviour is the device test's job.
-///
-/// Not one-hot or random: both make every vector near-equidistant, which leaves
-/// ToStore's approximate-nearest-neighbour graph nothing to navigate by. Measured
-/// with one-hot vectors and ~25 chunks: a small topK returned score-0 neighbours
-/// and the exact match only surfaced at topK 40.
+
 class _StubEmbedding implements EmbeddingService {
   List<double> vectorFor(String text) {
     final v = List<double>.filled(embeddingsDimensions, 0);

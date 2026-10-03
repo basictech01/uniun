@@ -23,6 +23,7 @@ import 'gana_cloud_engine_e2e_test.dart' as gana_cloud_engine_e2e_test;
 import 'gana_cloud_pipeline_test.dart' as gana_cloud_pipeline_test;
 import 'gana_local_engine_e2e_test.dart' as gana_local_engine_e2e_test;
 import 'document_rag_e2e_test.dart' as document_rag_e2e_test;
+import 'document_viewer_e2e_test.dart' as document_viewer_e2e_test;
 import 'scheduler_model_switch_test.dart' as scheduler_model_switch_test;
 import 'scheduler_preemption_test.dart' as scheduler_preemption_test;
 
@@ -37,4 +38,5 @@ void main() {
   gana_cloud_combinations_e2e_test.main();
   gana_local_engine_e2e_test.main();
   document_rag_e2e_test.main();
+  document_viewer_e2e_test.main();
 }

@@ -87,10 +87,22 @@ void main() {
       verifyNever(() => download.call(any()));
     });
 
-    test('images, videos and other files are left alone', () async {
+    test('an unopened image is downloaded, for its text', () async {
       await save(aNote(attachments: [
-        aMediaBlob(mime: 'image/jpeg'),
+        aMediaBlob(sha256: 'img', mime: 'image/png',
+            serverUrls: ['https://s/img']),
+      ]));
+
+      final input = verify(() => download.call(captureAny()))
+          .captured
+          .single as DownloadMediaInput;
+      expect((input.sha256, input.mime), ('img', 'image/png'));
+    });
+
+    test('videos, audio and other files are left alone', () async {
+      await save(aNote(attachments: [
         aMediaBlob(mime: 'video/mp4'),
+        aMediaBlob(mime: 'audio/ogg'),
         aMediaBlob(mime: 'application/msword'),
       ]));
 

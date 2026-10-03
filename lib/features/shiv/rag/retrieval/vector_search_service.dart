@@ -31,12 +31,17 @@ class VectorSearchService {
   ///
   /// Independent of [search] — separate store, separate top-K — so note
   /// retrieval is unchanged by document indexing.
+  ///
+  /// [queryText], when given, also ranks by the question's exact words.
   Future<List<ScoredChunk>> searchChunks({
     required List<double> queryVector,
+    String? queryText,
     int topK = 3,
     double minScore = 0.3,
   }) async {
-    final result = await _chunkSearchUseCase((queryVector, topK, minScore));
+    final result = await _chunkSearchUseCase(
+      (queryVector, topK, minScore, queryText),
+    );
     return result.fold((failure) => [], (chunks) => chunks);
   }
 }

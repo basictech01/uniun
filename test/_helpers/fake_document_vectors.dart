@@ -10,6 +10,7 @@ class FakeDocumentVectors implements DocumentVectorRepository {
 
   /// Last query [search] was called with, or null if never.
   List<double>? lastQuery;
+  String? lastQueryText;
   int? lastTopK;
 
   @override
@@ -19,10 +20,12 @@ class FakeDocumentVectors implements DocumentVectorRepository {
   @override
   Future<List<ScoredChunk>> search(
     List<double> queryVector, {
+    String? queryText,
     int topK = 3,
     double minScore = 0.3,
   }) async {
     lastQuery = queryVector;
+    lastQueryText = queryText;
     lastTopK = topK;
     return searchResult;
   }

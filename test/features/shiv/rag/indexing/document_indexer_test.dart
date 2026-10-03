@@ -20,6 +20,8 @@ import 'package:uniun/features/shiv/rag/extraction/document_extraction_service.d
 import 'package:uniun/features/shiv/rag/indexing/document_indexer.dart';
 
 import '../../../../_helpers/fake_docx_text_source.dart';
+import '../../../../_helpers/fake_image_label_source.dart';
+import '../../../../_helpers/fake_ocr_text_source.dart';
 import '../../../../_helpers/fake_pdf_text_source.dart';
 import '../../../../_helpers/fixtures.dart';
 import '../../../../_helpers/isar_seeds.dart';
@@ -40,6 +42,7 @@ void main() {
   late Isar isar;
   late FakePdfTextSource source;
   late FakeDocxTextSource docx;
+  late FakeOcrTextSource ocr;
   late _MockEmbedAndStore embedAndStore;
   late _MockActiveUser activeUser;
   late DocumentIndexer indexer;
@@ -53,6 +56,7 @@ void main() {
     isar = await openTestIsar();
     source = FakePdfTextSource();
     docx = FakeDocxTextSource();
+    ocr = FakeOcrTextSource();
     stored.clear();
     embedAndStore = _MockEmbedAndStore();
     when(() => embedAndStore.call(any())).thenAnswer((i) async {
@@ -66,7 +70,7 @@ void main() {
     ).thenAnswer((_) async => Right(aUserKey(pubkeyHex: kSelfPub)));
     indexer = DocumentIndexer(
       isar,
-      DocumentExtractionService(source, docx),
+      DocumentExtractionService(source, docx, ocr, FakeImageLabelSource()),
       embedAndStore,
       activeUser,
     );
@@ -241,6 +245,85 @@ void main() {
     });
   });
 
+  group('images', () {
+    Future<void> cacheImage(
+      String sha,
+      String text, {
+      bool saved = true,
+    }) async {
+      ocr.texts['/p/$sha.jpg'] = text;
+      await cacheDoc(
+        sha,
+        localPath: '/p/$sha.jpg',
+        mime: 'image/jpeg',
+        saved: saved,
+      );
+    }
+
+    test(
+      'text read in an image on a saved note is indexed, unlabelled',
+      () async {
+        await cacheImage('img', 'OFFICE ORDER\n\n${prose * 6}');
+
+        await indexer.reconcile();
+
+        final row = await indexRow('img');
+        expect(row?.status, DocumentIndexStatus.indexed);
+        expect(row?.kind, DocumentKind.image);
+        expect((await chunkRows('img')).map((c) => c.label).toSet(), {''});
+      },
+    );
+
+    test('an image on the user\'s own feed note is indexed', () async {
+      await cacheImage('mine', prose * 6, saved: false);
+      await ownNote('mine', mime: 'image/png');
+
+      await indexer.reconcile();
+
+      expect((await indexRow('mine'))?.status, DocumentIndexStatus.indexed);
+    });
+
+    test('an image in a DM is never read', () async {
+      await cacheImage('dm', prose * 6, saved: false);
+      await ownNote('dm', mime: 'image/jpeg', kind: kDmFileKind);
+
+      await indexer.reconcile();
+
+      expect(await indexRow('dm'), isNull);
+      expect(ocr.calls, 0, reason: 'not even sent to OCR');
+    });
+
+    test('a photo with no text is recorded once and never re-read', () async {
+      await cacheImage('beach', '');
+
+      await indexer.reconcile();
+      await indexer.reconcile();
+
+      expect(
+        (await indexRow('beach'))?.status,
+        DocumentIndexStatus.notSearchable,
+      );
+      expect(ocr.calls, 1);
+    });
+
+    test('images, PDFs and DOCX index side by side', () async {
+      await cacheImage('img', prose * 6);
+      await seedPdf('p');
+      docx.sections['/p/w.docx'] = [(label: 'A', text: prose * 6)];
+      await cacheDoc('w', localPath: '/p/w.docx', mime: DocumentKind.docx.mime);
+
+      await indexer.reconcile();
+
+      for (final sha in ['img', 'p', 'w']) {
+        expect(
+          (await indexRow(sha))?.status,
+          DocumentIndexStatus.indexed,
+          reason: sha,
+        );
+      }
+    });
+  });
+
   group('indexing', () {
     test('a new PDF is chunked, embedded and marked indexed', () async {
       await seedPdf('a', pages: [prose * 6, prose * 6]);
@@ -258,12 +341,12 @@ void main() {
       verify(() => embedAndStore.call(any())).called(chunks.length);
     });
 
-    test('a non-PDF cache row is ignored', () async {
-      await seedPdf('img', mime: 'image/jpeg');
+    test('a cache row that is not a document is ignored', () async {
+      await seedPdf('vid', mime: 'video/mp4');
 
       await indexer.reconcile();
 
-      expect(await indexRow('img'), isNull);
+      expect(await indexRow('vid'), isNull);
       verifyNever(() => embedAndStore.call(any()));
     });
 
@@ -592,26 +675,28 @@ void main() {
       await until(() async => await indexRow('later') != null);
     });
 
-    test('an own note written after its file was cached gets indexed',
-        () async {
-      Future<void> until(Future<bool> Function() cond) async {
-        final deadline = DateTime.now().add(const Duration(seconds: 10));
-        while (!await cond()) {
-          if (DateTime.now().isAfter(deadline)) fail('timed out');
-          await Future<void>.delayed(const Duration(milliseconds: 20));
+    test(
+      'an own note written after its file was cached gets indexed',
+      () async {
+        Future<void> until(Future<bool> Function() cond) async {
+          final deadline = DateTime.now().add(const Duration(seconds: 10));
+          while (!await cond()) {
+            if (DateTime.now().isAfter(deadline)) fail('timed out');
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+          }
         }
-      }
 
-      // Upload caches the file when it is attached; the note row lands later,
-      // when the user publishes.
-      await seedPdf('draft', saved: false);
-      indexer.start();
-      await Future<void>.delayed(const Duration(seconds: 1));
+        // Upload caches the file when it is attached; the note row lands later,
+        // when the user publishes.
+        await seedPdf('draft', saved: false);
+        indexer.start();
+        await Future<void>.delayed(const Duration(seconds: 1));
 
-      await ownNote('draft');
+        await ownNote('draft');
 
-      await until(() async => await indexRow('draft') != null);
-    });
+        await until(() async => await indexRow('draft') != null);
+      },
+    );
 
     test('start twice keeps a single watcher', () async {
       indexer.start();

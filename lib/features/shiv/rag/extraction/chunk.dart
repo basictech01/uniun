@@ -34,10 +34,10 @@ const int kMaxChunkChars = 700;
 ///
 /// Whitespace-only pages are skipped without shifting the labels of later ones.
 List<Chunk> chunkPages(List<String> pages, {int maxChars = kMaxChunkChars}) =>
-    chunkSections(
-      [for (var i = 0; i < pages.length; i++) (label: '${i + 1}', text: pages[i])],
-      maxChars: maxChars,
-    );
+    chunkSections([
+      for (var i = 0; i < pages.length; i++)
+        (label: '${i + 1}', text: pages[i]),
+    ], maxChars: maxChars);
 
 /// Splits labelled [sections] into chunks no longer than [maxChars], never
 /// packing across a section boundary so each chunk's label stays true.
@@ -46,7 +46,11 @@ List<Chunk> chunkSections(
   int maxChars = kMaxChunkChars,
 }) {
   if (maxChars < 2) {
-    throw ArgumentError.value(maxChars, 'maxChars', 'must fit a surrogate pair');
+    throw ArgumentError.value(
+      maxChars,
+      'maxChars',
+      'must fit a surrogate pair',
+    );
   }
   final out = <Chunk>[];
   for (final s in sections) {
@@ -96,8 +100,10 @@ List<String> _splitLong(String text, int maxChars) {
       }
       var start = 0;
       while (start < sentence.length) {
-        final end =
-            _safeEnd(sentence, math.min(start + maxChars, sentence.length));
+        final end = _safeEnd(
+          sentence,
+          math.min(start + maxChars, sentence.length),
+        );
         out.add(sentence.substring(start, end));
         start = end;
       }

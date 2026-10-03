@@ -39,6 +39,36 @@ String wTable(List<List<String>> rows) => '<w:tbl>${[
         '<w:tr>${[for (final c in r) '<w:tc>${wP(c)}</w:tc>'].join()}</w:tr>',
     ].join()}</w:tbl>';
 
+/// A paragraph holding one picture drawn [cx] × [cy] EMU (914,400 per inch),
+/// pointing at relationship [rId] — embedded, or with [linked] only linked.
+String wDrawing(
+  String rId, {
+  int cx = 5486400,
+  int cy = 3657600,
+  bool linked = false,
+}) =>
+    '<w:p><w:r><w:drawing '
+    'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+    'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+    'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" '
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    '<wp:inline><wp:extent cx="$cx" cy="$cy"/><a:graphic><a:graphicData>'
+    '<pic:pic><pic:blipFill><a:blip r:${linked ? 'link' : 'embed'}="$rId"/>'
+    '</pic:blipFill></pic:pic></a:graphicData></a:graphic></wp:inline>'
+    '</w:drawing></w:r></w:p>';
+
+/// `word/_rels/document.xml.rels` mapping each id to a target under `word/`;
+/// ids in [external] are marked `TargetMode="External"`.
+String wRels(Map<String, String> targets, {Set<String> external = const {}}) =>
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${[
+      for (final e in targets.entries)
+        '<Relationship Id="${e.key}" '
+            'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+            'Target="${e.value}"'
+            '${external.contains(e.key) ? ' TargetMode="External"' : ''}/>',
+    ].join()}</Relationships>';
+
 /// `word/styles.xml` declaring paragraph styles as (id, name, basedOn, outline).
 String wStyles(
   List<({String id, String name, String? basedOn, int? outline})> styles,
@@ -63,11 +93,13 @@ final String englishHeadingStyles = wStyles([
 
 /// A zipped DOCX package. [document] is the full `word/document.xml` and
 /// [styles] the full `word/styles.xml`; either is left out of the package when
-/// null. [extra] adds or replaces any other part by name.
+/// null. [extra] adds or replaces any other part by name; [media] adds binary
+/// parts such as `word/media/image1.png`.
 Uint8List minimalDocx({
   required String? document,
   String? styles,
   Map<String, String> extra = const {},
+  Map<String, List<int>> media = const {},
 }) {
   final parts = <String, String>{
     '[Content_Types].xml':
@@ -89,6 +121,7 @@ Uint8List minimalDocx({
   final archive = Archive();
   parts.forEach((name, xml) =>
       archive.addFile(ArchiveFile.bytes(name, utf8.encode(xml))));
+  media.forEach((name, bytes) => archive.addFile(ArchiveFile.bytes(name, bytes)));
   return ZipEncoder().encodeBytes(archive);
 }
 
@@ -129,4 +162,28 @@ Future<String> writeTempDocx(List<int> bytes, [String name = 'doc.docx']) async 
   final f = File('${dir.path}/$name');
   await f.writeAsBytes(bytes);
   return f.path;
+}
+
+/// Overwrites the start of [entry]'s compressed data with `0xFF` bytes — an
+/// invalid deflate block — leaving every header intact, so the zip opens but
+/// reading that one entry throws.
+Uint8List withCorruptData(Uint8List zip, String entry) {
+  final out = Uint8List.fromList(zip);
+  final view = ByteData.sublistView(out);
+  final name = utf8.encode(entry);
+  for (var i = 0; i + 30 <= out.length; i++) {
+    if (view.getUint32(i, Endian.little) != 0x04034b50) continue;
+    final nameLen = view.getUint16(i + 26, Endian.little);
+    final extraLen = view.getUint16(i + 28, Endian.little);
+    if (nameLen != name.length ||
+        utf8.decode(out.sublist(i + 30, i + 30 + nameLen)) != entry) {
+      continue;
+    }
+    final data = i + 30 + nameLen + extraLen;
+    for (var j = 0; j < 4; j++) {
+      out[data + j] = 0xFF;
+    }
+    return out;
+  }
+  throw StateError('no local header for $entry');
 }

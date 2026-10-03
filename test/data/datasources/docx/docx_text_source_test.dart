@@ -1,13 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:uniun/data/datasources/docx/docx_text_source.dart';
 
 import '../../../_helpers/docx_fixtures.dart';
 
 /// Covers: ArchiveDocxTextSource against real Word/LibreOffice output and exact
-/// in-test packages — heading detection, reading order, excluded markup, and
-/// every unreadable input.
+/// in-test packages — heading detection, reading order, excluded markup,
+/// which embedded pictures are extracted for OCR, and every unreadable input.
 void main() {
   final source = ArchiveDocxTextSource();
 
@@ -410,6 +412,182 @@ void main() {
       final s = await readBody(body);
 
       expect(allText(s), contains('Paragraph 1999 of'));
+    });
+  });
+
+  group('pictures', () {
+    late Directory dir;
+    setUp(() async => dir = await Directory.systemTemp.createTemp('docx_pics'));
+    tearDown(() => dir.delete(recursive: true));
+
+    final png = img.encodePng(img.Image(width: 1200, height: 800));
+    final jpg = img.encodeJpg(img.Image(width: 1200, height: 800));
+    final rels = wRels({'rId1': 'media/image1.png'});
+    final media = {'word/media/image1.png': png};
+
+    Future<List<DocxSection>?> readPics(
+      String body, {
+      String? relsXml,
+      Map<String, List<int>>? parts,
+      String? styles,
+    }) async =>
+        source.sectionsText(
+          await writeTempDocx(minimalDocx(
+            document: wDocument(body),
+            styles: styles,
+            extra: {'word/_rels/document.xml.rels': relsXml ?? rels},
+            media: parts ?? media,
+          )),
+          imageDir: dir.path,
+        );
+
+    List<String> files() => [for (final f in dir.listSync()) f.path];
+
+    test('a large picture is written out and marked where it sits', () async {
+      final s = await readPics(
+          wP('Before the notice.') + wDrawing('rId1') + wP('After it.'));
+
+      final path = files().single;
+      expect(File(path).readAsBytesSync(), png);
+      expect(s!.single.text,
+          'Before the notice.\n\n\n${docxImageMarker(path)}\n\n\nAfter it.');
+    });
+
+    test('without a picture directory pictures are ignored', () async {
+      final s = await source.sectionsText(await writeTempDocx(minimalDocx(
+        document: wDocument(wP('Text.') + wDrawing('rId1')),
+        extra: {'word/_rels/document.xml.rels': rels},
+        media: media,
+      )));
+
+      expect(s!.single.text, 'Text.');
+    });
+
+    test('a JPEG is read like a PNG', () async {
+      await readPics(wDrawing('rId1'),
+          relsXml: wRels({'rId1': 'media/image1.jpeg'}),
+          parts: {'word/media/image1.jpeg': jpg});
+
+      expect(files().single, endsWith('.jpeg'));
+    });
+
+    test('a picture in a table cell is marked in its row', () async {
+      final s = await readPics(
+          '<w:tbl><w:tr><w:tc>${wP('Scan')}</w:tc>'
+          '<w:tc>${wDrawing('rId1')}</w:tc></w:tr></w:tbl>');
+
+      expect(s!.single.text, 'Scan | ${docxImageMarker(files().single)}');
+    });
+
+    test('a heading holding a picture keeps a clean label', () async {
+      final p = wDrawing('rId1');
+      final pictureRun = p.substring('<w:p>'.length, p.length - '</w:p>'.length);
+
+      final s = await readPics(
+          '<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr>'
+          '<w:r><w:t>Scan </w:t></w:r>$pictureRun</w:p>'
+          '${wP('Body text.')}',
+          styles: englishHeadingStyles);
+
+      expect(s!.single.label, 'Scan');
+      expect(s.single.text, contains(docxImageMarker(files().single)));
+    });
+
+    // ── Edge cases ────────────────────────────────────────────────────────
+
+    test('a small logo is not extracted', () async {
+      final s = await readPics(
+          wP('Letterhead') + wDrawing('rId1', cx: 914400, cy: 457200));
+
+      expect(files(), isEmpty);
+      expect(s!.single.text, 'Letterhead');
+    });
+
+    test('a wide but short strip is too small in area', () async {
+      await readPics(wDrawing('rId1', cx: 2400000, cy: 457200));
+
+      expect(files(), isEmpty);
+    });
+
+    test('a low-resolution bitmap stretched across the page is not extracted',
+        () async {
+      for (final (w, h) in [(400, 300), (1200, 60)]) {
+        await readPics(wDrawing('rId1'), parts: {
+          'word/media/image1.png': img.encodePng(img.Image(width: w, height: h)),
+        });
+      }
+
+      expect(files(), isEmpty);
+    });
+
+    test('a vector drawing is not extracted', () async {
+      await readPics(wDrawing('rId1'),
+          relsXml: wRels({'rId1': 'media/image1.svg'}),
+          parts: {'word/media/image1.svg': utf8.encode('<svg xmlns="http://www.w3.org/2000/svg"/>')});
+
+      expect(files(), isEmpty);
+    });
+
+    test('a picture that cannot be unzipped costs only itself', () async {
+      final zip = withCorruptData(
+        minimalDocx(
+          document: wDocument(wP('Text.') + wDrawing('rId1')),
+          extra: {'word/_rels/document.xml.rels': rels},
+          media: media,
+        ),
+        'word/media/image1.png',
+      );
+
+      final s = await source.sectionsText(await writeTempDocx(zip),
+          imageDir: dir.path);
+
+      expect(s!.single.text, 'Text.');
+      expect(files(), isEmpty);
+    });
+
+    test('a linked picture is not fetched', () async {
+      await readPics(wDrawing('rId1', linked: true));
+      await readPics(wDrawing('rId1'),
+          relsXml: wRels({'rId1': 'https://example.com/a.png'},
+              external: {'rId1'}));
+
+      expect(files(), isEmpty);
+    });
+
+    test('a picture pasted twice is read once', () async {
+      final s = await readPics(wDrawing('rId1') + wP('Again:') +
+          wDrawing('rId1'));
+
+      expect(files(), hasLength(1));
+      expect(docxImageMarkerPattern.allMatches(s!.single.text), hasLength(1));
+    });
+
+    test('at most kMaxDocxImages pictures are read', () async {
+      const n = kMaxDocxImages + 1;
+      await readPics(
+        [for (var i = 0; i < n; i++) wDrawing('rId$i')].join(),
+        relsXml: wRels({for (var i = 0; i < n; i++) 'rId$i': 'media/i$i.png'}),
+        parts: {
+          for (var i = 0; i < n; i++)
+            'word/media/i$i.png':
+                img.encodePng(img.Image(width: 600 + i, height: 200)),
+        },
+      );
+
+      expect(files(), hasLength(kMaxDocxImages));
+    });
+
+    test('a missing relationships part costs only the pictures', () async {
+      final s = await source.sectionsText(
+        await writeTempDocx(minimalDocx(
+          document: wDocument(wP('Text.') + wDrawing('rId1')),
+          media: media,
+        )),
+        imageDir: dir.path,
+      );
+
+      expect(s!.single.text, 'Text.');
+      expect(files(), isEmpty);
     });
   });
 

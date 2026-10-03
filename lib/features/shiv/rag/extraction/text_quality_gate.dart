@@ -2,6 +2,12 @@
 /// registrar's e-signature clears "non-empty" but not this.
 const int kMinExtractedChars = 200;
 
+/// The minimum for text read from an image. A sign, a receipt or a caption is
+/// short and genuine — the 200-character floor exists for PDF scans and broken
+/// font encodings, and would permanently bury them. The letter ratio still
+/// rejects OCR noise.
+const int kMinImageTextChars = 16;
+
 /// Share of characters that must be letters for the text to read as prose.
 ///
 /// Borrowed from a comparable document-RAG system that measured it over legal
@@ -18,8 +24,8 @@ const double kMinLetterRatio = 0.15;
 final RegExp _letter = RegExp(r'\p{L}', unicode: true);
 
 /// Whether [text] is real prose rather than empty, too short, or mojibake.
-bool looksLikeProse(String text) {
+bool looksLikeProse(String text, {int minChars = kMinExtractedChars}) {
   final t = text.trim();
-  if (t.length < kMinExtractedChars) return false;
+  if (t.length < minChars) return false;
   return _letter.allMatches(t).length / t.length >= kMinLetterRatio;
 }

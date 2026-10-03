@@ -73,8 +73,10 @@ Future<void> main() async {
   // touching the native host (Android's foreground-service start rule).
   getIt<MeshService>().start();
 
-  // Keeps Shiv's document index (PDF, DOCX) in step with the media cache.
-  // Idle — no extraction or embedding work — until a document is cached.
+  // Keeps Shiv's index of documents and images (on own and saved notes) in
+  // step with the media cache. The first launch after an upgrade works
+  // through the existing backlog — OCR and embedding, one file at a time;
+  // after that it only reacts to new files and saves.
   getIt<DocumentIndexer>().start();
 
   // Resolve the startup locale synchronously (the AppSettingsStore singleton is

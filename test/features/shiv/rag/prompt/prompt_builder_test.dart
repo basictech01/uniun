@@ -463,6 +463,19 @@ void main() {
       expect(msg, isNot(contains('(p.')));
     });
 
+    test('an image passage is marked as coming from an image', () {
+      final msg = builder.buildUserMessage(
+        userQuestion: 'q',
+        context: ctx(chunks: [
+          _chunk('OFFICE ORDER leave rules', label: '', kind: DocumentKind.image),
+        ]),
+        budget: defaultBudget,
+      );
+
+      expect(msg, contains('• (image) OFFICE ORDER leave rules'),
+          reason: 'OCR text must not read as something the user wrote');
+    });
+
     test('a chunk with no location gets no marker', () {
       final msg = builder.buildUserMessage(
         userQuestion: 'q',

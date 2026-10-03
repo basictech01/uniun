@@ -92,23 +92,29 @@ class EmbedAndStoreNoteUseCase
 /// Top-K PDF chunks most similar to a query vector, from the document store.
 ///
 /// The document twin of [SearchVectorNotesUseCase]: same tuple input
-/// `(vector, topK, minScore)`, separate store, so note retrieval is unaffected.
+/// `(vector, topK, minScore, queryText)`, separate store, so note retrieval is
+/// unaffected.
 @lazySingleton
 class SearchDocumentChunksUseCase extends UseCase<
-    Either<Failure, List<ScoredChunk>>, (List<double>, int, double)> {
+    Either<Failure, List<ScoredChunk>>,
+        (List<double>, int, double, String?)> {
   final DocumentVectorRepository _repository;
 
   SearchDocumentChunksUseCase(this._repository);
 
   @override
   Future<Either<Failure, List<ScoredChunk>>> call(
-    (List<double>, int, double) input, {
+    (List<double>, int, double, String?) input, {
     bool cached = false,
   }) async {
     try {
-      final (vec, topK, minScore) = input;
-      return Right(
-          await _repository.search(vec, topK: topK, minScore: minScore));
+      final (vec, topK, minScore, queryText) = input;
+      return Right(await _repository.search(
+        vec,
+        queryText: queryText,
+        topK: topK,
+        minScore: minScore,
+      ));
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
     }

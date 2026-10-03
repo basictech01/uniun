@@ -72,6 +72,21 @@ flutter {
     source = "../.."
 }
 
+configurations.all {
+    // google_mlkit_image_labeling hard-depends on linkfirebase (which drags in
+    // firebase-common and firebase-iid) solely for Firebase-hosted custom
+    // models. UNIUN uses only the bundled base labeler, whose code path never
+    // touches it — and the project ships no Firebase.
+    exclude(group = "com.google.mlkit", module = "linkfirebase")
+}
+
+dependencies {
+    // Hindi/Devanagari OCR for Shiv's image search. google_mlkit_text_recognition
+    // bundles only the Latin recogniser and declares the others compileOnly, so
+    // without this the Devanagari recogniser fails at runtime. ~4 MB per ABI.
+    implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
+}
+
 // Suppress obsolete -source/-target 8 warnings from transitive dependencies
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(listOf("-Xlint:-options"))

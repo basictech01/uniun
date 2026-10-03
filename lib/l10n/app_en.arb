@@ -1796,6 +1796,38 @@
   "@shivSourcesDocxOpen": {
     "description": "Tooltip on a Word (.docx) source tile in Shiv's Sources sheet"
   },
+  "documentViewerOpenExternal": "Open in another app",
+  "@documentViewerOpenExternal": {
+    "description": "Action in the in-app document viewer that hands the file to the OS viewer, for reading rather than checking a citation"
+  },
+  "documentViewerFileGone": "This document is no longer on this device",
+  "@documentViewerFileGone": {
+    "description": "Shown when a cited document's cached file has been removed since the answer"
+  },
+  "documentViewerReadError": "This document could not be opened here",
+  "@documentViewerReadError": {
+    "description": "Shown when the in-app viewer cannot read a cited Word or PDF file"
+  },
+  "documentViewerTextOnly": "Text, tables and large pictures — open in another app for the full layout",
+  "@documentViewerTextOnly": {
+    "description": "Note above the in-app view of a Word document, which shows its text, tables and large pictures but not styling or page layout"
+  },
+  "shivSourcesImageFound": "Found in image",
+  "@shivSourcesImageFound": {
+    "description": "Location line on an image source tile in Shiv's Sources sheet: the answer drew on the picture — its text (read by OCR) or what it shows (on-device labels)"
+  },
+  "shivSourcesImageUntitled": "Image",
+  "@shivSourcesImageUntitled": {
+    "description": "Title of an image source tile when the attaching note gave the image no file name"
+  },
+  "shivSourcesImageOpen": "Open image",
+  "@shivSourcesImageOpen": {
+    "description": "Tooltip on an image source tile in Shiv's Sources sheet"
+  },
+  "shivSourcesImageGone": "This image is no longer on this device",
+  "@shivSourcesImageGone": {
+    "description": "Shown when the user taps an image source whose cached file was removed since the answer was given"
+  },
   "shivSourcesEmpty": "No sources for this reply",
   "@shivSourcesEmpty": {
     "description": "Empty state when the source notes for a Shiv reply can't be resolved"
