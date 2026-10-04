@@ -106,6 +106,15 @@ void main() {
       expect(order.first, 1);
     });
 
+    test('normalised Hindi stopwords are ignored', () {
+      final order = rank('कहाँ है', {
+        1: (cosine: 0.70, text: 'general'),
+        2: (cosine: 0.65, text: 'कहां है'),
+      });
+
+      expect(order.first, 1);
+    });
+
     test('an identifier outweighs an ordinary word of equal rarity', () {
       final order = rank('registration 2541', {
         1: (cosine: 0.66, text: 'registration ledger overview'),

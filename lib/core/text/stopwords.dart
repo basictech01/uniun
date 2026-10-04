@@ -1,6 +1,7 @@
 /// Words that carry no answer: English function words, and the Hinglish
 /// (Hindi in Latin letters) and Hindi ones people mix into a question. Left in,
-/// they match almost every chunk and only add noise to keyword ranking.
+/// they match almost every chunk and only add noise to keyword ranking. The
+/// scorer normalises these entries through the same tokenizer as the query.
 const Set<String> kStopwords = {
   // English
   'a', 'an', 'and', 'are', 'as', 'at', 'be', 'been', 'but', 'by', 'can',

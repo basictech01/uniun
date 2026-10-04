@@ -100,8 +100,14 @@ by `aranya_land_records_review_q2_2026.build.py` (LibreOffice for the typed page
 Pillow for the skewed scan, the phone-photo notice and the Hindi/English scan,
 matplotlib for the chart; `pdfunite` joins them). One page type each: typed,
 typed + photographed notice, scanned order, logo/signature + Hindi, chart,
-blank scan, Hindi/English scan, table. 385 KB — over the 300 KB guideline
+blank scan, Hindi/English scan, table. 385 KB — Over the 300 KB guideline
 because three fonts and a photo are embedded; scans are downsampled to keep it
 there. No real person or record. `aranya_land_records_review_q2_2026.queries.json`
 holds 16 messy user-style questions (typos, Hinglish, Hindi script, fragments)
 with the page each answer is on. Run with `tool/rag_docs_e2e.sh <device-id>`.
+
+`aranya_hindi_hinglish_keyword.retrieval.json` is a text-only, fictional
+companion fixture covering Devanagari and Bengali digit look-alikes, nukta,
+an allow-listed chandrabindu/anusvara spelling variant and a Devanagari joiner
+variant. Its `legacy` metrics were measured with the exact-token tokenizer from
+the parent commit.

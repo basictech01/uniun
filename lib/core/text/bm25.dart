@@ -1,13 +1,82 @@
 import 'dart:math' as math;
 
-/// Lower-cased words, numbers and combining marks of [text], as separate
-/// tokens. Unicode-aware, so Devanagari words and their vowel signs stay whole;
-/// punctuation splits (`1800-233-0421` → `1800`, `233`, `0421`).
+/// Normalises spelling and OCR variants that should carry the same keyword
+/// evidence, without changing the text sent to the embedder.
+String _normalizeForKeywordSearch(String text) {
+  final runes = text.toLowerCase().runes.toList();
+  final out = StringBuffer();
+  for (var i = 0; i < runes.length; i++) {
+    final rune = runes[i];
+    if (rune >= 0x0966 && rune <= 0x096f) {
+      out.writeCharCode(0x30 + rune - 0x0966); // Devanagari digits.
+    } else if (rune >= 0x09e6 && rune <= 0x09ef) {
+      out.writeCharCode(0x30 + rune - 0x09e6); // Bengali OCR look-alikes.
+    } else if (rune == 0x093c) {
+      // Hindi commonly omits nukta.
+      continue;
+    } else if (rune == 0x200c || rune == 0x200d) {
+      if (_isBetweenDevanagari(runes, i)) continue;
+      // Joiners are meaningful word boundaries in scripts such as Persian.
+      out.write(' ');
+    } else {
+      out.writeCharCode(_nuktaBase[rune] ?? rune);
+    }
+  }
+  return out.toString();
+}
+
+bool _isBetweenDevanagari(List<int> runes, int index) =>
+    index > 0 &&
+    index + 1 < runes.length &&
+    _isDevanagari(runes[index - 1]) &&
+    _isDevanagari(runes[index + 1]);
+
+bool _isDevanagari(int rune) => rune >= 0x0900 && rune <= 0x097f;
+
+const Map<int, int> _nuktaBase = {
+  0x0929: 0x0928, // ऩ → न
+  0x0931: 0x0930, // ऱ → र
+  0x0934: 0x0933, // ऴ → ळ
+  0x0958: 0x0915, // क़ → क
+  0x0959: 0x0916, // ख़ → ख
+  0x095a: 0x0917, // ग़ → ग
+  0x095b: 0x091c, // ज़ → ज
+  0x095c: 0x0921, // ड़ → ड
+  0x095d: 0x0922, // ढ़ → ढ
+  0x095e: 0x092b, // फ़ → फ
+  0x095f: 0x092f, // य़ → य
+};
+
+// Keep this deliberately narrow: a global chandrabindu → anusvara fold would
+// collapse distinct words such as हँस (laugh) and हंस (swan). Only vetted,
+// whole-word pairs are folded; inflections are not inferred from these stems.
+const Map<String, String> _spellingVariants = {
+  'कहाँ': 'कहां',
+  'आँख': 'आंख',
+  'माँ': 'मां',
+  'गाँव': 'गांव',
+  'चाँद': 'चांद',
+};
+
+/// Lower-cased, keyword-normalised words, numbers and combining marks of
+/// [text], as separate tokens. Unicode-aware, so Devanagari words and their
+/// vowel signs stay whole; punctuation splits (`1800-233-0421` → `1800`,
+/// `233`, `0421`).
 List<String> tokenize(String text) => [
-  for (final m in _word.allMatches(text.toLowerCase())) m.group(0)!,
+  for (final m in _word.allMatches(_normalizeForKeywordSearch(text)))
+    _spellingVariants[m.group(0)!] ?? m.group(0)!,
 ];
 
 final RegExp _word = RegExp(r'[\p{L}\p{M}\p{N}]+', unicode: true);
+
+List<String> _queryTerms(String query, Set<String> stopwords) {
+  final normalisedStopwords = <String>{
+    for (final stopword in stopwords) ...tokenize(stopword),
+  };
+  return tokenize(
+    query,
+  ).where((term) => !normalisedStopwords.contains(term)).toSet().toList();
+}
 
 /// Keyword relevance (Okapi BM25) of a corpus for one query, in a single pass.
 ///
@@ -29,9 +98,7 @@ class Bm25Scorer {
     this.b = 0.75,
     Set<String> stopwords = const {},
     double Function(String term)? termBoost,
-  }) : terms = tokenize(
-         query,
-       ).where((t) => !stopwords.contains(t)).toSet().toList(),
+  }) : terms = _queryTerms(query, stopwords),
        _boost = termBoost;
 
   final double Function(String term)? _boost;
