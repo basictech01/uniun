@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniun/core/text/bm25.dart';
 
-/// Covers: tokenize on punctuation, numbers, Devanagari and emoji; Bm25Scorer
-/// weighting rare words over common ones, ignoring non-matches, length
-/// normalisation and degenerate queries.
+/// Covers: keyword normalisation and tokenisation; Bm25Scorer weighting rare
+/// words over common ones, ignoring non-matches, length normalisation and
+/// degenerate queries.
 void main() {
   group('tokenize', () {
     test('splits on punctuation and lower-cases', () {
@@ -21,6 +21,46 @@ void main() {
         'शुल्क',
         'बुधवार',
       ]);
+    });
+
+    test('maps Devanagari and Bengali digits to ASCII', () {
+      expect(tokenize('०१२३४५६७८९ ০১২৩৪৫৬৭৮৯'), ['0123456789', '0123456789']);
+      expect(tokenize('२५.२३०.००'), tokenize('25,230.00'));
+    });
+
+    test('folds nukta and an approved Hindi spelling variant', () {
+      expect(tokenize('ज़मीन ज़मीन जमीन'), ['जमीन', 'जमीन', 'जमीन']);
+      expect(tokenize('कहाँ कहां'), ['कहां', 'कहां']);
+    });
+
+    test('folds आँख and आंख', () {
+      expect(tokenize('आँख आंख'), ['आंख', 'आंख']);
+    });
+
+    test('folds माँ and मां', () {
+      expect(tokenize('माँ मां'), ['मां', 'मां']);
+    });
+
+    test('folds गाँव and गांव', () {
+      expect(tokenize('गाँव गांव'), ['गांव', 'गांव']);
+    });
+
+    test('folds चाँद and चांद', () {
+      expect(tokenize('चाँद चांद'), ['चांद', 'चांद']);
+    });
+
+    test('removes joiners only between Devanagari characters', () {
+      expect(tokenize('प्रशिक्‍षण'), ['प्रशिक्षण']);
+      expect(tokenize('foo\u200dbar'), ['foo', 'bar']);
+      expect(tokenize('می\u200cخواهم'), ['می', 'خواهم']);
+    });
+
+    test('does not collapse distinct chandrabindu and anusvara words', () {
+      expect(tokenize('हँस हंस'), ['हँस', 'हंस']);
+    });
+
+    test('does not infer a fold for the unlisted हँसी and हंसी', () {
+      expect(tokenize('हँसी हंसी'), ['हँसी', 'हंसी']);
     });
 
     test('an empty or symbol-only string has no tokens', () {
@@ -89,8 +129,29 @@ void main() {
       expect(a[0], b[0]);
     });
 
+    test('normalises caller-supplied stopwords', () {
+      final scorer = Bm25Scorer('कहाँ कार्यालय', stopwords: {'कहाँ'});
+
+      expect(scorer.terms, ['कार्यालय']);
+    });
+
     test('numbers match number tokens', () {
       final r = score('2541', ['registration 2541 year 2019', 'year 2019']);
+
+      expect(r.keys, [0]);
+    });
+
+    test('Indic OCR digits match ASCII query digits', () {
+      final r = score('inspection fee 20', [
+        'निरीक्षण शुल्क ২০ रुपये',
+        'प्रशिक्षण भत्ता ২৫০০ रुपये',
+      ]);
+
+      expect(r.keys, [0]);
+    });
+
+    test('nukta and nasal-mark variants match', () {
+      final r = score('ज़मीन कहाँ', ['जमीन कहां है', 'दूसरा प्रश्न']);
 
       expect(r.keys, [0]);
     });

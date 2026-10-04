@@ -598,6 +598,12 @@ look alike to an embedder. `HybridRanker` (`lib/core/text/hybrid_ranker.dart`)
 adds keyword evidence to each chunk's cosine similarity: BM25
 (`lib/core/text/bm25.dart`) over the question's words, with
 
+- **keyword-only normalisation on both sides of scoring**: lower-casing;
+  Devanagari and Bengali OCR digit look-alikes mapped to ASCII; common
+  Devanagari nukta forms folded; the allow-listed Hindi spelling pairs
+  (`कहाँ`/`कहां`, `आँख`/`आंख`, `माँ`/`मां`, `गाँव`/`गांव`, `चाँद`/`चांद`)
+  unified without a global nasal-mark fold; zero-width joiners removed only
+  between Devanagari characters and kept as token boundaries in other scripts,
 - **stopwords dropped** (English, Hinglish and Hindi function words — and, or,
   the, kya, hai, है — `lib/core/text/stopwords.dart`),
 - **identifiers boosted** (a word of 3+ characters with a digit counts double),
@@ -605,6 +611,11 @@ adds keyword evidence to each chunk's cosine similarity: BM25
   so a weak match on a common word adds little and a strong match on rare words
   nearly the full `weight` (0.3). The returned `ScoredChunk.score` stays the
   cosine.
+
+Normalisation happens only inside the tokenizer, for the question and each
+chunk at ranking time. Stored chunk text and text sent to Gecko are unchanged,
+so enabling or changing this layer does not require re-indexing or re-embedding
+documents.
 
 Only the question's words are scored, in the same pass that computes cosines.
 Chosen on a phone-indexed set of 3 documents, 93 chunks and 49 answerable
@@ -618,12 +629,17 @@ page **or** contains the answer text:
 | hybrid (default) | 34/49 | 42/49 | 46/49 | 0.773 |
 
 The gain is not one lucky setting: any keyword weight from 0.05 to 1.0 scores
-34–35/49 at Recall@1, and dropping stopwords is worth ~2 more right-first
-answers. Try variants without a phone: the device run dumps every chunk and
-question vector, and `flutter pub run tool/eval_retrieval.dart` ranks them for a
-grid of settings in seconds. Hindi and Hinglish questions still lag — the
-embedder is English-centred and Devanagari OCR is noisy, which no ranking
-change fixes.
+34–35/49 at Recall@1, and dropping stopwords is worth about two more right-first
+answers. The committed English Gecko benchmark remains 22/23 at Recall@1 and
+23/23 at Recall@3/5 (MRR 0.978). On the fictional Hindi/Hinglish fixture,
+normalisation raises Recall@1/3/5 from 3/12 to 12/12 and MRR from 0.250 to
+1.000.
+
+Run the committed regression set with
+`flutter test test/features/shiv/rag/retrieval/hybrid_ranking_quality_test.dart`.
+The device run also dumps every chunk and question vector; use
+`flutter pub run tool/eval_retrieval.dart` to try ranking settings offline in
+seconds without re-indexing.
 
 **The notes' vector search has the same limit.** Measured on 3.1.0 and 3.1.2
 alike, querying each stored vector with itself: it is its own top hit for 100 %

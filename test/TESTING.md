@@ -132,6 +132,24 @@ Never call `Isar.initializeIsarCore(download: true)` yourself — under
 parallel `flutter test` it races and under `TestWidgetsFlutterBinding` its
 download can never succeed (mocked HTTP 400).
 
+### Keyword-ranking quality
+
+The committed retrieval regression test reports Recall@1/3/5 and MRR for both
+the existing English Gecko benchmark and the fictional Hindi/Hinglish keyword
+fixture:
+
+```bash
+flutter test test/features/shiv/rag/retrieval/hybrid_ranking_quality_test.dart
+```
+
+`aranya_hindi_hinglish_keyword.retrieval.json` covers Bengali and Devanagari
+OCR digits, nukta, an allow-listed chandrabindu/anusvara spelling variant and a
+Devanagari joiner variant. The production tokenizer normalises the question and
+each chunk only while BM25 scores them;
+the stored text and the text sent to the embedder stay unchanged, so these
+checks never require re-indexing. The device suite additionally exercises the
+same normalisation through `IsarDocumentVectorRepositoryImpl.search`.
+
 ### Device retrieval test with your own documents
 
 `tool/rag_docs_e2e.sh <device-id> [extra-dir]` pushes the committed Aranya PDF and

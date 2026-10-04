@@ -1,0 +1,49 @@
+{
+  "description": "Fictional Hindi and Hinglish keyword-normalisation cases for Aranya records",
+  "legacy": {
+    "r1": 3,
+    "r3": 3,
+    "r5": 3,
+    "mrr": 0.25
+  },
+  "chunks": [
+    {
+      "id": "inspection-fee",
+      "text": "काल्पनिक अरण्य अभिलेख कार्यालय में निरीक्षण शुल्क प्रति नक्शा ২০ रुपये है। भुगतान पर अतिरिक्त कर ০.০০ है।"
+    },
+    {
+      "id": "training",
+      "text": "अरण्य प्रशिक्षण केंद्र में software batch 7 October को होगा। प्रशिक्षण भत्ता २५०० रुपये है।"
+    },
+    {
+      "id": "land-camp",
+      "text": "जमीन सत्यापन शिविर कहां लगेगा: काल्पनिक सूर्यपुर पंचायत भवन में।"
+    },
+    {
+      "id": "file-desk",
+      "text": "फाइल क्रमांक 71 काल्पनिक नीलवन सहायता कक्ष में रखी है।"
+    },
+    {
+      "id": "legal-notice",
+      "text": "कानूनी सूचना केवल काल्पनिक चंद्रपुर अभिलेख केंद्र के लिए है।"
+    },
+    {
+      "id": "general",
+      "text": "सामान्य सूचना: काल्पनिक अरण्य कार्यालय सोमवार से शुक्रवार खुला है।"
+    }
+  ],
+  "queries": [
+    {"q": "fee 20", "chunk": "inspection-fee"},
+    {"q": "zero surcharge 0.00", "chunk": "inspection-fee"},
+    {"q": "training allowance 2500", "chunk": "training"},
+    {"q": "batch stipend ২৫০০", "chunk": "training"},
+    {"q": "ज़मीन", "chunk": "land-camp"},
+    {"q": "ज़मीन कहाँ", "chunk": "land-camp"},
+    {"q": "फ़ाइल", "chunk": "file-desk"},
+    {"q": "फ़ाइल number ७१", "chunk": "file-desk"},
+    {"q": "क़ानूनी", "chunk": "legal-notice"},
+    {"q": "प्रशिक्‍षण", "chunk": "training"},
+    {"q": "software batch kab hai", "chunk": "training"},
+    {"q": "निरीक्षण शुल्क", "chunk": "inspection-fee"}
+  ]
+}

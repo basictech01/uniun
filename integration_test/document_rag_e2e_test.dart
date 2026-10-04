@@ -300,6 +300,105 @@ void main() {
     await purge(sha);
   }, timeout: const Timeout(Duration(minutes: 5)));
 
+  test(
+    'hybrid retrieval normalises OCR digits and Hindi spelling variants',
+    () async {
+      await expectModelLoaded();
+
+      Future<void> expectKeywordWinner({
+        required String name,
+        required String query,
+        required String targetText,
+        required String distractorText,
+      }) async {
+        final queryVector = await embedding.embed(query);
+        expect(
+          queryVector,
+          isNotEmpty,
+          reason: 'the Gecko model must be loaded',
+        );
+
+        final suffix = DateTime.now().microsecondsSinceEpoch;
+        final targetSha = 'e2e-keyword-target-$suffix';
+        final distractorSha = 'e2e-keyword-distractor-$suffix';
+        // Equal vectors keep their insertion order when no keyword matches.
+        // Insert the distractor first so the old tokenizer loses this tie.
+        final shas = [distractorSha, targetSha];
+
+        await isar.writeTxn(() async {
+          await isar.documentChunkModels.putAll([
+            DocumentChunkModel()
+              ..sha256 = distractorSha
+              ..ordinal = 0
+              ..label = '1'
+              ..text = distractorText
+              ..vector = queryVector,
+            DocumentChunkModel()
+              ..sha256 = targetSha
+              ..ordinal = 0
+              ..label = '1'
+              ..text = targetText
+              ..vector = queryVector,
+          ]);
+          await isar.documentIndexModels.putAll([
+            for (final sha in shas)
+              DocumentIndexModel()
+                ..sha256 = sha
+                ..status = DocumentIndexStatus.indexed
+                ..kind = DocumentKind.pdf
+                ..pageCount = 1
+                ..chunkCount = 1
+                ..indexedAt = DateTime.now(),
+          ]);
+        });
+
+        try {
+          final hits = await IsarDocumentVectorRepositoryImpl.tuned(
+            isar,
+            const HybridConfig(),
+          ).search(
+            queryVector,
+            queryText: query,
+            topK: 2,
+            minScore: 0.0,
+          );
+
+          expect(hits, hasLength(2), reason: '$name must retrieve both chunks');
+          expect(
+            hits.first.sha256,
+            targetSha,
+            reason: '$name should break an equal-cosine tie with normalised '
+                'keyword evidence, not ${hits.first.content}',
+          );
+        } finally {
+          await isar.writeTxn(() async {
+            for (final sha in shas) {
+              await isar.documentChunkModels
+                  .where()
+                  .sha256EqualToAnyOrdinal(sha)
+                  .deleteAll();
+              await isar.documentIndexModels.deleteBySha256(sha);
+            }
+          });
+        }
+      }
+
+      await expectKeywordWinner(
+        name: 'Bengali OCR digits',
+        query: 'training allowance 2500',
+        targetText: 'प्रशिक्षण भत्ता ২৫০০ रुपये है।',
+        distractorText: 'प्रशिक्षण भत्ता 2400 रुपये है।',
+      );
+      await expectKeywordWinner(
+        name: 'nukta spelling',
+        query: 'ज़मीन',
+        targetText: 'जमीन सत्यापन शिविर सूर्यपुर में है।',
+        distractorText: 'फाइल सत्यापन कक्ष नीलवन में है।',
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 5)),
+  );
+
   group('images (real ML Kit OCR)', () {
     test('OCR reads the words of an English notice', () async {
       final png = await _renderText(
