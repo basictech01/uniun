@@ -15,6 +15,56 @@ user-facing changelog.
 
 ---
 
+## [3.0.0] — 2026-10-04
+
+The biggest release so far. **Shiv can now read your documents and photos** — PDFs, Word
+files, scans and pictures — and tell you exactly where an answer came from. The knowledge
+graph has been rebuilt to feel like Obsidian's, and any note can now be translated.
+
+### Added
+- **Shiv answers from your PDFs and Word documents.** Attach one to a note (or save the
+  note) and ask Shiv about it. Every answer shows its source: the page of a PDF or the
+  heading of a Word file.
+- **Tap a source to jump straight to it.** A PDF opens on the cited page with the passage
+  highlighted; a Word file opens on the cited section, with its tables and large pictures.
+  "Open in another app" is still one tap away.
+- **Scanned pages and photographed documents are read on the phone.** Shiv reads English and
+  Hindi text in scans, in pictures pasted into a document, and in photos — and only reads
+  the pages that actually need it, so typed documents stay fast.
+- **Photos without text are found by what they show**, such as "a dog on a beach".
+- **Translate any note** into another language with the on-device AI.
+- **Graph search and connection stepper.** Search the graph, fly to a match, and step
+  through a note's connections one by one.
+- **Saving a draft is now the main action when writing a note in Brahma.**
+- **Hindi and Hinglish questions find the right passage more often.** Numbers, names and
+  codes in your question now count alongside meaning, and Hindi spelling and digit
+  variants are treated as the same word. Contributed by Mayukhga83.
+
+### Changed
+- **The graph has been redesigned after Obsidian's.** Clearer, visible links that light up
+  around the note you select; nodes that spread out cleanly instead of tangling; drag any
+  node and its neighbours follow, then settle when you let go; and large graphs open
+  already laid out and fitted to the screen.
+- **Document search is now exact.** Shiv can find a passage anywhere in your documents —
+  previously only a fraction of stored passages could ever be found.
+- **The on-device AI uses the phone's graphics chip on Android**, making the first word of
+  an answer appear about 2.5× sooner on the phone it was measured on. The AI engine was
+  updated to the latest version.
+- **Model downloads keep going in the background on Android**, with a notification.
+
+### Fixed
+- **Replying to a note from the graph's note panel didn't refresh the graph** — it does now.
+- **Reloading the graph while viewing a Manas silently dropped you out of it**, and adding
+  or removing a note from that Manas didn't update the graph. Both fixed.
+- **Some graph nodes could not be tapped.** Taps now land on the node under your finger,
+  even for nodes far from the centre or while the layout is still moving.
+- **Shiv sometimes repeated its own prompt** ("Shiv:" or "/no_think") at the start of an
+  answer.
+- **If the phone's graphics chip couldn't run the AI model, the app retried the same thing
+  instead of falling back to the processor** — it now switches properly.
+
+---
+
 ## [2.3.0] — 2026-08-13
 
 A reliability-focused release for Shiv, Nataraj, and Ganas — plus QR sign-in for the
