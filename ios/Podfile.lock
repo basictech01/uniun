@@ -45,9 +45,9 @@ PODS:
   - Flutter (1.0.0)
   - flutter_file_dialog (0.0.1):
     - Flutter
-  - flutter_gemma (1.2.0):
+  - flutter_gemma (1.5.2):
     - Flutter
-  - flutter_gemma_mediapipe (1.0.3):
+  - flutter_gemma_mediapipe (1.0.4):
     - Flutter
     - MediaPipeTasksGenAI (= 0.10.33)
     - MediaPipeTasksGenAIC (= 0.10.33)
@@ -243,8 +243,8 @@ SPEC CHECKSUMS:
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_file_dialog: ca8d7fbd1772d4f0c2777b4ab20a7787ef4e7dd8
-  flutter_gemma: 9786cf8594fc2b659c8925794922b008189b51f4
-  flutter_gemma_mediapipe: 63afceaaba87c31d73c36934c6a3990a4da8e2c3
+  flutter_gemma: b409e06cff863403c3fecbd6fda11b35156da88a
+  flutter_gemma_mediapipe: 9f914ffd91280c77be1026cd6ced94dc8647d4f5
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
