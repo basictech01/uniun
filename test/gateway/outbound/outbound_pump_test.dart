@@ -10,7 +10,23 @@ import 'package:uniun/gateway/transport/relay_connection.dart';
 
 import '../../_helpers/isar_test_harness.dart';
 
-/// Covers: rejected relay OKs release the in-flight slot and advance the queue.
+/// Covers: rejected relay OKs release the in-flight slot and advance the queue,
+/// and an accepted OK persisting the row's sentCount.
+/// Polls [done] until it holds, failing after [timeout] — a condition to wait
+/// for, instead of a fixed sleep that races the work it waits on.
+Future<void> _until(
+  FutureOr<bool> Function() done, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!await done()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition not met within $timeout');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 class _CapturingConnection extends RelayConnection {
   _CapturingConnection() : super(url: 'wss://test.relay');
 
@@ -134,10 +150,19 @@ void main() {
     );
 
     pump.onTick();
-    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // The OK is only counted once the event is in flight. A fixed sleep here
+    // lost that race on a slow CI runner (the OK arrived before the send and
+    // was ignored), so wait for the send itself.
+    await _until(() => connection.sent.isNotEmpty);
 
     connection.ok('evt-1', true);
-    await Future<void>.delayed(const Duration(milliseconds: 20));
+    await _until(() async {
+      final row = await isar.eventQueueModels
+          .where()
+          .eventIdEqualTo('evt-1')
+          .findFirst();
+      return row?.sentCount == 1;
+    });
 
     final updated = await isar.eventQueueModels
         .where()
