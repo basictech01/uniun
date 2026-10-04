@@ -1,18 +1,23 @@
+comment:
+  layout: "diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  hide_project_coverage: false
+
 coverage:
   status:
-    # Report-only: never blocks a PR or fails a check, just surfaces the
-    # numbers. Flip `informational: false` (or add `target:`/`threshold:`)
-    # later once there's a stable baseline worth enforcing against.
     project:
       default:
+        target: auto
+        threshold: 0%
         informational: true
     patch:
       default:
+        target: auto
+        threshold: 0%
         informational: true
-
-comment:
-  layout: "condensed_header, diff, flags, files"
-  require_changes: false
 
 ignore:
   - "**/*.g.dart"
