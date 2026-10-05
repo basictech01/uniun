@@ -75,7 +75,7 @@ void main() {
     await getIt<GetActiveAIModelUseCase>().call();
 
     if (!FlutterGemma.hasActiveModel() &&
-        !await provisionTestModel(AIModelId.qwen25_05b)) {
+        !await provisionTestModel(AIModelId.gemma4E2b)) {
       // ignore: avoid_print
       print('SKIP: no active on-device model — open Shiv → Select AI model → '
           'download one first');

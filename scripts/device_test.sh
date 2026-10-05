@@ -4,6 +4,7 @@
 #   scripts/device_test.sh run [test-file]                 (default: all_tests)
 # The pushed model lives in /data/local/tmp, which `flutter test`'s uninstall
 # does not touch, so tests install it from there instead of downloading.
+# `--no-uninstall` also keeps the app (and its data) on the phone after the run.
 set -euo pipefail
 DIR=/data/local/tmp/uniun_test
 
@@ -21,7 +22,7 @@ case "${1:-}" in
   run)
     keep_awake
     trap 'adb shell svc power stayon false' EXIT
-    flutter test "${2:-integration_test/all_tests.dart}"
+    flutter test --no-uninstall "${2:-integration_test/all_tests.dart}"
     ;;
   *)
     echo "usage: $0 push-model <file> | run [test-file]" >&2
