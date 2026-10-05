@@ -6,6 +6,15 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-06 — device tests run from a pre-set model
+
+Device integration tests no longer download an AI model each run. `flutter test` uninstalls the app, which wiped the model; now it is pushed once to `/data/local/tmp/uniun_test/` (the uninstall does not touch it) and `provisionTestModel(AIModelId.…)` (`integration_test/support/test_model.dart`) copies it into the app folder, registers it and marks it active. Default model Gemma 4 E2B. Runs use `--no-uninstall` so the copy survives; `scripts/device_test.sh` wraps the push, keeping the screen on/unlocked, and the run. Usage is in `test/TESTING.md`.
+
+- **Verified on a phone (Gemma 4 E2B)**: `gana_local_engine_e2e_test`, `flutter_gemma_bg_isolate_test` (needed the copy into the app folder — the worker isolate cannot restore a model registered from outside it), `scheduler_preemption_test` (three runs, ~2.2–2.4 s), `scheduler_model_switch_test` (passed; its second test skips with one model).
+- **Found by running them for real**: the two scheduler tests had never run (they skip without a model) and failed on their own bugs — mixed `maxTokens` made flutter_gemma rebuild the model (33.5 s), a fixed 500 ms wait during a cold load, a 5-minute re-queued essay, the preempted run logged as finished first, and a 1.5 s budget from a much smaller model (now 4 s). App code unchanged; see #260.
+- **Not verified**: the whole `all_tests.dart` suite in one go; the "test starting" screen was never looked at (only that it does not break the run); `scheduler_model_switch_test` failed once in ~2 s straight after another test and passed on the next run, cause not found; its second test needs two models; the cloud device tests still need an API key.
+- **Not done from #88**: more device tests (only the model ones were moved over), and a CI-style runner.
+
 ## Open items carried into v3.0.0
 
 The detailed entries up to v3.0.0 were cleared when it shipped; they remain in git history
