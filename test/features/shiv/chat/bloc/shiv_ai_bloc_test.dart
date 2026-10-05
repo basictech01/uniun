@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -54,6 +56,8 @@ class _MDrainPending extends Mock implements DrainPendingExtractionsUseCase {}
 /// draft lives only in bloc state) — a real row is only written by
 /// `sendMessage` on the first turn. Regression coverage for issue #159
 /// ("new chat is created even without a single message").
+final _photo = Uint8List.fromList([1, 2, 3]);
+
 void main() {
   setUpAll(() {
     registerFallbackValue(ShivMessageEntity(
@@ -201,6 +205,41 @@ void main() {
           b.state.conversations.where((c) => c.conversationId == 'persisted-1'),
           hasLength(1),
         );
+      },
+    );
+
+    blocTest<ShivAIBloc, ShivAIState>(
+      'the images of a message reach the chat stream; a text message sends none',
+      build: build,
+      act: (b) async {
+        b.add(const ShivAIEvent.createConversation());
+        await Future<void>.delayed(Duration.zero);
+        b.add(ShivAIEvent.sendMessage('what is this?', images: [_photo]));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      },
+      wait: const Duration(milliseconds: 20),
+      verify: (b) {
+        final input = verify(() => sendChatStream.call(captureAny()))
+            .captured
+            .single as SendChatStreamInput;
+        expect(input.images, [_photo]);
+      },
+    );
+
+    blocTest<ShivAIBloc, ShivAIState>(
+      'a message with no images sends an empty list to the chat stream',
+      build: build,
+      act: (b) async {
+        b.add(const ShivAIEvent.createConversation());
+        await Future<void>.delayed(Duration.zero);
+        b.add(const ShivAIEvent.sendMessage('hello'));
+      },
+      wait: const Duration(milliseconds: 20),
+      verify: (b) {
+        final input = verify(() => sendChatStream.call(captureAny()))
+            .captured
+            .single as SendChatStreamInput;
+        expect(input.images, isEmpty);
       },
     );
 

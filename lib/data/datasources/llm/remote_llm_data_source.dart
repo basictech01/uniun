@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
@@ -65,6 +66,9 @@ class RemoteLlmDataSource implements LlmDataSource {
     required String message,
     String? systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    // The gateway takes no images yet; the UI never offers one for a cloud
+    // model, so anything passed here is ignored rather than half-sent.
+    List<Uint8List> images = const [],
   }) async* {
     // Preempt any in-flight extraction so it doesn't race chat for the
     // user's plan quota.

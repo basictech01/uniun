@@ -6,6 +6,16 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-05 — image input in Shiv chat (first slice) — work in progress
+
+A Shiv chat message can carry one photo when the active model reads images. Which models: `AIModelId.supportsImages` (the Gemma 4 pair only — Qwen3 0.6B and DeepSeek R1 have no vision encoder, per flutter_gemma 1.8.3's model table), carried to the UI as `LlmModelInfo.supportsImages`; cloud models report false until the gateway takes images.
+
+- **UI**: an attach button in `ShivInputComposer`, present only for a vision model (`ChatImageSupportCubit` re-reads the active model on open and after the model sheet closes); gallery pick downscaled to 1024 px by `image_picker`; a thumbnail with a remove button; sent with the next message, then cleared. A photo is dropped, not sent, if the model changed to a text-only one after it was attached, and a photo with no text does not send.
+- **Engine**: vision is fixed when the engine is created (`getActiveModel(supportImage, maxNumImages)`), so the first image turn closes a cached text-only model and re-opens it with vision (an engine re-create — seconds, once); the vision model is then kept for text turns until the model changes. Text turns are byte-for-byte what they were: `supportImage` stays unset on `openChat`.
+- **Verified**: unit/widget tests at every layer (flag, cubit, composer, bloc, use case, repository, data source, runner) with the plugin behind its gateway fake; each of ten deliberate breaks turned a test red (the one that slipped, the data source dropping images, got a test).
+- **Not verified**: a real image turn on a device — **Gemma 4 on a phone has not been run** (no phone connected, model not downloaded here). Unmeasured: prefill time and memory with an image, and whether the engine re-create on the first image turn is acceptable.
+- **Not built**: the photo is not shown in the sent bubble or stored in the conversation (it lives for the turn); camera capture; more than one image; how image tokens count against the prompt budget (RAG context is added as for any turn).
+
 ## Open items carried into v3.0.0
 
 The detailed entries up to v3.0.0 were cleared when it shipped; they remain in git history

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/core/error/failures.dart';
@@ -51,8 +52,13 @@ class SendChatStreamInput {
     required this.message,
     this.systemInstruction,
     this.cleanHistory = const [],
+    this.images = const [],
   });
   final String message;
+
+  /// Photos sent with this turn (at most one for now). Only offered, and only
+  /// read, when the active model supports images.
+  final List<Uint8List> images;
 
   /// Persona + any branch/seed context, passed per turn (not stored on the
   /// backend) so independent chat surfaces don't clobber each other.
@@ -70,6 +76,7 @@ class SendChatStreamUseCase extends StreamUseCase<String, SendChatStreamInput> {
         message: input.message,
         systemInstruction: input.systemInstruction,
         cleanHistory: input.cleanHistory,
+        images: input.images,
       );
 }
 

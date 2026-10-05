@@ -238,6 +238,8 @@ import 'package:uniun/features/settings/cubit/settings_cubit.dart' as _i331;
 import 'package:uniun/features/settings/cubit/storage_cubit.dart' as _i13;
 import 'package:uniun/features/share/bloc/share_sheet_bloc.dart' as _i574;
 import 'package:uniun/features/shiv/chat/bloc/shiv_ai_bloc.dart' as _i190;
+import 'package:uniun/features/shiv/chat/cubit/chat_image_support_cubit.dart'
+    as _i269;
 import 'package:uniun/features/shiv/composer_chat/cubit/composer_chat_cubit.dart'
     as _i526;
 import 'package:uniun/features/shiv/gana/engine/gana_engine.dart' as _i426;
@@ -1472,6 +1474,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i894.GetOrphanedModelFilesSizeBytesUseCase>(),
         gh<_i894.CleanupOrphanedModelFilesUseCase>(),
       ),
+    );
+    gh.factory<_i269.ChatImageSupportCubit>(
+      () => _i269.ChatImageSupportCubit(gh<_i918.GetActiveLlmModelUseCase>()),
     );
     gh.lazySingleton<_i1.ShareNoteUseCase>(
       () => _i1.ShareNoteUseCase(gh<_i1019.ShareRepository>()),

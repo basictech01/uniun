@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dartz/dartz.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/entities/llm/llm_model_info.dart';
@@ -26,6 +27,7 @@ abstract class LlmDataSource {
     required String message,
     String? systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    List<Uint8List> images = const [],
   });
 
   /// One-shot completion. [kind] drives scheduler tier on the local backend

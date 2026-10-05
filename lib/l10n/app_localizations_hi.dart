@@ -1961,6 +1961,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get modelPickerNoModels => 'कोई मॉडल उपलब्ध नहीं।';
 
   @override
+  String get chatInputAttachImageTooltip => 'छवि जोड़ें';
+
+  @override
+  String get chatInputRemoveImageTooltip => 'छवि हटाएँ';
+
+  @override
   String get chatInputPickModelTooltip => 'मॉडल चुनें';
 
   @override

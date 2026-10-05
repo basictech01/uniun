@@ -25,5 +25,9 @@ abstract class LlmModelInfo with _$LlmModelInfo {
 
     /// USD per million output tokens. Null for local models.
     double? pricePerMillionOutput,
+
+    /// Whether the model accepts an image alongside the text of a chat turn.
+    /// Drives whether Shiv's input offers to attach one.
+    @Default(false) bool supportsImages,
   }) = _LlmModelInfo;
 }

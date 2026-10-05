@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
@@ -98,6 +100,7 @@ void main() {
             any(),
             systemInstruction: any(named: 'systemInstruction'),
             cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
           )).thenAnswer((_) => Stream.fromIterable(['a', 'b']));
 
       final tokens = await ds
@@ -109,6 +112,25 @@ void main() {
             'hi',
             systemInstruction: '',
             cleanHistory: [('q', 'a')],
+          )).called(1);
+    });
+
+    test('the images of a turn reach the runner', () async {
+      final photo = Uint8List.fromList([5, 6, 7]);
+      when(() => runner.sendAndStream(
+            any(),
+            systemInstruction: any(named: 'systemInstruction'),
+            cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
+          )).thenAnswer((_) => const Stream.empty());
+
+      await ds.sendChat(message: 'what is this?', images: [photo]).toList();
+
+      verify(() => runner.sendAndStream(
+            'what is this?',
+            systemInstruction: '',
+            cleanHistory: const [],
+            images: [photo],
           )).called(1);
     });
 

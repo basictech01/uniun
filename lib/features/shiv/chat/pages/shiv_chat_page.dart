@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uniun/common/locator.dart';
+import 'package:uniun/features/shiv/chat/cubit/chat_image_support_cubit.dart';
 import 'package:uniun/common/widgets/drop_icon.dart';
 import 'package:uniun/core/enum/message_role.dart';
 import 'package:uniun/domain/entities/shiv/shiv_message_entity.dart';
@@ -25,8 +27,13 @@ class ShivChatPage extends StatefulWidget {
 class _ShivChatPageState extends State<ShivChatPage> {
   final _scrollController = ScrollController();
 
+  /// Whether the active model can read images (shows the attach button).
+  late final ChatImageSupportCubit _imageSupport =
+      getIt<ChatImageSupportCubit>()..refresh();
+
   @override
   void dispose() {
+    _imageSupport.close();
     _scrollController.dispose();
     super.dispose();
   }
@@ -67,7 +74,9 @@ class _ShivChatPageState extends State<ShivChatPage> {
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerLowest,
             resizeToAvoidBottomInset: false,
             drawer: const ShivHistoryDrawer(),
             onDrawerChanged: widget.onDrawerChanged,
@@ -75,73 +84,84 @@ class _ShivChatPageState extends State<ShivChatPage> {
             // Scaffold.of(ctx).openDrawer() targets the correct drawer.
             body: Builder(
               builder: (ctx) => Column(
-              children: [
-                _ShivChatHeader(
-                  threadTitle: conv?.title ?? l10n.shivDefaultConversationTitle,
-                  onBack: () => context
-                      .read<ShivAIBloc>()
-                      .add(const ShivAIEvent.closeConversation()),
-                  onHistoryTap: () => Scaffold.of(ctx).openDrawer(),
-                  onTreeTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<ShivAIBloc>(),
-                          child: const ShivBranchTreePage(),
+                children: [
+                  _ShivChatHeader(
+                    threadTitle:
+                        conv?.title ?? l10n.shivDefaultConversationTitle,
+                    onBack: () => context.read<ShivAIBloc>().add(
+                      const ShivAIEvent.closeConversation(),
+                    ),
+                    onHistoryTap: () => Scaffold.of(ctx).openDrawer(),
+                    onTreeTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<ShivAIBloc>(),
+                            child: const ShivBranchTreePage(),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                Expanded(
-                  child: state.messages.isEmpty && !isStreaming
-                      ? const _EmptyChat()
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.only(top: 16, bottom: 16),
-                          itemCount: state.messages.length,
-                          itemBuilder: (context, i) {
-                            final msg = state.messages[i];
-                            final isLast = i == state.messages.length - 1;
-                            final isAssistant =
-                                msg.role == MessageRole.assistant;
-                            final isLastAssistant = isLast && isAssistant;
-                            // The live-streaming bubble subscribes to
-                            // streamingContent itself so only it rebuilds per
-                            // token — the rest of this list stays put.
-                            if (isStreaming && isLastAssistant) {
-                              return _StreamingBubble(
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: state.messages.isEmpty && !isStreaming
+                        ? const _EmptyChat()
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.only(top: 16, bottom: 16),
+                            itemCount: state.messages.length,
+                            itemBuilder: (context, i) {
+                              final msg = state.messages[i];
+                              final isLast = i == state.messages.length - 1;
+                              final isAssistant =
+                                  msg.role == MessageRole.assistant;
+                              final isLastAssistant = isLast && isAssistant;
+                              // The live-streaming bubble subscribes to
+                              // streamingContent itself so only it rebuilds per
+                              // token — the rest of this list stays put.
+                              if (isStreaming && isLastAssistant) {
+                                return _StreamingBubble(
+                                  key: ValueKey(msg.messageId),
+                                  message: msg,
+                                  sourceNoteIds: state.lastTurnSourceNoteIds,
+                                  sourceChunkIds: state.lastTurnSourceChunkIds,
+                                );
+                              }
+                              return ShivMessageBubble(
                                 key: ValueKey(msg.messageId),
                                 message: msg,
-                                sourceNoteIds: state.lastTurnSourceNoteIds,
-                                sourceChunkIds: state.lastTurnSourceChunkIds,
+                                isLastAssistant: isLastAssistant,
+                                sourceNoteIds: isLastAssistant
+                                    ? state.lastTurnSourceNoteIds
+                                    : const [],
+                                sourceChunkIds: isLastAssistant
+                                    ? state.lastTurnSourceChunkIds
+                                    : const [],
                               );
-                            }
-                            return ShivMessageBubble(
-                              key: ValueKey(msg.messageId),
-                              message: msg,
-                              isLastAssistant: isLastAssistant,
-                              sourceNoteIds: isLastAssistant
-                                  ? state.lastTurnSourceNoteIds
-                                  : const [],
-                              sourceChunkIds: isLastAssistant
-                                  ? state.lastTurnSourceChunkIds
-                                  : const [],
-                            );
-                          },
-                        ),
-                ),
-                ShivInputComposer(
-                  isStreaming: isStreaming,
-                  onSend: (text, manasIds) => context
-                      .read<ShivAIBloc>()
-                      .add(ShivAIEvent.sendMessage(text, manasIds: manasIds)),
-                  onStop: () => context
-                      .read<ShivAIBloc>()
-                      .add(const ShivAIEvent.stopStreaming()),
-                ),
-              ],
+                            },
+                          ),
+                  ),
+                  BlocBuilder<ChatImageSupportCubit, bool>(
+                    bloc: _imageSupport,
+                    builder: (context, supportsImages) => ShivInputComposer(
+                      isStreaming: isStreaming,
+                      supportsImages: supportsImages,
+                      onModelSheetClosed: () => _imageSupport.refresh(),
+                      onSend: (text, manasIds, images) =>
+                          context.read<ShivAIBloc>().add(
+                            ShivAIEvent.sendMessage(
+                              text,
+                              manasIds: manasIds,
+                              images: images,
+                            ),
+                          ),
+                      onStop: () => context.read<ShivAIBloc>().add(
+                        const ShivAIEvent.stopStreaming(),
+                      ),
+                    ),
+                  ),
+                ],
               ), // close Builder
             ),
           ),
@@ -209,7 +229,9 @@ class _ShivChatHeader extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.06),
             blurRadius: 32,
             offset: const Offset(0, 12),
           ),
@@ -279,7 +301,8 @@ class _HeaderIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: child ??
+          child:
+              child ??
               (assetPath != null
                   ? SvgPicture.asset(
                       assetPath!,
@@ -320,7 +343,9 @@ class _EmptyChat extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: DropIcon(

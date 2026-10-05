@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/core/error/failures.dart';
@@ -58,11 +59,13 @@ class LlmRepositoryImpl implements LlmRepository {
     required String message,
     String? systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    List<Uint8List> images = const [],
   }) =>
       _active.sendChat(
         message: message,
         systemInstruction: systemInstruction,
         cleanHistory: cleanHistory,
+        images: images,
       );
 
   @override
@@ -159,6 +162,7 @@ class LlmRepositoryImpl implements LlmRepository {
               id: entity.modelId.name,
               displayName: entity.modelId.name,
               backend: LlmBackendType.localGemma,
+              supportsImages: entity.modelId.supportsImages,
             ));
           });
         case LlmBackendType.uniunCloud:

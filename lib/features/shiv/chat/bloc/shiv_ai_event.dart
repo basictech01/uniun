@@ -29,6 +29,9 @@ abstract class ShivAIEvent with _$ShivAIEvent {
   const factory ShivAIEvent.sendMessage(
     String text, {
     @Default(<String>[]) List<String> manasIds,
+
+    /// Photos sent with the message; empty for a text-only turn.
+    @Default(<Uint8List>[]) List<Uint8List> images,
   }) = _SendMessage;
 
   /// User tapped stop during a streaming response — cancel the native stream

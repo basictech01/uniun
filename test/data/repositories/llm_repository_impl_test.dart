@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -273,6 +275,7 @@ void main() {
             message: any(named: 'message'),
             systemInstruction: any(named: 'systemInstruction'),
             cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
           )).thenAnswer((_) => Stream.fromIterable(['a', 'b']));
 
       final tokens = await repo
@@ -284,6 +287,27 @@ void main() {
             message: 'hi',
             systemInstruction: 'sys',
             cleanHistory: [('q', 'a')],
+            images: const [],
+          )).called(1);
+    });
+
+    test('sendChat passes the images to the active backend', () async {
+      final photo = Uint8List.fromList([9, 8, 7]);
+      when(() => prefs.activeBackend).thenReturn(LlmBackendType.localGemma);
+      when(() => local.sendChat(
+            message: any(named: 'message'),
+            systemInstruction: any(named: 'systemInstruction'),
+            cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
+          )).thenAnswer((_) => Stream.fromIterable(['ok']));
+
+      await repo.sendChat(message: 'what is this?', images: [photo]).toList();
+
+      verify(() => local.sendChat(
+            message: 'what is this?',
+            systemInstruction: null,
+            cleanHistory: const [],
+            images: [photo],
           )).called(1);
     });
 
@@ -392,6 +416,34 @@ void main() {
         expect(info?.id, 'deepseekR1');
         expect(info?.backend, LlmBackendType.localGemma);
       });
+    });
+
+    test('a vision model reports it can take images; a text-only one does not',
+        () async {
+      when(() => prefs.activeBackend).thenReturn(LlmBackendType.localGemma);
+      for (final (id, expected) in [
+        (AIModelId.gemma4E2b, true),
+        (AIModelId.gemma4E4b, true),
+        (AIModelId.qwen25_05b, false),
+        (AIModelId.deepseekR1, false),
+      ]) {
+        when(() => localCatalog.getActiveModel())
+            .thenAnswer((_) async => Right(_entry(id)));
+
+        final info = (await repo.getActiveModel()).getOrElse(() => null);
+
+        expect(info?.supportsImages, expected, reason: '$id');
+      }
+    });
+
+    test('a cloud model is never offered image input yet', () async {
+      when(() => prefs.activeBackend).thenReturn(LlmBackendType.uniunCloud);
+      when(() => prefs.activeCloudModelId).thenReturn('claude-sonnet-5');
+
+      final info = (await repo.getActiveModel()).getOrElse(() => null);
+
+      expect(info?.supportsImages, isFalse,
+          reason: 'the gateway does not take images, so the button stays away');
     });
 
     test('local backend, catalog failure — surfaces as Left', () async {
