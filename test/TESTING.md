@@ -389,6 +389,19 @@ because the models are Git-LFS assets CI does not check out. Run them by hand:
 flutter test integration_test/all_tests.dart -d <device-id>
 ```
 
+**Model reuse (no re-download per run).** `flutter test` uninstalls the app, taking
+a downloaded model with it. Push the model once to `/data/local/tmp/uniun_test/`
+(survives the uninstall), and a test calls `provisionTestModel(AIModelId.…)` from
+`integration_test/support/test_model.dart` to install it from there:
+
+```
+scripts/device_test.sh push-model Qwen3-0.6B.litertlm   # once per model
+scripts/device_test.sh run [integration_test/<file>]    # keeps the screen awake
+```
+
+`run` keeps the screen on and unlocked for the whole run (a sleeping screen runs
+the app on slow cores, several times slower) and restores the setting after.
+
 Adding one means adding an import + `main()` call to `integration_test/all_tests.dart`
 — that list is the source of truth. **Never gate a device test on a silent
 `return`** when the thing it needs ships with the app: `EmbeddingService.embed`

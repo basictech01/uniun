@@ -48,7 +48,10 @@ import 'package:uniun/core/enum/gana_output_type.dart';
 import 'package:uniun/core/enum/gana_run_status.dart';
 import 'package:uniun/core/enum/gana_trigger_mode.dart';
 import 'package:uniun/data/models/event_queue_model.dart';
+import 'package:uniun/domain/entities/ai_model/ai_model_entity.dart';
 import 'package:uniun/domain/usecases/ai_model_usecases.dart';
+
+import 'support/test_model.dart';
 import 'package:uniun/data/models/gana_model.dart';
 import 'package:uniun/data/models/gana_run_model.dart';
 import 'package:uniun/domain/repositories/user_repository.dart';
@@ -71,7 +74,8 @@ void main() {
     // persisted preference + on-disk file — see the file header.
     await getIt<GetActiveAIModelUseCase>().call();
 
-    if (!FlutterGemma.hasActiveModel()) {
+    if (!FlutterGemma.hasActiveModel() &&
+        !await provisionTestModel(AIModelId.qwen25_05b)) {
       // ignore: avoid_print
       print('SKIP: no active on-device model — open Shiv → Select AI model → '
           'download one first');
