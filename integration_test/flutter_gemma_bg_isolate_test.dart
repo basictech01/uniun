@@ -54,6 +54,9 @@ import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:uniun/domain/entities/ai_model/ai_model_entity.dart';
+
+import 'support/test_model.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +71,8 @@ void main() {
           'BackgroundIsolateBinaryMessenger. Background Ganas cannot ship '
           'on this platform.',
     );
+
+    await provisionTestModel(AIModelId.gemma4E2b);
 
     final replyPort = ReceivePort();
     await Isolate.spawn(

@@ -52,7 +52,10 @@ import 'package:uniun/data/datasources/app_settings_store.dart';
 import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 import 'package:uniun/data/datasources/llm/inference_scheduler.dart';
 import 'package:uniun/data/datasources/llm/local_llm_runner.dart';
+import 'package:uniun/domain/entities/ai_model/ai_model_entity.dart';
 import 'package:uniun/domain/entities/llm/llm_task_kind.dart';
+
+import 'support/test_model.dart';
 import 'package:uniun/domain/repositories/ai_model_repository.dart';
 
 void main() {
@@ -85,7 +88,8 @@ void main() {
     'gentle model switch waits for a real generation to finish, forced '
     'switch preempts it immediately',
     (tester) async {
-      if (!FlutterGemma.hasActiveModel()) {
+      if (!FlutterGemma.hasActiveModel() &&
+          !await provisionTestModel(AIModelId.gemma4E2b)) {
         // ignore: avoid_print
         print('SKIP: no active model on device — install one via Shiv first');
         return;
@@ -135,7 +139,9 @@ void main() {
             cancel,
             maxTokens: 400,
           );
-          order.add('nataraj2');
+          // A preempted run unwinds before the switch runs; only a finished
+          // one counts as "completed after the switch".
+          if (!cancel.isCancelled) order.add('nataraj2');
           return r;
         },
       );

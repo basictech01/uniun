@@ -12,6 +12,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uniun/data/datasources/app_settings_store.dart';
 import 'package:uniun/domain/entities/ai_model/ai_model_entity.dart';
@@ -50,8 +51,18 @@ Future<bool> provisionTestModel(AIModelId id) async {
 
   // Always (re)register from the pushed file: `isModelInstalled` can stay true
   // from a previous run while the plugin has lost the active-model link.
-  final file = File(p.join(kTestModelDir, filename));
-  if (file.existsSync()) {
+  final pushed = File(p.join(kTestModelDir, filename));
+  if (pushed.existsSync()) {
+    // Copied into the app folder, where flutter_gemma restores a model from in
+    // every isolate; a path outside it is only known to the isolate that
+    // registered it. Kept between runs when the app is not uninstalled.
+    final file = File(
+      p.join((await getApplicationDocumentsDirectory()).path, filename),
+    );
+    if (!file.existsSync() || file.lengthSync() != pushed.lengthSync()) {
+      showTestScreen('UNIUN test starting — copying ${id.name} (one time)…');
+      await pushed.copy(file.path);
+    }
     await FlutterGemma.installModel(
       modelType: _modelType(id),
       fileType: filename.endsWith('.task')
