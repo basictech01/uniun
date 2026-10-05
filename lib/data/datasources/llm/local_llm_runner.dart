@@ -202,15 +202,24 @@ class AIModelRunner {
             vision: images.isNotEmpty,
           );
           _scheduler.notifyLoadedModel(_activeModelIdName);
-          chat = await model.openChat(
-            temperature: 0.8,
-            topK: 40,
-            tokenBuffer: 512,
-            modelType: params?.modelType,
-            isThinking: params?.isThinking ?? false,
-            // Unset for a text turn, exactly as before images existed.
-            supportImage: images.isEmpty ? null : true,
-          );
+          // A `.litertlm` engine takes images only on its single session
+          // (`createChat`); `openChat`'s concurrent sessions reject them.
+          chat = images.isEmpty
+              ? await model.openChat(
+                  temperature: 0.8,
+                  topK: 40,
+                  tokenBuffer: 512,
+                  modelType: params?.modelType,
+                  isThinking: params?.isThinking ?? false,
+                )
+              : await model.createChat(
+                  temperature: 0.8,
+                  topK: 40,
+                  tokenBuffer: 512,
+                  modelType: params?.modelType,
+                  isThinking: params?.isThinking ?? false,
+                  supportImage: true,
+                );
 
           final prompt = _composePrompt(
             systemInstruction: systemInstruction,

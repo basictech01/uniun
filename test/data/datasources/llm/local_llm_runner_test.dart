@@ -433,6 +433,18 @@ void main() {
             tokenBuffer: any(named: 'tokenBuffer'),
             modelType: any(named: 'modelType'),
             isThinking: any(named: 'isThinking'),
+          ),
+        ).thenAnswer((i) async {
+          onOpenChat(i);
+          return chat;
+        });
+        when(
+          () => model.createChat(
+            temperature: any(named: 'temperature'),
+            topK: any(named: 'topK'),
+            tokenBuffer: any(named: 'tokenBuffer'),
+            modelType: any(named: 'modelType'),
+            isThinking: any(named: 'isThinking'),
             supportImage: any(named: 'supportImage'),
           ),
         ).thenAnswer((i) async {
@@ -451,7 +463,7 @@ void main() {
           );
           final chat = chatReturning(const [TextResponse('ok')]);
           when(
-            () => model.openChat(
+            () => model.createChat(
               temperature: any(named: 'temperature'),
               topK: any(named: 'topK'),
               tokenBuffer: any(named: 'tokenBuffer'),
@@ -514,8 +526,7 @@ void main() {
             tokenBuffer: any(named: 'tokenBuffer'),
             modelType: any(named: 'modelType'),
             isThinking: any(named: 'isThinking'),
-            supportImage: any(named: 'supportImage'),
-          ),
+            ),
         ).thenAnswer((i) async {
           chatSupportImage = i.namedArguments[#supportImage] as bool?;
           return chat;
