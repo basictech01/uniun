@@ -88,7 +88,14 @@ class _ShivInputComposerState extends State<ShivInputComposer> {
   }
 
   Future<void> _attach() async {
-    final bytes = await widget.pickImage();
+    Uint8List? bytes;
+    try {
+      bytes = await widget.pickImage();
+    } catch (_) {
+      // Photo access denied or the picker failed: nothing is attached, and the
+      // message can still be sent as text.
+      return;
+    }
     if (bytes == null || !mounted) return;
     setState(() => _image = bytes);
   }

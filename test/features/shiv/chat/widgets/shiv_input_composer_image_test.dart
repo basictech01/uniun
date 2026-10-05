@@ -106,6 +106,19 @@ void main() {
       expect(find.byType(Image), findsNothing);
     });
 
+    testWidgets('a picker that fails (no photo access) attaches nothing and '
+        'does not crash', (t) async {
+      await t.pumpWidget(
+        host(supportsImages: true, pick: () async => throw Exception('denied')),
+      );
+
+      await t.tap(find.byIcon(Icons.image_outlined));
+      await t.pump();
+
+      expect(find.byType(Image), findsNothing);
+      expect(t.takeException(), isNull);
+    });
+
     testWidgets('the remove button takes it off again', (t) async {
       await t.pumpWidget(host(supportsImages: true));
       await t.tap(find.byIcon(Icons.image_outlined));
