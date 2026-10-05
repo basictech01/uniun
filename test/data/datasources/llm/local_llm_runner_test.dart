@@ -538,8 +538,8 @@ void main() {
         expect(sent.hasImage, isFalse);
       });
 
-      test('a cached text-only model is closed and re-opened for the first '
-          'image turn, then kept for the next', () async {
+      test('the first image turn asks the plugin for a vision model and leaves '
+          'the rebuild to it', () async {
         final model = visionModel((_) {});
 
         await runner.sendAndStream('text', systemInstruction: 's').toList();
@@ -554,7 +554,7 @@ void main() {
             )
             .toList();
 
-        verify(() => model.close()).called(1);
+        verifyNever(() => model.close());
         verify(
           () => gateway.getActiveModel(
             maxTokens: any(named: 'maxTokens'),

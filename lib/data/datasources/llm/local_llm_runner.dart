@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart' hide CancelToken;
@@ -72,9 +71,10 @@ class AIModelRunner {
 
   /// Open the active model, falling back GPU → CPU on engine-creation failure.
   ///
-  /// With [vision] the model is opened to accept images — closing a cached
-  /// text-only one first, which costs an engine re-create (seconds, once). A
-  /// vision model is then kept for later turns until the model changes.
+  /// With [vision] the model is opened to accept images; flutter_gemma
+  /// rebuilds a cached text-only engine itself when `supportImage` differs
+  /// (seconds, once). A vision model is then kept for later turns until the
+  /// model changes.
   Future<InferenceModel> _openActiveModel(
     int maxTokens, {
     bool vision = false,
@@ -84,9 +84,6 @@ class AIModelRunner {
       _backendForModel = activeId;
       _backend = preferredLlmBackend;
       _modelHasVision = false;
-    }
-    if (vision && !_modelHasVision) {
-      await _resetModel();
     }
     final wantVision = vision || _modelHasVision;
     try {
