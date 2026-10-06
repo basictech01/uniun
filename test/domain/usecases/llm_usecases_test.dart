@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -81,6 +83,7 @@ void main() {
             message: any(named: 'message'),
             systemInstruction: any(named: 'systemInstruction'),
             cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
           )).thenAnswer((_) => Stream.fromIterable(['a', 'b']));
 
       final tokens = await SendChatStreamUseCase(llmRepo)
@@ -96,6 +99,7 @@ void main() {
             message: 'hi',
             systemInstruction: 'sys',
             cleanHistory: [('q', 'a')],
+            images: const [],
           )).called(1);
     });
 
@@ -105,6 +109,7 @@ void main() {
             message: any(named: 'message'),
             systemInstruction: any(named: 'systemInstruction'),
             cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
           )).thenAnswer((_) => const Stream.empty());
 
       await SendChatStreamUseCase(llmRepo)
@@ -115,6 +120,28 @@ void main() {
             message: 'hi',
             systemInstruction: null,
             cleanHistory: const [],
+            images: const [],
+          )).called(1);
+    });
+
+    test('the images of a turn reach the repository unchanged', () async {
+      final photo = Uint8List.fromList([1, 2, 3]);
+      when(() => llmRepo.sendChat(
+            message: any(named: 'message'),
+            systemInstruction: any(named: 'systemInstruction'),
+            cleanHistory: any(named: 'cleanHistory'),
+            images: any(named: 'images'),
+          )).thenAnswer((_) => const Stream.empty());
+
+      await SendChatStreamUseCase(llmRepo)
+          .call(SendChatStreamInput(message: 'what is this?', images: [photo]))
+          .toList();
+
+      verify(() => llmRepo.sendChat(
+            message: 'what is this?',
+            systemInstruction: null,
+            cleanHistory: const [],
+            images: [photo],
           )).called(1);
     });
   });

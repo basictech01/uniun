@@ -15,6 +15,17 @@ Device integration tests no longer download an AI model each run. `flutter test`
 - **Not verified**: the whole `all_tests.dart` suite in one go; the "test starting" screen was never looked at (only that it does not break the run); `scheduler_model_switch_test` failed once in ~2 s straight after another test and passed on the next run, cause not found; its second test needs two models; the cloud device tests still need an API key.
 - **Not done from #88**: more device tests (only the model ones were moved over), and a CI-style runner.
 
+## 2026-10-05 — image input in Shiv chat (first slice) — work in progress
+
+A Shiv chat message can carry one photo when the active model reads images. Which models: `AIModelId.supportsImages` (the Gemma 4 pair only — Qwen3 0.6B and DeepSeek R1 have no vision encoder, per flutter_gemma 1.8.3's model table), carried to the UI as `LlmModelInfo.supportsImages`; cloud models report false until the gateway takes images.
+
+- **UI**: an attach button in `ShivInputComposer`, present only for a vision model (`ChatImageSupportCubit` re-reads the active model on open and after the model sheet closes); gallery pick downscaled to 1024 px by `image_picker`; a thumbnail with a remove button; sent with the next message, then cleared. A photo is dropped, not sent, if the model changed to a text-only one after it was attached, and a photo with no text does not send.
+- **Engine**: vision is fixed when the engine is created (`getActiveModel(supportImage, maxNumImages)`), so the first image turn asks flutter_gemma for a vision model, which rebuilds a cached text-only engine itself (seconds, once); the vision model is then kept for text turns until the model changes. Image turns use `createChat` — a `.litertlm` engine rejects images on `openChat`'s concurrent sessions (found on a device, not by the unit tests). Text turns are unchanged: `openChat`, `supportImage` unset.
+- **Verified**: unit/widget tests at every layer (flag, cubit, composer, bloc, use case, repository, data source, runner) with the plugin behind its gateway fake; each of ten deliberate breaks turned a test red (the one that slipped, the data source dropping images, got a test).
+- **Verified on a phone**: `integration_test/chat_image_turn_test.dart` on Gemma 4 E2B — a solid-red image is answered "Red", and a text turn after it works.
+- **Not verified**: Gemma 4 E4B; prefill time and memory with a real photo; whether the engine re-create on the first image turn is acceptable (not timed).
+- **Not built**: the photo is not shown in the sent bubble or stored in the conversation (it lives for the turn); camera capture; more than one image; how image tokens count against the prompt budget (RAG context is added as for any turn).
+
 ## Open items carried into v3.0.0
 
 The detailed entries up to v3.0.0 were cleared when it shipped; they remain in git history

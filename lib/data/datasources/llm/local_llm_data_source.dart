@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/core/error/failures.dart';
@@ -63,11 +64,13 @@ class LocalLlmDataSource implements LlmDataSource {
     required String message,
     String? systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    List<Uint8List> images = const [],
   }) {
     return _runner.sendAndStream(
       message,
       systemInstruction: systemInstruction ?? '',
       cleanHistory: cleanHistory,
+      images: images,
     );
   }
 
@@ -128,6 +131,7 @@ class LocalLlmDataSource implements LlmDataSource {
                 id: m.modelId.name,
                 displayName: _displayNameForLocal(m.modelId),
                 backend: LlmBackendType.localGemma,
+                supportsImages: m.modelId.supportsImages,
               ))
           .toList();
       return Right(infos);

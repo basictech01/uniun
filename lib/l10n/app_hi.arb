@@ -573,6 +573,8 @@
   "modelPickerManageLocalCta": "डिवाइस पर मॉडल प्रबंधित करें",
   "modelPickerConnectCloudCta": "एक क्लाउड प्रदाता कनेक्ट करें",
   "modelPickerNoModels": "कोई मॉडल उपलब्ध नहीं।",
+  "chatInputAttachImageTooltip": "छवि जोड़ें",
+  "chatInputRemoveImageTooltip": "छवि हटाएँ",
   "chatInputPickModelTooltip": "मॉडल चुनें",
   "followActionSuccess": "अब फ़ॉलो कर रहे हैं।",
   "drawerFollowingSectionTitle": "फ़ॉलो किए जा रहे",

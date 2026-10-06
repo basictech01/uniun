@@ -3566,6 +3566,18 @@ abstract class AppLocalizations {
   /// **'No models available.'**
   String get modelPickerNoModels;
 
+  /// Tooltip on the button in Shiv's chat input that attaches a photo to the message; shown only when the active AI model can read images
+  ///
+  /// In en, this message translates to:
+  /// **'Attach an image'**
+  String get chatInputAttachImageTooltip;
+
+  /// Tooltip on the button that removes the photo attached to the chat message being written
+  ///
+  /// In en, this message translates to:
+  /// **'Remove image'**
+  String get chatInputRemoveImageTooltip;
+
   /// Tooltip on the + icon in the chat input that opens the model picker
   ///
   /// In en, this message translates to:

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dartz/dartz.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/entities/llm/llm_backend_type.dart';
@@ -45,6 +46,7 @@ abstract class LlmRepository {
     required String message,
     String? systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    List<Uint8List> images = const [],
   });
 
   // ── One-shot work ───────────────────────────────────────────────────────

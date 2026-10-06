@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart' hide CancelToken;
@@ -406,6 +407,193 @@ void main() {
           verify(() => chat.addQueryChunk(captureAny())).captured.last
               as Message;
       expect(sent.isUser, isFalse);
+    });
+
+    group('image turns', () {
+      final photo = Uint8List.fromList([1, 2, 3, 4]);
+
+      /// A model whose chat answers 'ok', opened through [gateway].
+      _MockInferenceModel visionModel(void Function(Invocation) onOpenChat) {
+        when(() => gateway.hasActiveModel()).thenReturn(true);
+        final model = _MockInferenceModel();
+        when(
+          () => gateway.getActiveModel(
+            maxTokens: any(named: 'maxTokens'),
+            preferredBackend: any(named: 'preferredBackend'),
+            supportImage: any(named: 'supportImage'),
+            maxNumImages: any(named: 'maxNumImages'),
+          ),
+        ).thenAnswer((_) async => model);
+        when(() => model.close()).thenAnswer((_) async {});
+        final chat = chatReturning(const [TextResponse('ok')]);
+        when(
+          () => model.openChat(
+            temperature: any(named: 'temperature'),
+            topK: any(named: 'topK'),
+            tokenBuffer: any(named: 'tokenBuffer'),
+            modelType: any(named: 'modelType'),
+            isThinking: any(named: 'isThinking'),
+          ),
+        ).thenAnswer((i) async {
+          onOpenChat(i);
+          return chat;
+        });
+        when(
+          () => model.createChat(
+            temperature: any(named: 'temperature'),
+            topK: any(named: 'topK'),
+            tokenBuffer: any(named: 'tokenBuffer'),
+            modelType: any(named: 'modelType'),
+            isThinking: any(named: 'isThinking'),
+            supportImage: any(named: 'supportImage'),
+          ),
+        ).thenAnswer((i) async {
+          onOpenChat(i);
+          return chat;
+        });
+        return model;
+      }
+
+      test(
+        'the message carries the image, and the chat is opened for it',
+        () async {
+          bool? chatSupportImage;
+          final model = visionModel(
+            (i) => chatSupportImage = i.namedArguments[#supportImage] as bool?,
+          );
+          final chat = chatReturning(const [TextResponse('ok')]);
+          when(
+            () => model.createChat(
+              temperature: any(named: 'temperature'),
+              topK: any(named: 'topK'),
+              tokenBuffer: any(named: 'tokenBuffer'),
+              modelType: any(named: 'modelType'),
+              isThinking: any(named: 'isThinking'),
+              supportImage: any(named: 'supportImage'),
+            ),
+          ).thenAnswer((i) async {
+            chatSupportImage = i.namedArguments[#supportImage] as bool?;
+            return chat;
+          });
+
+          await runner
+              .sendAndStream(
+                'what is this?',
+                systemInstruction: 'sys',
+                images: [photo],
+              )
+              .toList();
+
+          final sent =
+              verify(() => chat.addQueryChunk(captureAny())).captured.last
+                  as Message;
+          expect(sent.hasImage, isTrue);
+          expect(sent.imageBytes, photo);
+          expect(chatSupportImage, isTrue);
+        },
+      );
+
+      test(
+        'the model is opened with its vision encoder for an image turn',
+        () async {
+          visionModel((_) {});
+
+          await runner
+              .sendAndStream('hi', systemInstruction: 's', images: [photo])
+              .toList();
+
+          verify(
+            () => gateway.getActiveModel(
+              maxTokens: any(named: 'maxTokens'),
+              preferredBackend: any(named: 'preferredBackend'),
+              supportImage: true,
+              maxNumImages: 1,
+            ),
+          ).called(1);
+        },
+      );
+
+      test('a text turn never turns vision on or sends an image', () async {
+        bool? chatSupportImage = true;
+        final model = visionModel(
+          (i) => chatSupportImage = i.namedArguments[#supportImage] as bool?,
+        );
+        final chat = chatReturning(const [TextResponse('ok')]);
+        when(
+          () => model.openChat(
+            temperature: any(named: 'temperature'),
+            topK: any(named: 'topK'),
+            tokenBuffer: any(named: 'tokenBuffer'),
+            modelType: any(named: 'modelType'),
+            isThinking: any(named: 'isThinking'),
+            ),
+        ).thenAnswer((i) async {
+          chatSupportImage = i.namedArguments[#supportImage] as bool?;
+          return chat;
+        });
+
+        await runner.sendAndStream('hi', systemInstruction: 's').toList();
+
+        verify(
+          () => gateway.getActiveModel(
+            maxTokens: any(named: 'maxTokens'),
+            preferredBackend: any(named: 'preferredBackend'),
+            supportImage: false,
+            maxNumImages: null,
+          ),
+        ).called(1);
+        expect(chatSupportImage, isNull);
+        final sent =
+            verify(() => chat.addQueryChunk(captureAny())).captured.last
+                as Message;
+        expect(sent.hasImage, isFalse);
+      });
+
+      test('the first image turn asks the plugin for a vision model and leaves '
+          'the rebuild to it', () async {
+        final model = visionModel((_) {});
+
+        await runner.sendAndStream('text', systemInstruction: 's').toList();
+        await runner
+            .sendAndStream('image', systemInstruction: 's', images: [photo])
+            .toList();
+        await runner
+            .sendAndStream(
+              'image again',
+              systemInstruction: 's',
+              images: [photo],
+            )
+            .toList();
+
+        verifyNever(() => model.close());
+        verify(
+          () => gateway.getActiveModel(
+            maxTokens: any(named: 'maxTokens'),
+            preferredBackend: any(named: 'preferredBackend'),
+            supportImage: true,
+            maxNumImages: 1,
+          ),
+        ).called(2);
+      });
+
+      test('a text turn after an image turn keeps the vision model', () async {
+        final model = visionModel((_) {});
+
+        await runner
+            .sendAndStream('image', systemInstruction: 's', images: [photo])
+            .toList();
+        await runner.sendAndStream('text', systemInstruction: 's').toList();
+
+        verifyNever(() => model.close());
+        verify(
+          () => gateway.getActiveModel(
+            maxTokens: any(named: 'maxTokens'),
+            preferredBackend: any(named: 'preferredBackend'),
+            supportImage: true,
+            maxNumImages: 1,
+          ),
+        ).called(2);
+      });
     });
 
     test('streams sanitized tokens in order and closes the chat', () async {

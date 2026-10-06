@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -365,6 +366,7 @@ class ShivAIBloc extends Bloc<ShivAIEvent, ShivAIState> {
           message: ragMsg.userMessage,
           systemInstruction: _systemInstruction,
           cleanHistory: cleanHistory,
+          images: event.images,
         ))
         .listen(
       (token) {

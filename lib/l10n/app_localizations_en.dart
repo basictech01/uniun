@@ -1946,6 +1946,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelPickerNoModels => 'No models available.';
 
   @override
+  String get chatInputAttachImageTooltip => 'Attach an image';
+
+  @override
+  String get chatInputRemoveImageTooltip => 'Remove image';
+
+  @override
   String get chatInputPickModelTooltip => 'Pick model';
 
   @override

@@ -2432,6 +2432,14 @@
   "@modelPickerNoModels": {
     "description": "Empty state shown in the model picker"
   },
+  "chatInputAttachImageTooltip": "Attach an image",
+  "@chatInputAttachImageTooltip": {
+    "description": "Tooltip on the button in Shiv's chat input that attaches a photo to the message; shown only when the active AI model can read images"
+  },
+  "chatInputRemoveImageTooltip": "Remove image",
+  "@chatInputRemoveImageTooltip": {
+    "description": "Tooltip on the button that removes the photo attached to the chat message being written"
+  },
   "chatInputPickModelTooltip": "Pick model",
   "@chatInputPickModelTooltip": {
     "description": "Tooltip on the + icon in the chat input that opens the model picker"

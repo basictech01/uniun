@@ -12,6 +12,19 @@ enum AIModelId {
   gemma4E4b,
 }
 
+/// What a catalog model can take as input, beyond text.
+///
+/// One place that says so, so the UI and the engine ask the same question
+/// instead of each guessing from a model's name. Of the four models UNIUN
+/// ships, only the Gemma 4 pair has a vision encoder (flutter_gemma 1.8.3);
+/// Qwen3 and DeepSeek R1 are text-only.
+extension AIModelIdCapabilities on AIModelId {
+  bool get supportsImages => switch (this) {
+    AIModelId.gemma4E2b || AIModelId.gemma4E4b => true,
+    AIModelId.qwen25_05b || AIModelId.deepseekR1 => false,
+  };
+}
+
 // ── Supporting enums ──────────────────────────────────────────────────────────
 
 enum AIModelTier { lite, balanced, performance, flagship }

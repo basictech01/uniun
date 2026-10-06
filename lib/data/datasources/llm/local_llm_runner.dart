@@ -64,18 +64,37 @@ class AIModelRunner {
   PreferredBackend _backend = preferredLlmBackend;
   AIModelId? _backendForModel;
 
+  /// Whether the cached [_activeModel] was opened with its vision encoder.
+  /// Vision is fixed when the engine is created, so a turn carrying an image
+  /// needs a model opened for it; text turns work on either kind.
+  bool _modelHasVision = false;
+
   /// Open the active model, falling back GPU → CPU on engine-creation failure.
-  Future<InferenceModel> _openActiveModel(int maxTokens) async {
+  ///
+  /// With [vision] the model is opened to accept images; flutter_gemma
+  /// rebuilds a cached text-only engine itself when `supportImage` differs
+  /// (seconds, once). A vision model is then kept for later turns until the
+  /// model changes.
+  Future<InferenceModel> _openActiveModel(
+    int maxTokens, {
+    bool vision = false,
+  }) async {
     final activeId = _settings.activeModelId;
     if (activeId != _backendForModel) {
       _backendForModel = activeId;
       _backend = preferredLlmBackend;
+      _modelHasVision = false;
     }
+    final wantVision = vision || _modelHasVision;
     try {
-      return _activeModel = await _gateway.getActiveModel(
+      final model = await _gateway.getActiveModel(
         maxTokens: maxTokens,
         preferredBackend: _backend,
+        supportImage: wantVision,
+        maxNumImages: wantVision ? 1 : null,
       );
+      _modelHasVision = wantVision;
+      return _activeModel = model;
     } catch (e) {
       if (_backend == PreferredBackend.cpu) rethrow;
       debugPrint('⚠️ GPU backend failed to open model ($e) — retrying on CPU');
@@ -83,10 +102,14 @@ class AIModelRunner {
       // so it would repeat the GPU attempt that just failed — on this open and
       // every later one for the same model.
       _backend = PreferredBackend.cpu;
-      return _activeModel = await _gateway.getActiveModel(
+      final model = await _gateway.getActiveModel(
         maxTokens: maxTokens,
         preferredBackend: PreferredBackend.cpu,
+        supportImage: wantVision,
+        maxNumImages: wantVision ? 1 : null,
       );
+      _modelHasVision = wantVision;
+      return _activeModel = model;
     }
   }
 
@@ -98,6 +121,7 @@ class AIModelRunner {
   Future<void> _resetModel() async {
     final m = _activeModel;
     _activeModel = null;
+    _modelHasVision = false;
     if (m == null) return;
     try {
       await m.close();
@@ -155,6 +179,7 @@ class AIModelRunner {
     String message, {
     required String systemInstruction,
     List<(String, String)> cleanHistory = const [],
+    List<Uint8List> images = const [],
   }) async* {
     if (!_gateway.hasActiveModel()) {
       throw StateError('No AI model is active. Please select a model first.');
@@ -172,15 +197,29 @@ class AIModelRunner {
         InferenceChat? chat;
         try {
           final params = _activeParams;
-          final model = await _openActiveModel(params?.maxTokens ?? 4096);
-          _scheduler.notifyLoadedModel(_activeModelIdName);
-          chat = await model.openChat(
-            temperature: 0.8,
-            topK: 40,
-            tokenBuffer: 512,
-            modelType: params?.modelType,
-            isThinking: params?.isThinking ?? false,
+          final model = await _openActiveModel(
+            params?.maxTokens ?? 4096,
+            vision: images.isNotEmpty,
           );
+          _scheduler.notifyLoadedModel(_activeModelIdName);
+          // A `.litertlm` engine takes images only on its single session
+          // (`createChat`); `openChat`'s concurrent sessions reject them.
+          chat = images.isEmpty
+              ? await model.openChat(
+                  temperature: 0.8,
+                  topK: 40,
+                  tokenBuffer: 512,
+                  modelType: params?.modelType,
+                  isThinking: params?.isThinking ?? false,
+                )
+              : await model.createChat(
+                  temperature: 0.8,
+                  topK: 40,
+                  tokenBuffer: 512,
+                  modelType: params?.modelType,
+                  isThinking: params?.isThinking ?? false,
+                  supportImage: true,
+                );
 
           final prompt = _composePrompt(
             systemInstruction: systemInstruction,
@@ -192,7 +231,11 @@ class AIModelRunner {
           // isUser stays false: we hand the plugin a complete prompt. With
           // true it appends ` /no_think` for Qwen3, landing after our `Shiv:`
           // cue, and the model copies that pattern into its reply (#220).
-          await chat.addQueryChunk(Message.text(text: prompt));
+          await chat.addQueryChunk(
+            images.isEmpty
+                ? Message.text(text: prompt)
+                : Message.withImage(text: prompt, imageBytes: images.first),
+          );
           final scrubber = _StopTokenScrubber();
           await for (final response in chat.generateChatResponseAsync()) {
             if (cancel.isCancelled) {

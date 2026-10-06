@@ -21,6 +21,8 @@ abstract class FlutterGemmaGateway {
   Future<InferenceModel> getActiveModel({
     required int maxTokens,
     PreferredBackend? preferredBackend,
+    bool supportImage = false,
+    int? maxNumImages,
   });
 
   Future<bool> isModelInstalled(String filename);
@@ -77,10 +79,14 @@ class FlutterGemmaGatewayImpl implements FlutterGemmaGateway {
   Future<InferenceModel> getActiveModel({
     required int maxTokens,
     PreferredBackend? preferredBackend,
+    bool supportImage = false,
+    int? maxNumImages,
   }) =>
       FlutterGemma.getActiveModel(
         maxTokens: maxTokens,
         preferredBackend: preferredBackend,
+        supportImage: supportImage,
+        maxNumImages: maxNumImages,
       );
 
   @override
