@@ -44,6 +44,7 @@ class _ManasMembershipSheetState extends State<ManasMembershipSheet> {
   bool _loading = true;
   List<ManasEntity> _all = const [];
   Set<String> _included = <String>{};
+  String? _loadedNoteId;
 
   @override
   void initState() {
@@ -51,17 +52,31 @@ class _ManasMembershipSheetState extends State<ManasMembershipSheet> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(covariant ManasMembershipSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.noteId != widget.noteId) {
+      setState(() {
+        _loading = true;
+        _included = <String>{};
+      });
+      _load();
+    }
+  }
+
   Future<void> _load() async {
+    final currentNoteId = widget.noteId;
     final listRes = await _getList.call();
     final all = listRes.fold<List<ManasEntity>>((_) => const [], (l) => l);
-    final memRes = await _getMemberships.call(widget.noteId);
+    final memRes = await _getMemberships.call(currentNoteId);
     final included =
         memRes.fold<Set<String>>((_) => const <String>{}, (l) => l.toSet());
-    if (!mounted) return;
+    if (!mounted || widget.noteId != currentNoteId) return;
     setState(() {
       _all = all;
       _included = included;
       _loading = false;
+      _loadedNoteId = currentNoteId;
     });
   }
 
@@ -80,248 +95,95 @@ class _ManasMembershipSheetState extends State<ManasMembershipSheet> {
     } else {
       await _add.call(link);
     }
-    // Refresh the cached Manas list so each row's "N notes" subtitle reflects
-    // the membership change immediately (without close/reopen).
-    if (!mounted) return;
-    final listRes = await _getList.call();
-    final fresh =
-        listRes.fold<List<ManasEntity>>((_) => _all, (l) => l);
-    if (!mounted) return;
-    setState(() => _all = fresh);
-  }
-
-  Future<void> _openCreateForm() async {
-    final saved = await context.pushNamed<bool>(AppRoutes.brahmaManasForm);
-    if (saved == true && mounted) {
-      setState(() => _loading = true);
-      await _load();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        constraints: const BoxConstraints(maxHeight: 500),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.addToManas,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const Divider(),
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: DropLoadingIndicator()),
+              )
+            else if (_all.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Icon(Icons.man_3_rounded,
-                        color: Theme.of(context).colorScheme.primary, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        l10n.manasMembershipSheetTitle,
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text(
+                    l10n.noManasYet,
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _all.length,
+                  itemBuilder: (context, index) {
+                    final manas = _all[index];
+                    final included = _included.contains(manas.manasId);
+                    final iconData = ManasIcons.resolve(manas.iconName);
+
+                    return CheckboxListTile(
+                      value: included,
+                      onChanged: (_) => _toggle(manas),
+                      secondary: Icon(iconData, color: colorScheme.primary),
+                      title: Text(
+                        manas.name,
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
                         ),
                       ),
-                    ),
-                  ],
+                      subtitle: manas.description.isNotEmpty
+                          ? Text(
+                              manas.description,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            )
+                          : null,
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 12),
-              Flexible(
-                child: _loading
-                    ? Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40),
-                        child: Center(
-                          child: SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: DropLoadingIndicator(
-                              size: 22,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      )
-                    : _all.isEmpty
-                        ? _Empty(onCreate: _openCreateForm)
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            itemCount: _all.length,
-                            itemBuilder: (_, i) {
-                              final m = _all[i];
-                              final included =
-                                  _included.contains(m.manasId);
-                              return _Row(
-                                manas: m,
-                                included: included,
-                                onTap: () => _toggle(m),
-                              );
-                            },
-                          ),
-              ),
-              if (!_loading && _all.isNotEmpty)
-                Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                  child: TextButton.icon(
-                    onPressed: _openCreateForm,
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: Text(l10n.manasMembershipSheetCreate),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.manas,
-    required this.included,
-    required this.onTap,
-  });
-
-  final ManasEntity manas;
-  final bool included;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: included
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
-                    : Theme.of(context).colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(9),
-              ),
-              child: Icon(
-                ManasIcons.byName(manas.iconName),
-                size: 18,
-                color: included
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    manas.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: included
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    manas.noteCount == 0
-                        ? l10n.manasTileEmptyHint
-                        : l10n.manasDrawerTileNoteCount(manas.noteCount),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              included
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              color: included ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
-              size: 22,
-            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({required this.onCreate});
-  final VoidCallback onCreate;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.manasMembershipSheetEmptyTitle,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            l10n.manasMembershipSheetEmptyBody,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: onCreate,
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l10n.manasMembershipSheetEmptyCta),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
-          ),
-        ],
       ),
     );
   }
