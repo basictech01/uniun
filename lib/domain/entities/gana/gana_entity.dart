@@ -49,6 +49,11 @@ abstract class GanaEntity with _$GanaEntity {
     DateTime? lastProcessedCreated,
     DateTime? lastRunAt,
 
+    // Lifetime run counters (per device)
+    @Default(0) int runsSucceeded,
+    @Default(0) int runsFailed,
+    @Default(0) int runsSkipped,
+
     // Metadata
     required DateTime createdAt,
     required DateTime updatedAt,

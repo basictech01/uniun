@@ -16,6 +16,7 @@
 
 import 'package:integration_test/integration_test.dart';
 
+import 'gana_dashboard_e2e_test.dart' as gana_dashboard_e2e_test;
 import 'chat_image_turn_test.dart' as chat_image_turn_test;
 import 'cloud_concurrent_calls_test.dart' as cloud_concurrent_calls_test;
 import 'flutter_gemma_bg_isolate_test.dart' as flutter_gemma_bg_isolate_test;
@@ -32,6 +33,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   flutter_gemma_bg_isolate_test.main();
   chat_image_turn_test.main();
+  gana_dashboard_e2e_test.main();
   scheduler_preemption_test.main();
   scheduler_model_switch_test.main();
   gana_cloud_pipeline_test.main();

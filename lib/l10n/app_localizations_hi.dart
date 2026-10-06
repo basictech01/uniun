@@ -2596,6 +2596,131 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String get ganaDashboardTitle => 'डैशबोर्ड';
+
+  @override
+  String get ganaDashboardActive => 'सक्रिय';
+
+  @override
+  String get ganaDashboardDone => 'पूर्ण';
+
+  @override
+  String get ganaDashboardFailed => 'विफल';
+
+  @override
+  String get ganaDashboardSkipped => 'छोड़े गए';
+
+  @override
+  String get ganaDashboardAttentionTitle => 'ध्यान चाहिए';
+
+  @override
+  String get ganaDashboardGanasTitle => 'आपके गण';
+
+  @override
+  String get ganaDashboardActivityTitle => 'हाल की गतिविधि';
+
+  @override
+  String get ganaDashboardActivityEmpty =>
+      'अभी कोई रन नहीं। आपके गण काम करेंगे तो वे यहाँ दिखेंगे।';
+
+  @override
+  String ganaDashboardRate(int percent) {
+    return '$percent% सफल';
+  }
+
+  @override
+  String ganaStatsCounts(int done, int failed, int skipped) {
+    return '$done पूर्ण · $failed विफल · $skipped छोड़े गए';
+  }
+
+  @override
+  String get ganaDashboardFootnote =>
+      'कुल संख्या इस संस्करण के बाद के रन गिनती है। हाल की गतिविधि में हर गण के पिछले 10 रन रहते हैं।';
+
+  @override
+  String get ganaErrNoIdentityTitle => 'कोई सक्रिय पहचान नहीं';
+
+  @override
+  String get ganaErrNoIdentityHint =>
+      'साइन इन करें ताकि गण अपना नोट हस्ताक्षर करके प्रकाशित कर सके।';
+
+  @override
+  String get ganaErrPublishTitle => 'नोट प्रकाशित नहीं हो सका';
+
+  @override
+  String get ganaErrPublishHint =>
+      'गण ने नोट लिखा पर उसे भेजना विफल रहा। अगले ट्रिगर पर फिर कोशिश होगी।';
+
+  @override
+  String get ganaErrNetworkTitle => 'नेटवर्क की समस्या';
+
+  @override
+  String get ganaErrNetworkHint =>
+      'कनेक्शन टूटा या समय समाप्त हो गया। इंटरनेट जाँचें; अगले ट्रिगर पर फिर कोशिश होगी।';
+
+  @override
+  String get ganaErrModelTitle => 'AI मॉडल में समस्या';
+
+  @override
+  String get ganaErrModelHint =>
+      'लिखते समय मॉडल विफल हुआ। Shiv में मॉडल जाँचें, फिर दोबारा कोशिश करें।';
+
+  @override
+  String get ganaErrOtherTitle => 'कुछ गड़बड़ हो गई';
+
+  @override
+  String get ganaErrOtherHint => 'रन एक अप्रत्याशित त्रुटि के साथ रुक गया।';
+
+  @override
+  String get ganaRunTechnicalDetail => 'तकनीकी विवरण';
+
+  @override
+  String get ganaRunOutputLabel => 'प्रकाशित किया गया नोट';
+
+  @override
+  String get ganaRunOutputMissing => 'यह नोट अब इस डिवाइस पर नहीं है।';
+
+  @override
+  String get ganaRunOpenNote => 'नोट खोलें';
+
+  @override
+  String ganaRunInputCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count संदेश पढ़े',
+      one: '1 संदेश पढ़ा',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ganaSkipNoActiveModel =>
+      'कोई AI मॉडल सक्रिय नहीं है। Shiv में एक चुनें।';
+
+  @override
+  String get ganaSkipModelMismatch =>
+      'सक्रिय मॉडल वह नहीं है जिससे यह गण जुड़ा है।';
+
+  @override
+  String get ganaSkipNoNewInput => 'पढ़ने के लिए कुछ नया नहीं था।';
+
+  @override
+  String get ganaSkipModelSwapped =>
+      'रन के बीच मॉडल बदल गया, इसलिए यह रन रद्द हुआ।';
+
+  @override
+  String get ganaSkipNoopReturned => 'मॉडल ने चुप रहना चुना।';
+
+  @override
+  String get ganaSkipMaxOutputs =>
+      'यह अपने अधिकतम नोट तक पहुँच गया और खुद बंद हो गया।';
+
+  @override
+  String get ganaSkipCloudUnavailable =>
+      'UNIUN Cloud जुड़ा नहीं है, या कोई क्लाउड मॉडल सेट नहीं है।';
+
+  @override
   String get ganaDrawerEmptyTitle => 'अभी तक कोई गण नहीं';
 
   @override

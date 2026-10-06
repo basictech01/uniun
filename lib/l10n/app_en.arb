@@ -3261,6 +3261,163 @@
       }
     }
   },
+  "ganaDashboardTitle": "Dashboard",
+  "@ganaDashboardTitle": {
+    "description": "Title of the Gana dashboard page"
+  },
+  "ganaDashboardActive": "Active",
+  "@ganaDashboardActive": {
+    "description": "Dashboard tile label: Ganas currently switched on"
+  },
+  "ganaDashboardDone": "Done",
+  "@ganaDashboardDone": {
+    "description": "Dashboard tile label: total successful runs"
+  },
+  "ganaDashboardFailed": "Failed",
+  "@ganaDashboardFailed": {
+    "description": "Dashboard tile label: total failed runs"
+  },
+  "ganaDashboardSkipped": "Skipped",
+  "@ganaDashboardSkipped": {
+    "description": "Dashboard tile label: total skipped runs"
+  },
+  "ganaDashboardAttentionTitle": "NEEDS ATTENTION",
+  "@ganaDashboardAttentionTitle": {
+    "description": "Section title listing Ganas whose last run failed"
+  },
+  "ganaDashboardGanasTitle": "YOUR GANAS",
+  "@ganaDashboardGanasTitle": {
+    "description": "Section title listing every Gana with its numbers"
+  },
+  "ganaDashboardActivityTitle": "RECENT ACTIVITY",
+  "@ganaDashboardActivityTitle": {
+    "description": "Section title for the latest runs across all Ganas"
+  },
+  "ganaDashboardActivityEmpty": "No runs yet. They show up here as your Ganas work.",
+  "@ganaDashboardActivityEmpty": {
+    "description": "Empty text of the recent activity section"
+  },
+  "ganaDashboardRate": "{percent}% succeeded",
+  "@ganaDashboardRate": {
+    "description": "Success rate of a Gana; {percent} is a whole number",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaStatsCounts": "{done} done · {failed} failed · {skipped} skipped",
+  "@ganaStatsCounts": {
+    "description": "Lifetime run counts of one Gana",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaDashboardFootnote": "Totals count runs since this version. Recent activity keeps the latest 10 runs per Gana.",
+  "@ganaDashboardFootnote": {
+    "description": "Footnote explaining what the dashboard numbers cover"
+  },
+  "ganaErrNoIdentityTitle": "No active identity",
+  "@ganaErrNoIdentityTitle": {
+    "description": "Failed-run title: no signed-in identity"
+  },
+  "ganaErrNoIdentityHint": "Sign in so the Gana can sign and publish its note.",
+  "@ganaErrNoIdentityHint": {
+    "description": "Failed-run hint: no signed-in identity"
+  },
+  "ganaErrPublishTitle": "Couldn't publish the note",
+  "@ganaErrPublishTitle": {
+    "description": "Failed-run title: publishing failed"
+  },
+  "ganaErrPublishHint": "The Gana wrote a note but sending it failed. It tries again on the next trigger.",
+  "@ganaErrPublishHint": {
+    "description": "Failed-run hint: publishing failed"
+  },
+  "ganaErrNetworkTitle": "Network problem",
+  "@ganaErrNetworkTitle": {
+    "description": "Failed-run title: connection or timeout error"
+  },
+  "ganaErrNetworkHint": "The connection dropped or timed out. Check your internet; it retries on the next trigger.",
+  "@ganaErrNetworkHint": {
+    "description": "Failed-run hint: connection or timeout error"
+  },
+  "ganaErrModelTitle": "The AI model had a problem",
+  "@ganaErrModelTitle": {
+    "description": "Failed-run title: model or engine error"
+  },
+  "ganaErrModelHint": "The model failed while writing. Check the model in Shiv, then try again.",
+  "@ganaErrModelHint": {
+    "description": "Failed-run hint: model or engine error"
+  },
+  "ganaErrOtherTitle": "Something went wrong",
+  "@ganaErrOtherTitle": {
+    "description": "Failed-run title: unrecognised error"
+  },
+  "ganaErrOtherHint": "The run stopped with an unexpected error.",
+  "@ganaErrOtherHint": {
+    "description": "Failed-run hint: unrecognised error"
+  },
+  "ganaRunTechnicalDetail": "Technical detail",
+  "@ganaRunTechnicalDetail": {
+    "description": "Label above the raw error text of a failed run"
+  },
+  "ganaRunOutputLabel": "NOTE IT PUBLISHED",
+  "@ganaRunOutputLabel": {
+    "description": "Label above the note a run published"
+  },
+  "ganaRunOutputMissing": "This note is no longer on this device.",
+  "@ganaRunOutputMissing": {
+    "description": "Shown when a run's published note was cleaned up"
+  },
+  "ganaRunOpenNote": "Open note",
+  "@ganaRunOpenNote": {
+    "description": "Button that opens the note a run published"
+  },
+  "ganaRunInputCount": "{count, plural, =1{Read 1 message} other{Read {count} messages}}",
+  "@ganaRunInputCount": {
+    "description": "How many input messages a run read",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaSkipNoActiveModel": "No AI model is active. Pick one in Shiv.",
+  "@ganaSkipNoActiveModel": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipModelMismatch": "The active model isn't the one this Gana is pinned to.",
+  "@ganaSkipModelMismatch": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipNoNewInput": "Nothing new to read.",
+  "@ganaSkipNoNewInput": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipModelSwapped": "The model changed mid-run, so this run was cancelled.",
+  "@ganaSkipModelSwapped": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipNoopReturned": "The model chose to stay silent.",
+  "@ganaSkipNoopReturned": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipMaxOutputs": "It reached its max notes and switched itself off.",
+  "@ganaSkipMaxOutputs": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipCloudUnavailable": "UNIUN Cloud isn't connected, or no cloud model is set.",
+  "@ganaSkipCloudUnavailable": {
+    "description": "Skip reason explanation"
+  },
   "ganaDrawerEmptyTitle": "No Ganas yet",
   "@ganaDrawerEmptyTitle": {
     "description": "Empty-state title in the Ganas section"

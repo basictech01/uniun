@@ -2578,6 +2578,131 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get ganaDashboardTitle => 'Dashboard';
+
+  @override
+  String get ganaDashboardActive => 'Active';
+
+  @override
+  String get ganaDashboardDone => 'Done';
+
+  @override
+  String get ganaDashboardFailed => 'Failed';
+
+  @override
+  String get ganaDashboardSkipped => 'Skipped';
+
+  @override
+  String get ganaDashboardAttentionTitle => 'NEEDS ATTENTION';
+
+  @override
+  String get ganaDashboardGanasTitle => 'YOUR GANAS';
+
+  @override
+  String get ganaDashboardActivityTitle => 'RECENT ACTIVITY';
+
+  @override
+  String get ganaDashboardActivityEmpty =>
+      'No runs yet. They show up here as your Ganas work.';
+
+  @override
+  String ganaDashboardRate(int percent) {
+    return '$percent% succeeded';
+  }
+
+  @override
+  String ganaStatsCounts(int done, int failed, int skipped) {
+    return '$done done · $failed failed · $skipped skipped';
+  }
+
+  @override
+  String get ganaDashboardFootnote =>
+      'Totals count runs since this version. Recent activity keeps the latest 10 runs per Gana.';
+
+  @override
+  String get ganaErrNoIdentityTitle => 'No active identity';
+
+  @override
+  String get ganaErrNoIdentityHint =>
+      'Sign in so the Gana can sign and publish its note.';
+
+  @override
+  String get ganaErrPublishTitle => 'Couldn\'t publish the note';
+
+  @override
+  String get ganaErrPublishHint =>
+      'The Gana wrote a note but sending it failed. It tries again on the next trigger.';
+
+  @override
+  String get ganaErrNetworkTitle => 'Network problem';
+
+  @override
+  String get ganaErrNetworkHint =>
+      'The connection dropped or timed out. Check your internet; it retries on the next trigger.';
+
+  @override
+  String get ganaErrModelTitle => 'The AI model had a problem';
+
+  @override
+  String get ganaErrModelHint =>
+      'The model failed while writing. Check the model in Shiv, then try again.';
+
+  @override
+  String get ganaErrOtherTitle => 'Something went wrong';
+
+  @override
+  String get ganaErrOtherHint => 'The run stopped with an unexpected error.';
+
+  @override
+  String get ganaRunTechnicalDetail => 'Technical detail';
+
+  @override
+  String get ganaRunOutputLabel => 'NOTE IT PUBLISHED';
+
+  @override
+  String get ganaRunOutputMissing => 'This note is no longer on this device.';
+
+  @override
+  String get ganaRunOpenNote => 'Open note';
+
+  @override
+  String ganaRunInputCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Read $count messages',
+      one: 'Read 1 message',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ganaSkipNoActiveModel =>
+      'No AI model is active. Pick one in Shiv.';
+
+  @override
+  String get ganaSkipModelMismatch =>
+      'The active model isn\'t the one this Gana is pinned to.';
+
+  @override
+  String get ganaSkipNoNewInput => 'Nothing new to read.';
+
+  @override
+  String get ganaSkipModelSwapped =>
+      'The model changed mid-run, so this run was cancelled.';
+
+  @override
+  String get ganaSkipNoopReturned => 'The model chose to stay silent.';
+
+  @override
+  String get ganaSkipMaxOutputs =>
+      'It reached its max notes and switched itself off.';
+
+  @override
+  String get ganaSkipCloudUnavailable =>
+      'UNIUN Cloud isn\'t connected, or no cloud model is set.';
+
+  @override
   String get ganaDrawerEmptyTitle => 'No Ganas yet';
 
   @override

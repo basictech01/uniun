@@ -22,7 +22,7 @@ case "${1:-}" in
   run)
     keep_awake
     trap 'adb shell svc power stayon false' EXIT
-    flutter test --no-uninstall "${2:-integration_test/all_tests.dart}"
+    flutter test --no-uninstall "${2:-integration_test/all_tests.dart}" "${@:3}"
     ;;
   *)
     echo "usage: $0 push-model <file> | run [test-file]" >&2

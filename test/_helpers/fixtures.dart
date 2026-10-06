@@ -12,9 +12,11 @@ import 'package:uniun/core/enum/note_type.dart';
 import 'package:uniun/core/enum/relay_status.dart';
 import 'package:uniun/core/notes/note_kinds.dart';
 import 'package:uniun/core/enum/gana_output_type.dart';
+import 'package:uniun/core/enum/gana_run_status.dart';
 import 'package:uniun/core/enum/gana_trigger_mode.dart';
 import 'package:uniun/domain/entities/dm/dm_conversation_entity.dart';
 import 'package:uniun/domain/entities/gana/gana_entity.dart';
+import 'package:uniun/domain/entities/gana/gana_run_entity.dart';
 import 'package:uniun/domain/entities/graph_edge/graph_edge_entity.dart';
 import 'package:uniun/domain/entities/group/group_entity.dart';
 import 'package:uniun/domain/entities/graph_node/graph_node_entity.dart';
@@ -470,6 +472,9 @@ GanaEntity aGana({
   GanaTriggerMode triggerMode = GanaTriggerMode.recurring,
   int? maxOutputs,
   bool enabled = false,
+  int runsSucceeded = 0,
+  int runsFailed = 0,
+  int runsSkipped = 0,
   DateTime? createdAt,
   DateTime? updatedAt,
 }) {
@@ -489,8 +494,27 @@ GanaEntity aGana({
     triggerMode: triggerMode,
     maxOutputs: maxOutputs,
     enabled: enabled,
+    runsSucceeded: runsSucceeded,
+    runsFailed: runsFailed,
+    runsSkipped: runsSkipped,
     createdAt: createdAt ?? tT0,
     updatedAt: updatedAt ?? tNow,
+  );
+}
+
+GanaRunEntity aGanaRun({
+  String runId = 'run-1',
+  String ganaId = 'gana-1',
+  DateTime? startedAt,
+  GanaRunStatus status = GanaRunStatus.succeeded,
+  String? error,
+}) {
+  return GanaRunEntity(
+    runId: runId,
+    ganaId: ganaId,
+    startedAt: startedAt ?? tNow,
+    status: status,
+    error: error,
   );
 }
 

@@ -18,7 +18,7 @@ import 'package:uniun/features/shiv/chat/bloc/shiv_ai_bloc.dart';
 import 'package:uniun/features/shiv/document_viewer/pages/document_viewer_page.dart';
 import 'package:uniun/features/shiv/gana/detail/pages/gana_detail_page.dart';
 import 'package:uniun/features/shiv/gana/form/pages/gana_form_page.dart';
-import 'package:uniun/features/shiv/gana/list/pages/gana_list_page.dart';
+import 'package:uniun/features/shiv/gana/dashboard/pages/gana_dashboard_page.dart';
 import 'package:uniun/features/shiv/nataraj/pages/nataraj_deck_page.dart';
 import 'package:uniun/features/groups/create/pages/create_group_page.dart';
 import 'package:uniun/features/groups/entry/pages/group_entry_page.dart';
@@ -277,7 +277,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       name: AppRoutes.shivGanaList,
       path: '/shiv/gana',
-      builder: (_, __) => const GanaListPage(),
+      builder: (_, __) => const GanaDashboardPage(),
     ),
     GoRoute(
       name: AppRoutes.shivGanaForm,

@@ -440,7 +440,7 @@ Future<void> _runOneGana({
         ganaId: gana.ganaId,
         startedAt: startedAt,
         status: GanaRunStatus.failed,
-        error: e.toString(),
+        error: 'cloud: $e',
       );
       return;
     }
@@ -528,7 +528,7 @@ Future<void> _runOneGana({
         ganaId: gana.ganaId,
         startedAt: startedAt,
         status: GanaRunStatus.failed,
-        error: e.toString(),
+        error: 'inference: $e',
       );
       return;
     }

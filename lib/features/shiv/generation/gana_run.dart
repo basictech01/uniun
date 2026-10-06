@@ -124,7 +124,9 @@ Future<GanaPreparedRun?> prepareGanaRun({
 bool isGanaNoop(String body) =>
     body.isEmpty || body.toUpperCase() == GanaPromptBuilder.noopSentinel;
 
-/// Persist a [GanaRunModel] log row.
+/// Persist a [GanaRunModel] log row and, once the run has finished, count it
+/// on the Gana's lifetime counters (same transaction, so the two never drift).
+/// A row re-written under the same [runId] is counted once.
 Future<void> writeGanaRun({
   required Isar isar,
   required String runId,
@@ -137,8 +139,11 @@ Future<void> writeGanaRun({
   String? error,
 }) async {
   await isar.writeTxn(() async {
+    final previous =
+        await isar.ganaRunModels.filter().runIdEqualTo(runId).findFirst();
     await isar.ganaRunModels.put(
       GanaRunModel()
+        ..id = previous?.id ?? Isar.autoIncrement
         ..runId = runId
         ..ganaId = ganaId
         ..startedAt = startedAt
@@ -148,6 +153,24 @@ Future<void> writeGanaRun({
         ..outputEventId = outputEventId
         ..error = error,
     );
+
+    final alreadyCounted =
+        previous != null && previous.status != GanaRunStatus.running;
+    if (status == GanaRunStatus.running || alreadyCounted) return;
+    final gana =
+        await isar.ganaModels.filter().ganaIdEqualTo(ganaId).findFirst();
+    if (gana == null) return;
+    switch (status) {
+      case GanaRunStatus.succeeded:
+        gana.runsSucceeded = (gana.runsSucceeded ?? 0) + 1;
+      case GanaRunStatus.failed:
+        gana.runsFailed = (gana.runsFailed ?? 0) + 1;
+      case GanaRunStatus.skipped:
+        gana.runsSkipped = (gana.runsSkipped ?? 0) + 1;
+      case GanaRunStatus.running:
+        return;
+    }
+    await isar.ganaModels.put(gana);
   });
 }
 
