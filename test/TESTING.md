@@ -389,6 +389,44 @@ because the models are Git-LFS assets CI does not check out. Run them by hand:
 flutter test integration_test/all_tests.dart -d <device-id>
 ```
 
+**Pre-set model (no download per run).** `flutter test` normally uninstalls the
+app after a run, taking a downloaded model with it. So the model is pushed to
+the phone once, to `/data/local/tmp/uniun_test/` (the uninstall does not touch
+it), and tests install it from there with `provisionTestModel(AIModelId.…)`
+from `integration_test/support/test_model.dart`:
+
+```
+# once per model (the catalog URL gives the file name, e.g. gemma-4-E2B-it.litertlm)
+adb shell mkdir -p /data/local/tmp/uniun_test
+adb push gemma-4-E2B-it.litertlm /data/local/tmp/uniun_test/
+
+# every run: keeps the app installed, so its data and the model copy stay
+flutter test --no-uninstall integration_test/<file>.dart
+```
+
+`scripts/device_test.sh push-model <file>` / `run [file]` wraps exactly this and
+also keeps the screen on and unlocked (a sleeping screen runs the app on slow
+cores, several times slower).
+
+- **Default model: Gemma 4 E2B** — it reads images and is small enough for most
+  phones, so one model covers chat, Gana, scheduler and image tests. Qwen3 0.6B
+  is enough for tests that only need text.
+- `provisionTestModel` copies the file into the app's own folder once (that is
+  where flutter_gemma restores a model from in every isolate, including the
+  background one), registers it, and marks it active. It needs no DI. It
+  returns `false` when the model was never pushed, so a test can SKIP with a
+  clear message instead of failing.
+- While it works it shows a plain "UNIUN test starting…" screen instead of the
+  splash.
+- Used by `gana_local_engine_e2e_test`, `flutter_gemma_bg_isolate_test`,
+  `scheduler_preemption_test`, `scheduler_model_switch_test` and
+  `chat_image_turn_test`. Use it in any new test that needs a real model.
+- Real generation is slow (~2.5 tokens/s for E2B): keep prompts short, use one
+  `maxTokens` per test (a different value makes flutter_gemma rebuild the whole
+  model), and wait for a first token rather than a fixed delay.
+- `scheduler_model_switch_test`'s second test needs two downloaded models and
+  still skips with one.
+
 Adding one means adding an import + `main()` call to `integration_test/all_tests.dart`
 — that list is the source of truth. **Never gate a device test on a silent
 `return`** when the thing it needs ships with the app: `EmbeddingService.embed`
