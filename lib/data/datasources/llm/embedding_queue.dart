@@ -10,20 +10,11 @@ enum EmbedPriority { interactive, background }
 
 /// The single gate every embedding passes through.
 ///
-/// The embedder (`flutter_gemma_embeddings`) is a small dedicated model on a
-/// separate chip path — it does NOT contend with the main chat model loaded
-/// in [AIModelRunner], so it is not on [InferenceScheduler]. But the plugin runs
-/// it in one worker isolate that serves requests strictly in order, and one
-/// embed took about 11.5 s on a Snapdragon 710 (#231). Two things follow:
-///
-/// - Running two at once buys nothing (measured: one at a time and two at a
-///   time were both 11.55 s per note), so only one embed is in flight.
-/// - Whatever is in flight cannot be interrupted, so an [interactive] request
-///   waits for at most that one, not for a backlog of indexing queued before
-///   it: when a slot frees, interactive waiters go first.
-///
-/// Interactive requests are rare (one per question), so they cannot starve
-/// background work for long.
+/// The plugin runs the embedder in one worker isolate that serves requests in
+/// order, and one embed took ~11.5 s on a Snapdragon 710 (#231). So one embed is
+/// in flight (two at a time measured no faster), and when a slot frees an
+/// [EmbedPriority.interactive] waiter goes before queued background ones. It
+/// never interrupts the embed already running.
 @lazySingleton
 class EmbeddingQueue {
   static const _maxConcurrent = 1;

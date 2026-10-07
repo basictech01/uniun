@@ -11,7 +11,7 @@ import 'package:uniun/data/repositories/pending_embedding_repository_impl.dart';
 import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/domain/repositories/document_vector_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
-import 'package:uniun/domain/services/note_embedding_worker.dart';
+import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart';
 import 'package:uniun/domain/usecases/knowledge_usecases.dart';
 import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
@@ -48,11 +48,9 @@ class _Vectors implements VectorRepository {
   }) async => const [];
 }
 
-/// Saving a note to its vector being stored, through the real queue table, the
-/// real worker, the real entry use case and the real [EmbeddingService] with
-/// its gate. Only the embedder model and the vector store are doubled: the
-/// model needs flutter_gemma, which is device-only (integration_test/ covers
-/// the real one).
+/// Covers: a saved note becoming a stored vector through the real queue table,
+/// worker, entry use case and EmbeddingService gate; only the model and the
+/// vector store are doubled.
 void main() {
   late Isar isar;
   late PendingEmbeddingRepositoryImpl pending;
@@ -148,7 +146,7 @@ void main() {
 
   Future<void> drained() async {
     for (var i = 0; i < 300; i++) {
-      if (await pending.count() == 0) return;
+      if ((await pending.count()).getOrElse(() => -1) == 0) return;
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
   }
@@ -163,7 +161,7 @@ void main() {
         expect(vectors.stored.keys, ['n1']);
         expect(asked.single.$1, 'Small habits compound over time.');
         expect(asked.single.$2, TaskType.retrievalDocument);
-        expect(await pending.count(), 0);
+        expect((await pending.count()).getOrElse(() => -1), 0);
         final captured =
             verify(() => extract.call(captureAny())).captured.single
                 as (String, String, List<double>);
@@ -182,7 +180,7 @@ void main() {
       await save.call(('n1', 'https://blossom.example/abc.jpg'));
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(await pending.count(), 0);
+      expect((await pending.count()).getOrElse(() => -1), 0);
       expect(asked, isEmpty);
       expect(vectors.stored, isEmpty);
     });
@@ -252,7 +250,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       expect(asked, isEmpty);
-      expect(await pending.count(), 0);
+      expect((await pending.count()).getOrElse(() => -1), 0);
     });
 
     test('saving the same note twice embeds it once', () async {
@@ -274,7 +272,7 @@ void main() {
       await save.call(('n2', 'second note body'));
       await Future<void>.delayed(const Duration(milliseconds: 150));
 
-      expect(await pending.count(), 2);
+      expect((await pending.count()).getOrElse(() => -1), 2);
       expect(vectors.stored, isEmpty);
 
       modelFailure = null;
@@ -292,7 +290,7 @@ void main() {
         await save.call(('n1', 'a note with text'));
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
-        expect(await pending.count(), 1);
+        expect((await pending.count()).getOrElse(() => -1), 1);
         expect(vectors.stored, isEmpty);
         verifyNever(() => extract.call(any()));
       },
@@ -308,7 +306,11 @@ void main() {
         ).thenAnswer((_) => hang.future); // never completes: the process "died"
         await save.call(('n1', 'a note that was mid-embed'));
         await Future<void>.delayed(const Duration(milliseconds: 50));
-        expect(await pending.count(), 1, reason: 'row survives the death');
+        expect(
+          (await pending.count()).getOrElse(() => -1),
+          1,
+          reason: 'row survives the death',
+        );
 
         // "Next launch": new service and worker over the same database.
         when(
@@ -329,7 +331,7 @@ void main() {
       await save.call(('n1', 'a note awaiting the store'));
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      expect(await pending.count(), 1);
+      expect((await pending.count()).getOrElse(() => -1), 1);
       verifyNever(() => extract.call(any()));
 
       vectors.failWith = null;
@@ -346,14 +348,17 @@ void main() {
       await save.call(('good', 'a perfectly fine note'));
       await Future<void>.delayed(const Duration(milliseconds: 5));
       await save.call(('bad', 'this note is poison'));
-      for (var i = 0; i < NoteEmbeddingWorker.maxAttempts; i++) {
+      // A nudge while a pass runs is folded into it, so keep nudging until the
+      // queue is empty instead of counting passes.
+      final end = DateTime.now().add(const Duration(seconds: 10));
+      while ((await pending.count()).getOrElse(() => -1) != 0 &&
+          DateTime.now().isBefore(end)) {
         worker.nudge();
-        await Future<void>.delayed(const Duration(milliseconds: 120));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
       }
-      await drained();
 
       expect(vectors.stored.keys, ['good']);
-      expect(await pending.count(), 0);
+      expect((await pending.count()).getOrElse(() => -1), 0);
     });
   });
 
@@ -397,8 +402,6 @@ void main() {
       final answered = await embedding.embed('what did I write about habits');
 
       expect(answered, isNotEmpty);
-      // The question ran after the in-flight note(s) at that moment, ahead of
-      // the rest of the backlog.
       final position = asked.indexWhere(
         (a) => a.$1 == 'what did I write about habits',
       );

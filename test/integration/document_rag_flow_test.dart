@@ -29,7 +29,7 @@ import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/llm/inference_scheduler.dart';
 import 'package:uniun/data/repositories/pending_embedding_repository_impl.dart';
-import 'package:uniun/domain/services/note_embedding_worker.dart';
+import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/usecases/saved_note_usecases.dart';
 import 'package:uniun/domain/usecases/knowledge_usecases.dart';
@@ -1030,7 +1030,7 @@ void main() {
 
     Future<void> noteQueueEmpty() async {
       for (var i = 0; i < 600; i++) {
-        if (await pendingRepo.count() == 0) return;
+        if ((await pendingRepo.count()).getOrElse(() => -1) == 0) return;
         await Future<void>.delayed(const Duration(milliseconds: 10));
       }
     }

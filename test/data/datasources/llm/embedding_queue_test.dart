@@ -68,10 +68,12 @@ void main() {
     test('a throw while others wait still lets them run', () async {
       final q = EmbeddingQueue();
       final ran = <String>[];
-      final first = q.run<void>(() async {
-        await pause(30);
-        throw Exception('first fails');
-      }).then<void>((_) {}, onError: (_) {});
+      final first = q
+          .run<void>(() async {
+            await pause(30);
+            throw Exception('first fails');
+          })
+          .then<void>((_) {}, onError: (_) {});
       await pause();
 
       final second = q.run(() async => ran.add('second'));

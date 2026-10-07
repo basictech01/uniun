@@ -168,7 +168,7 @@ lib/data/datasources/llm/
 │                                    extract / deadline / fair-pool. CFS-style
 │                                    vruntime + EDF deadlines + model affinity.
 │                                    See docs/SHIVA/scheduling.md.
-├── embedding_queue.dart             Semaphore(2) for the parallel embedder
+├── embedding_queue.dart             one-at-a-time gate with priorities for the embedder (see embedding.md)
 │                                    lane (separate model, never blocks LLM).
 │
 ├── local_model_params.dart          AIModelId → (ModelType, isThinking) lookup

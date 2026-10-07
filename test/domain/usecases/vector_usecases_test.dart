@@ -1,12 +1,14 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/core/enum/document_kind.dart';
+import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/entities/shiv/scored_chunk.dart';
 import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/domain/repositories/document_vector_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
-import 'package:uniun/domain/services/note_embedding_worker.dart';
+import 'package:uniun/domain/services/note_embedding_trigger.dart';
 import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
@@ -17,7 +19,7 @@ class _MockEmbeddingService extends Mock implements EmbeddingService {}
 class _MockPendingEmbeddings extends Mock
     implements PendingEmbeddingRepository {}
 
-class _MockNoteEmbeddingWorker extends Mock implements NoteEmbeddingWorker {}
+class _MockNoteEmbeddingTrigger extends Mock implements NoteEmbeddingTrigger {}
 
 class _MockDocumentVectors extends Mock implements DocumentVectorRepository {}
 
@@ -73,12 +75,13 @@ void main() {
 
   group('EmbedAndStoreNoteUseCase', () {
     late _MockPendingEmbeddings pending;
-    late _MockNoteEmbeddingWorker worker;
+    late _MockNoteEmbeddingTrigger trigger;
 
     setUp(() {
       pending = _MockPendingEmbeddings();
-      worker = _MockNoteEmbeddingWorker();
-      when(() => pending.enqueue(any(), any())).thenAnswer((_) async {});
+      trigger = _MockNoteEmbeddingTrigger();
+      when(() => pending.enqueue(any(), any()))
+          .thenAnswer((_) async => const Right(unit));
     });
 
     test(
@@ -86,28 +89,28 @@ void main() {
       () async {
         await EmbedAndStoreNoteUseCase(
           pending,
-          worker,
+          trigger,
         ).call(('n1', 'https://example.com/x'));
 
         verifyZeroInteractions(pending);
-        verifyZeroInteractions(worker);
+        verifyZeroInteractions(trigger);
       },
     );
 
-    test('queues the URL-stripped text and wakes the worker', () async {
+    test('queues the URL-stripped text and wakes the trigger', () async {
       await EmbedAndStoreNoteUseCase(
         pending,
-        worker,
+        trigger,
       ).call(('n1', 'a real caption https://example.com/img.png'));
 
       verifyInOrder([
         () => pending.enqueue('n1', 'a real caption'),
-        () => worker.nudge(),
+        () => trigger.nudge(),
       ]);
     });
 
     test('text of exactly 4 characters is queued, 3 is not', () async {
-      final useCase = EmbedAndStoreNoteUseCase(pending, worker);
+      final useCase = EmbedAndStoreNoteUseCase(pending, trigger);
 
       await useCase.call(('a', 'abc'));
       await useCase.call(('b', 'abcd'));
@@ -119,25 +122,25 @@ void main() {
     test('keeps unicode text intact', () async {
       await EmbedAndStoreNoteUseCase(
         pending,
-        worker,
+        trigger,
       ).call(('n1', 'नमस्ते दुनिया 🌟'));
 
       verify(() => pending.enqueue('n1', 'नमस्ते दुनिया 🌟')).called(1);
     });
 
     test(
-      'a queueing failure is caught, not rethrown, and wakes nothing',
+      'a queueing failure is logged, not rethrown, and wakes nothing',
       () async {
-        when(
-          () => pending.enqueue(any(), any()),
-        ).thenThrow(Exception('disk full'));
+        when(() => pending.enqueue(any(), any())).thenAnswer(
+          (_) async => Left(Failure.errorFailure('disk full')),
+        );
 
         await EmbedAndStoreNoteUseCase(
           pending,
-          worker,
+          trigger,
         ).call(('n1', 'some text'));
 
-        verifyNever(() => worker.nudge());
+        verifyNever(() => trigger.nudge());
       },
     );
   });

@@ -10,7 +10,7 @@ import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/domain/repositories/document_vector_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
-import 'package:uniun/domain/services/note_embedding_worker.dart';
+import 'package:uniun/domain/services/note_embedding_trigger.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 @lazySingleton
@@ -34,31 +34,23 @@ class SearchVectorNotesUseCase
   }
 }
 
-/// Queues a note for embedding. Callers never touch the embedder or the vector
-/// store: the note goes into the pending-embeddings table and
-/// `NoteEmbeddingWorker` embeds it, so a crash, a kill or a failed embed does
-/// not lose it.
+/// Queues a note for embedding; `NoteEmbeddingWorker` does the embedding, so a
+/// kill or a failed embed does not lose the note.
 ///
-/// Input: (eventId, raw nostr content) tuple. The use case strips media URLs
-/// (NIP-92 attachments embed their URL into `content`) and skips entirely
-/// when no text remains — image-only / video-only notes have nothing
-/// meaningful to embed for RAG.
-///
-/// Fire-and-forget safe — returns void and never throws.
+/// Input: (eventId, raw nostr content). Media URLs are stripped (NIP-92
+/// attachments put their URL in `content`) and a note with no text left is
+/// skipped. Fire-and-forget safe: never throws.
 @lazySingleton
 class EmbedAndStoreNoteUseCase extends UseCase<void, (String, String)> {
   final PendingEmbeddingRepository _pending;
-  final NoteEmbeddingWorker _worker;
+  final NoteEmbeddingTrigger _trigger;
 
-  EmbedAndStoreNoteUseCase(this._pending, this._worker);
+  EmbedAndStoreNoteUseCase(this._pending, this._trigger);
 
-  /// Strips http(s) URLs from `content`. Media notes carry their blob URL
-  /// inline; embedding it produces a useless vector. A typed caption like
-  /// "check this article: https://…" survives with the prose intact.
   static final _urlPattern = RegExp(r'https?://\S+', caseSensitive: false);
 
-  /// Below this many post-strip characters there is no signal worth a
-  /// vector — punctuation, single emojis, or empty captions all skip.
+  /// Below this many characters after stripping there is no signal worth a
+  /// vector: punctuation, a single emoji, an empty caption.
   static const int _minEmbeddableChars = 4;
 
   @override
@@ -67,16 +59,14 @@ class EmbedAndStoreNoteUseCase extends UseCase<void, (String, String)> {
     final shortId = eventId.length > 8 ? eventId.substring(0, 8) : eventId;
     final text = rawContent.replaceAll(_urlPattern, '').trim();
     if (text.length < _minEmbeddableChars) {
-      debugPrint('🧠 EmbedAndStore: skip note=$shortId (no embeddable text — '
-          'media-only or empty after URL strip)');
+      debugPrint('🧠 EmbedAndStore: skip note=$shortId (no embeddable text)');
       return;
     }
-    try {
-      await _pending.enqueue(eventId, text);
-      _worker.nudge();
-    } catch (e, st) {
-      debugPrint('❌ EmbedAndStore: could not queue $shortId: $e\n$st');
-    }
+    final queued = await _pending.enqueue(eventId, text);
+    queued.fold(
+      (f) => debugPrint('❌ EmbedAndStore: could not queue $shortId: $f'),
+      (_) => _trigger.nudge(),
+    );
   }
 }
 

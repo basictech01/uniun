@@ -176,7 +176,7 @@ import 'package:uniun/domain/repositories/user_server_list_repository.dart'
 import 'package:uniun/domain/repositories/vector_repository.dart' as _i739;
 import 'package:uniun/domain/services/marmot_mls_service.dart' as _i168;
 import 'package:uniun/domain/services/marmot_transport_service.dart' as _i761;
-import 'package:uniun/domain/services/note_embedding_worker.dart' as _i273;
+import 'package:uniun/domain/services/note_embedding_trigger.dart' as _i491;
 import 'package:uniun/domain/usecases/ai_model_usecases.dart' as _i894;
 import 'package:uniun/domain/usecases/app_settings_usecases.dart' as _i907;
 import 'package:uniun/domain/usecases/blocked_user_usecases.dart' as _i278;
@@ -267,6 +267,8 @@ import 'package:uniun/features/shiv/rag/extraction/document_extraction_service.d
     as _i139;
 import 'package:uniun/features/shiv/rag/indexing/document_indexer.dart'
     as _i1026;
+import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart'
+    as _i714;
 import 'package:uniun/features/shiv/rag/pipeline/rag_pipeline.dart' as _i681;
 import 'package:uniun/features/shiv/rag/prompt/prompt_builder.dart' as _i207;
 import 'package:uniun/features/shiv/rag/retrieval/vector_search_service.dart'
@@ -1568,8 +1570,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1000.PendingExtractionRepository>(),
       ),
     );
-    gh.lazySingleton<_i273.NoteEmbeddingWorker>(
-      () => _i273.NoteEmbeddingWorker(
+    gh.lazySingleton<_i491.NoteEmbeddingTrigger>(
+      () => _i714.NoteEmbeddingWorker(
         gh<_i894.PendingEmbeddingRepository>(),
         gh<_i587.EmbeddingService>(),
         gh<_i739.VectorRepository>(),
@@ -1580,7 +1582,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i756.EmbedAndStoreNoteUseCase>(
       () => _i756.EmbedAndStoreNoteUseCase(
         gh<_i894.PendingEmbeddingRepository>(),
-        gh<_i273.NoteEmbeddingWorker>(),
+        gh<_i491.NoteEmbeddingTrigger>(),
       ),
     );
     gh.lazySingleton<_i179.DrainPendingExtractionsUseCase>(

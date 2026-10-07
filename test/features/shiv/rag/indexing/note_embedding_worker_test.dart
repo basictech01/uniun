@@ -1,19 +1,21 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/data/datasources/llm/inference_scheduler.dart';
 import 'package:uniun/data/repositories/pending_embedding_repository_impl.dart';
 import 'package:uniun/domain/entities/llm/llm_task_kind.dart';
 import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
-import 'package:uniun/domain/services/note_embedding_worker.dart';
+import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart';
 import 'package:uniun/domain/usecases/knowledge_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
-import '../../_helpers/isar_test_harness.dart';
+import '../../../../_helpers/isar_test_harness.dart';
 
 class _MockEmbedding extends Mock implements EmbeddingService {}
 
@@ -21,8 +23,8 @@ class _MockVector extends Mock implements VectorRepository {}
 
 class _MockExtract extends Mock implements ExtractKnowledgeUseCase {}
 
-/// [NoteEmbeddingWorker]: drains the pending-embeddings table one note at a
-/// time, keeps a row until its vector is stored, and retries what failed.
+/// Covers: NoteEmbeddingWorker draining the pending table — newest first, a row
+/// kept until its vector is stored, retries, and standing down for a chat reply.
 void main() {
   late Isar isar;
   late PendingEmbeddingRepositoryImpl pending;
@@ -43,18 +45,31 @@ void main() {
     when(() => vector.upsert(any(), any())).thenAnswer((_) async {});
     when(() => extract.call(any())).thenAnswer((_) async {});
     scheduler = InferenceScheduler();
-    worker = NoteEmbeddingWorker(pending, embedding, vector, extract, scheduler);
+    worker = NoteEmbeddingWorker(
+      pending,
+      embedding,
+      vector,
+      extract,
+      scheduler,
+    );
   });
 
   tearDown(() async {
     await isar.close(deleteFromDisk: true);
   });
 
-  /// Lets the unawaited pass run to completion.
-  Future<void> settle() async {
-    for (var i = 0; i < 50; i++) {
+  /// Lets the unawaited pass finish; [untilIdle] false waits a fixed moment
+  /// (for a worker that is deliberately waiting).
+  Future<void> settle({
+    NoteEmbeddingWorker? of,
+    bool untilIdle = true,
+  }) async {
+    final w = of ?? worker;
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    for (var i = 0; untilIdle && i < 500 && w.isRunning; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
+    await Future<void>.delayed(const Duration(milliseconds: 20));
   }
 
   void embeds([List<double> vec = const [0.1, 0.2]]) => when(
@@ -80,7 +95,7 @@ void main() {
 
       verify(() => embedding.embed('hello world', isDocument: true)).called(1);
       verify(() => vector.upsert('n1', [0.1, 0.2])).called(1);
-      expect(await pending.count(), 0);
+      expect((await pending.count()).getOrElse(() => -1), 0);
       final captured =
           verify(() => extract.call(captureAny())).captured.single
               as (String, String, List<double>);
@@ -96,14 +111,14 @@ void main() {
     await pending.enqueue('n1', 'hello world');
     var rowsWhenStoring = -1;
     when(() => vector.upsert(any(), any())).thenAnswer((_) async {
-      rowsWhenStoring = await pending.count();
+      rowsWhenStoring = (await pending.count()).getOrElse(() => -1);
     });
 
     worker.nudge();
     await settle();
 
     expect(rowsWhenStoring, 1, reason: 'row must still exist during upsert');
-    expect(await pending.count(), 0);
+    expect((await pending.count()).getOrElse(() => -1), 0);
   });
 
   test('handles the newest note first, then the backlog', () async {
@@ -133,7 +148,7 @@ void main() {
       worker.nudge();
       await settle();
 
-      expect(await pending.count(), 2);
+      expect((await pending.count()).getOrElse(() => -1), 2);
       verifyNever(() => vector.upsert(any(), any()));
       verify(
         () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
@@ -163,7 +178,7 @@ void main() {
 
       verify(() => vector.upsert('first', any())).called(1);
       verify(() => vector.upsert('second', any())).called(1);
-      expect(await pending.count(), 0);
+      expect((await pending.count()).getOrElse(() => -1), 0);
     },
   );
 
@@ -189,7 +204,7 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 200));
 
     expect(maxInFlight, 1);
-    expect(await pending.count(), 0);
+    expect((await pending.count()).getOrElse(() => -1), 0);
   });
 
   test('a failed vector store keeps the row for the next pass', () async {
@@ -200,7 +215,7 @@ void main() {
     worker.nudge();
     await settle();
 
-    expect(await pending.count(), 1);
+    expect((await pending.count()).getOrElse(() => -1), 1);
     verifyNever(() => extract.call(any()));
   });
 
@@ -225,14 +240,20 @@ void main() {
       () => embedding.embed('bad note', isDocument: true),
     ).called(NoteEmbeddingWorker.maxAttempts);
     verify(() => vector.upsert('good', [0.3])).called(1);
-    expect(await pending.count(), 0);
+    expect((await pending.count()).getOrElse(() => -1), 0);
   });
 
   test('a note queued just as the pass finds the table empty is not '
       'stranded', () async {
     embeds();
     final racing = _InMemoryPending()..rows['a'] = 'first note';
-    final w = NoteEmbeddingWorker(racing, embedding, vector, extract, scheduler);
+    final w = NoteEmbeddingWorker(
+      racing,
+      embedding,
+      vector,
+      extract,
+      scheduler,
+    );
     // The moment the pass sees an empty table, a new note arrives and nudges.
     racing.onEmpty = () {
       racing.onEmpty = null;
@@ -241,72 +262,78 @@ void main() {
     };
 
     w.nudge();
-    await settle();
+    await settle(of: w);
 
     verify(() => vector.upsert('a', any())).called(1);
     verify(() => vector.upsert('b', any())).called(1);
     expect(racing.rows, isEmpty);
   });
 
-  test(
-    'a loaded embedder that returns no vector for a note counts as that '
-    "note's failure, not as 'not ready'",
-    () async {
-      when(() => embedding.isReady).thenReturn(true);
-      embeds(const []);
-      await pending.enqueue('n1', 'one');
-
-      worker.nudge();
-      await settle();
-
-      expect(await pending.recordFailure('n1'), 2, reason: 'attempt counted');
-      verifyNever(() => vector.upsert(any(), any()));
-    },
-  );
-
-  test(
-    'a note the loaded embedder keeps failing on is dropped and the notes '
-    'behind it are embedded',
-    () async {
-      when(() => embedding.isReady).thenReturn(true);
-      when(
-        () => embedding.embed('bad', isDocument: true),
-      ).thenAnswer((_) async => <double>[]);
-      when(
-        () => embedding.embed('fine', isDocument: true),
-      ).thenAnswer((_) async => [0.5]);
-      await pending.enqueue('fine', 'fine');
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-      await pending.enqueue('bad', 'bad'); // newest, so it goes first
-
-      for (var i = 0; i < NoteEmbeddingWorker.maxAttempts; i++) {
-        worker.nudge();
-        await settle();
-      }
-
-      verify(() => vector.upsert('fine', [0.5])).called(1);
-      expect(await pending.count(), 0);
-    },
-  );
-
-  test('the same empty answer from a not-loaded embedder never drops a note',
-      () async {
-    when(() => embedding.isReady).thenReturn(false);
+  test('a loaded embedder that returns no vector for a note counts as that '
+      "note's failure, not as 'not ready'", () async {
+    when(() => embedding.isReady).thenReturn(true);
     embeds(const []);
     await pending.enqueue('n1', 'one');
 
-    for (var i = 0; i < NoteEmbeddingWorker.maxAttempts + 2; i++) {
+    worker.nudge();
+    await settle();
+
+    expect(
+      (await pending.recordFailure('n1')).getOrElse(() => -1),
+      2,
+      reason: 'attempt counted',
+    );
+    verifyNever(() => vector.upsert(any(), any()));
+  });
+
+  test('a note the loaded embedder keeps failing on is dropped and the notes '
+      'behind it are embedded', () async {
+    when(() => embedding.isReady).thenReturn(true);
+    when(
+      () => embedding.embed('bad', isDocument: true),
+    ).thenAnswer((_) async => <double>[]);
+    when(
+      () => embedding.embed('fine', isDocument: true),
+    ).thenAnswer((_) async => [0.5]);
+    await pending.enqueue('fine', 'fine');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await pending.enqueue('bad', 'bad'); // newest, so it goes first
+
+    for (var i = 0; i < NoteEmbeddingWorker.maxAttempts; i++) {
       worker.nudge();
       await settle();
     }
 
-    expect(await pending.count(), 1);
+    verify(() => vector.upsert('fine', [0.5])).called(1);
+    expect((await pending.count()).getOrElse(() => -1), 0);
   });
+
+  test(
+    'the same empty answer from a not-loaded embedder never drops a note',
+    () async {
+      when(() => embedding.isReady).thenReturn(false);
+      embeds(const []);
+      await pending.enqueue('n1', 'one');
+
+      for (var i = 0; i < NoteEmbeddingWorker.maxAttempts + 2; i++) {
+        worker.nudge();
+        await settle();
+      }
+
+      expect((await pending.count()).getOrElse(() => -1), 1);
+    },
+  );
 
   test('retries on its own after the retry delay', () {
     // In memory: real Isar I/O never completes under fakeAsync.
     final fake = _InMemoryPending()..rows['n1'] = 'hello world';
-    final timed = NoteEmbeddingWorker(fake, embedding, vector, extract, scheduler);
+    final timed = NoteEmbeddingWorker(
+      fake,
+      embedding,
+      vector,
+      extract,
+      scheduler,
+    );
     fakeAsync((async) {
       embeds(const []);
       timed.nudge();
@@ -325,31 +352,43 @@ void main() {
     });
   });
 
-  test('a queue that cannot be read ends the pass quietly and retries later',
-      () {
-    final broken = _InMemoryPending()
-      ..rows['n1'] = 'hello world'
-      ..failNext = true;
-    final w = NoteEmbeddingWorker(broken, embedding, vector, extract, scheduler);
-    fakeAsync((async) {
-      embeds();
-      w.nudge();
-      async.flushMicrotasks();
-      verifyNever(() => vector.upsert(any(), any()));
+  test(
+    'a queue that cannot be read ends the pass quietly and retries later',
+    () {
+      final broken = _InMemoryPending()
+        ..rows['n1'] = 'hello world'
+        ..failNext = true;
+      final w = NoteEmbeddingWorker(
+        broken,
+        embedding,
+        vector,
+        extract,
+        scheduler,
+      );
+      fakeAsync((async) {
+        embeds();
+        w.nudge();
+        async.flushMicrotasks();
+        verifyNever(() => vector.upsert(any(), any()));
 
-      broken.failNext = false;
-      async.elapse(NoteEmbeddingWorker.retryDelay);
-      async.flushMicrotasks();
+        broken.failNext = false;
+        async.elapse(NoteEmbeddingWorker.retryDelay);
+        async.flushMicrotasks();
 
-      verify(() => vector.upsert('n1', any())).called(1);
-    });
-  });
+        verify(() => vector.upsert('n1', any())).called(1);
+      });
+    },
+  );
 
   group('standing down for a chat reply', () {
-    setUp(() => NoteEmbeddingWorker.chatPollInterval =
-        const Duration(milliseconds: 10));
-    tearDown(() => NoteEmbeddingWorker.chatPollInterval =
-        const Duration(seconds: 2));
+    setUp(
+      () => NoteEmbeddingWorker.chatPollInterval = const Duration(
+        milliseconds: 10,
+      ),
+    );
+    tearDown(
+      () => NoteEmbeddingWorker.chatPollInterval = const Duration(seconds: 2),
+    );
 
     /// Starts a scheduled job of [kind] that runs until [gate] completes.
     Future<void> runJob(LlmTaskKind kind, Completer<void> gate) {
@@ -361,26 +400,31 @@ void main() {
       );
     }
 
-    test('does not embed while a chat reply is generating, then does', () async {
-      embeds();
-      await pending.enqueue('n1', 'hello world');
-      final gate = Completer<void>();
-      final chat = runJob(LlmTaskKind.chat, gate);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      expect(scheduler.runningKind, LlmTaskKind.chat);
+    test(
+      'does not embed while a chat reply is generating, then does',
+      () async {
+        embeds();
+        await pending.enqueue('n1', 'hello world');
+        final gate = Completer<void>();
+        final chat = runJob(LlmTaskKind.chat, gate);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(scheduler.runningKind, LlmTaskKind.chat);
 
-      worker.nudge();
-      await settle();
-      verifyNever(() => embedding.embed(any(), isDocument: any(named: 'isDocument')));
-      expect(await pending.count(), 1);
+        worker.nudge();
+        await settle(untilIdle: false);
+        verifyNever(
+          () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+        );
+        expect((await pending.count()).getOrElse(() => -1), 1);
 
-      gate.complete();
-      await chat;
-      await settle();
+        gate.complete();
+        await chat;
+        await settle();
 
-      verify(() => vector.upsert('n1', any())).called(1);
-      expect(await pending.count(), 0);
-    });
+        verify(() => vector.upsert('n1', any())).called(1);
+        expect((await pending.count()).getOrElse(() => -1), 0);
+      },
+    );
 
     for (final kind in [
       LlmTaskKind.gana,
@@ -403,22 +447,25 @@ void main() {
       });
     }
 
-    test('picks the queue up again after a chat that ends mid-backlog', () async {
-      embeds();
-      for (var i = 0; i < 3; i++) {
-        await pending.enqueue('n$i', 'note body $i');
-      }
-      final gate = Completer<void>();
-      final chat = runJob(LlmTaskKind.chat, gate);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      worker.nudge();
-      await Future<void>.delayed(const Duration(milliseconds: 60));
-      gate.complete();
-      await chat;
-      await settle();
+    test(
+      'picks the queue up again after a chat that ends mid-backlog',
+      () async {
+        embeds();
+        for (var i = 0; i < 3; i++) {
+          await pending.enqueue('n$i', 'note body $i');
+        }
+        final gate = Completer<void>();
+        final chat = runJob(LlmTaskKind.chat, gate);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        worker.nudge();
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        gate.complete();
+        await chat;
+        await settle();
 
-      expect(await pending.count(), 0);
-    });
+        expect((await pending.count()).getOrElse(() => -1), 0);
+      },
+    );
   });
 }
 
@@ -428,32 +475,40 @@ class _InMemoryPending implements PendingEmbeddingRepository {
   /// Runs when `next` is asked for a row and there is none.
   void Function()? onEmpty;
 
-  /// Makes the next `next` call throw, like a database that cannot be read.
+  /// Makes `next` answer Left, like a database that cannot be read.
   bool failNext = false;
 
   @override
-  Future<void> enqueue(String eventId, String text) async =>
-      rows[eventId] = text;
+  Future<Either<Failure, Unit>> enqueue(String eventId, String text) async {
+    rows[eventId] = text;
+    return const Right(unit);
+  }
 
   @override
-  Future<PendingEmbeddingItem?> next() async {
-    if (failNext) throw StateError('database closed');
+  Future<Either<Failure, PendingEmbeddingItem?>> next() async {
+    if (failNext) return Left(Failure.errorFailure('database closed'));
     if (rows.isEmpty) {
       onEmpty?.call();
-      return null;
+      return const Right(null);
     }
-    return PendingEmbeddingItem(
-      eventId: rows.keys.last,
-      text: rows[rows.keys.last]!,
+    return Right(
+      PendingEmbeddingItem(
+        eventId: rows.keys.last,
+        text: rows[rows.keys.last]!,
+      ),
     );
   }
 
   @override
-  Future<void> remove(String eventId) async => rows.remove(eventId);
+  Future<Either<Failure, Unit>> remove(String eventId) async {
+    rows.remove(eventId);
+    return const Right(unit);
+  }
 
   @override
-  Future<int> recordFailure(String eventId) async => 1;
+  Future<Either<Failure, int>> recordFailure(String eventId) async =>
+      const Right(1);
 
   @override
-  Future<int> count() async => rows.length;
+  Future<Either<Failure, int>> count() async => Right(rows.length);
 }

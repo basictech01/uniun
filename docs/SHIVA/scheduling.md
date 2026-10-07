@@ -68,7 +68,7 @@ The combination of mechanisms in this doc is what we ship.
    ┌───────────────────────────────────────────────────────┐
    │  Parallel & unscheduled — EmbeddingQueue (different    │
    │  model, different chip path):                          │
-   │      EmbeddingService ──► Semaphore(2)                 │
+   │      EmbeddingService ──► one at a time, questions first│
    │                                                        │
    │  Never blocks the LLM scheduler. Never preempted.      │
    └───────────────────────────────────────────────────────┘
@@ -473,7 +473,7 @@ DATA                                                (lib/data/)
                                                       .stopGeneration()
 
   EmbeddingQueue                                    datasources/llm/
-    embedding_queue.dart                            — Semaphore(2)
+    embedding_queue.dart                            — one embed at a time, priorities
 ```
 
 `SchedulerCoordinator` mirrors the existing pattern set by
@@ -504,6 +504,8 @@ DATA                                                (lib/data/)
 ---
 
 ## 7. Embedding side queue
+
+How notes reach this queue (the pending table and the worker) is in [`embedding.md`](embedding.md).
 
 ```
 EmbeddingService.embed(text)

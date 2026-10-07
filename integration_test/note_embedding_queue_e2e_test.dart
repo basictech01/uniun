@@ -66,15 +66,15 @@ void main() {
         ),
       );
       await getIt<EmbedAndStoreNoteUseCase>().call((id, text));
-      expect(await pending.count(), greaterThanOrEqualTo(1));
+      expect((await pending.count()).getOrElse(() => -1), greaterThanOrEqualTo(1));
 
       try {
         final deadline = DateTime.now().add(const Duration(minutes: 3));
-        while (await pending.count() > 0 && DateTime.now().isBefore(deadline)) {
+        while ((await pending.count()).getOrElse(() => -1) > 0 && DateTime.now().isBefore(deadline)) {
           await Future<void>.delayed(const Duration(seconds: 2));
         }
 
-        expect(await pending.count(), 0, reason: 'queue should be drained');
+        expect((await pending.count()).getOrElse(() => -1), 0, reason: 'queue should be drained');
 
         // Read the stored vector back directly. A similarity search is not used
         // here: notes still go through ToStore's approximate index, which the

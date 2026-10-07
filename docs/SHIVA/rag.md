@@ -196,22 +196,7 @@
 
 ## Notes: how a note gets its vector (#231)
 
-A note is queued, not embedded in place. Saving a feed note, publishing a note and a Gana publishing all call `EmbedAndStoreNoteUseCase`, which strips media URLs, skips text under 4 characters, writes a row to the **`PendingEmbedding`** table and wakes `NoteEmbeddingWorker`. The worker takes the newest row, embeds it, stores the vector, deletes the row **last**, then hands the vector to knowledge extraction (unchanged: one LLM call per note, scheduled as `extract`, drained away from Shiv).
-
-```
-save / publish ─► PendingEmbedding row ─► NoteEmbeddingWorker (main isolate, one note at a time)
-                                              │ embed → vector store upsert → delete row → extract
-                                              └ embedder not ready → keep rows, stop, retry in 5 min and at app start
-```
-
-- **Nothing is lost.** The row survives a kill, a crash or an embedder that failed to load. A note that throws 3 times is dropped so it cannot block the rest.
-- **Steady state costs one query.** All notes embedded means an empty table; the app-start nudge returns at once without loading the embedder.
-- **Passes never overlap.** A note queued while the worker runs sets a "go again" flag the loop checks before it exits.
-- **One at a time, not batched.** On a Snapdragon 710 (vivo 1933), four notes took ~46 s whether embedded one at a time, two at a time (the old `EmbeddingQueue` limit) or through `generateEmbeddings` — about **11.5 s per note**, constant. The plugin serves a batch as one request per text to a single worker, so batching gains nothing here (#125). Embedding already runs in the plugin's own worker isolate, so the UI isolate is not blocked.
-- **One gate for everything.** Every embed (note, PDF/DOCX chunk, Shiv question, Manas context) goes through `EmbeddingQueue` inside `EmbeddingService.embed`: one in flight, and a question (`isDocument: false`) is served ahead of any queued note or chunk, though it never interrupts the one already running. So a question waits for at most one embed, not the backlog. A PDF's chunks (embedded by `DocumentIndexer`) and the note's own text (`NoteEmbeddingWorker`) therefore take turns instead of competing.
-- **An empty vector is not always "not ready".** `embed` answers `[]` both when the model is not loaded and when it failed on this text. The worker keeps the row and stops only when `isReady` is false; a loaded embedder that returns nothing counts as that note's failure, so one bad note cannot block the rest (found by `test/integration/note_embedding_flow_test.dart`).
-- **Not covered yet:** notes saved before this table existed that never got a vector, and a store format change (#232). Both need a cheap "has a vector" check first.
-- Tests: `test/integration/note_embedding_flow_test.dart` (CI), device `integration_test/note_embedding_queue_e2e_test.dart` and `embedding_priority_e2e_test.dart`.
+A note is queued in a `PendingEmbedding` table and embedded by `NoteEmbeddingWorker`, one at a time and newest first, with the row deleted only after its vector is stored. Every embed (note, PDF/DOCX chunk, Shiv question) goes through one gate that serves a question first. Full explanation, diagram, rules and measurements: [`embedding.md`](embedding.md).
 
 ---
 
