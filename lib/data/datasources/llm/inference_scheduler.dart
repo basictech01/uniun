@@ -347,6 +347,10 @@ class InferenceScheduler {
     }
   }
 
+  /// True while a Shiv chat reply is being generated. Background work that is
+  /// heavy on the CPU (note embedding) stands down while this is true.
+  bool get isChatRunning => _running?.kind == LlmTaskKind.chat;
+
   // ── Debug introspection ────────────────────────────────────────────────
 
   @visibleForTesting

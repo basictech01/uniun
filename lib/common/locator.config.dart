@@ -87,6 +87,8 @@ import 'package:uniun/data/repositories/note_relation_repository_impl.dart'
 import 'package:uniun/data/repositories/note_repository_impl.dart' as _i348;
 import 'package:uniun/data/repositories/note_resolver_repository_impl.dart'
     as _i526;
+import 'package:uniun/data/repositories/pending_embedding_repository_impl.dart'
+    as _i987;
 import 'package:uniun/data/repositories/pending_extraction_repository_impl.dart'
     as _i754;
 import 'package:uniun/data/repositories/profile_repository_impl.dart' as _i484;
@@ -150,6 +152,8 @@ import 'package:uniun/domain/repositories/note_relation_repository.dart'
 import 'package:uniun/domain/repositories/note_repository.dart' as _i47;
 import 'package:uniun/domain/repositories/note_resolver_repository.dart'
     as _i789;
+import 'package:uniun/domain/repositories/pending_embedding_repository.dart'
+    as _i894;
 import 'package:uniun/domain/repositories/pending_extraction_repository.dart'
     as _i1000;
 import 'package:uniun/domain/repositories/profile_repository.dart' as _i967;
@@ -172,6 +176,7 @@ import 'package:uniun/domain/repositories/user_server_list_repository.dart'
 import 'package:uniun/domain/repositories/vector_repository.dart' as _i739;
 import 'package:uniun/domain/services/marmot_mls_service.dart' as _i168;
 import 'package:uniun/domain/services/marmot_transport_service.dart' as _i761;
+import 'package:uniun/domain/services/note_embedding_worker.dart' as _i273;
 import 'package:uniun/domain/usecases/ai_model_usecases.dart' as _i894;
 import 'package:uniun/domain/usecases/app_settings_usecases.dart' as _i907;
 import 'package:uniun/domain/usecases/blocked_user_usecases.dart' as _i278;
@@ -387,6 +392,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i182.NoteAttachmentsEnricher>(
       () => _i182.NoteAttachmentsEnricher(isar: gh<_i214.Isar>()),
     );
+    gh.factory<_i894.PendingEmbeddingRepository>(
+      () => _i987.PendingEmbeddingRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
     gh.factory<_i1039.EventQueueRepository>(
       () => _i116.EventQueueRepositoryImpl(isar: gh<_i214.Isar>()),
     );
@@ -527,6 +535,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i331.MemoryRepository>(),
       ),
     );
+    gh.lazySingleton<_i587.EmbeddingService>(
+      () => _i587.EmbeddingService(
+        gh<_i93.FlutterGemmaGateway>(),
+        gh<_i1031.EmbeddingQueue>(),
+      ),
+    );
     gh.lazySingleton<_i139.DocumentExtractionService>(
       () => _i139.DocumentExtractionService(
         gh<_i623.PdfTextSource>(),
@@ -592,9 +606,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i103.UserRepository>(),
         gh<_i391.GetOwnProfileUseCase>(),
       ),
-    );
-    gh.lazySingleton<_i587.EmbeddingService>(
-      () => _i587.EmbeddingService(gh<_i93.FlutterGemmaGateway>()),
     );
     gh.factory<_i699.ManasRepository>(
       () => _i395.ManasRepositoryImpl(
@@ -726,6 +737,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i719.GetGroupOldestUnreadTimeUseCase>(
       () => _i719.GetGroupOldestUnreadTimeUseCase(gh<_i497.UnreadRepository>()),
+    );
+    gh.lazySingleton<_i756.EmbedAndStoreChunkUseCase>(
+      () => _i756.EmbedAndStoreChunkUseCase(
+        gh<_i587.EmbeddingService>(),
+        gh<_i179.DocumentVectorRepository>(),
+      ),
     );
     gh.lazySingleton<_i690.GetGroupByIdUseCase>(
       () => _i690.GetGroupByIdUseCase(gh<_i582.GroupRepository>()),
@@ -911,13 +928,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i858.GetSavedReferencesUseCase>(
       () => _i858.GetSavedReferencesUseCase(gh<_i43.SavedNoteRepository>()),
-    );
-    gh.lazySingleton<_i756.EmbedAndStoreChunkUseCase>(
-      () => _i756.EmbedAndStoreChunkUseCase(
-        gh<_i587.EmbeddingService>(),
-        gh<_i179.DocumentVectorRepository>(),
-        gh<_i1031.EmbeddingQueue>(),
-      ),
     );
     gh.factory<_i250.FeedRepository>(
       () => _i689.FeedRepositoryImpl(
@@ -1558,27 +1568,19 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1000.PendingExtractionRepository>(),
       ),
     );
-    gh.lazySingleton<_i756.EmbedAndStoreNoteUseCase>(
-      () => _i756.EmbedAndStoreNoteUseCase(
+    gh.lazySingleton<_i273.NoteEmbeddingWorker>(
+      () => _i273.NoteEmbeddingWorker(
+        gh<_i894.PendingEmbeddingRepository>(),
         gh<_i587.EmbeddingService>(),
         gh<_i739.VectorRepository>(),
         gh<_i179.ExtractKnowledgeUseCase>(),
+        gh<_i552.InferenceScheduler>(),
       ),
     );
-    gh.factory<_i1039.VishnuFeedBloc>(
-      () => _i1039.VishnuFeedBloc(
-        gh<_i837.GetOrInitFeedLoadedAtUseCase>(),
-        gh<_i837.SetFeedLoadedAtUseCase>(),
-        gh<_i837.GetUnreadPageUseCase>(),
-        gh<_i837.GetSeenPageUseCase>(),
-        gh<_i837.WatchNewBufferCountUseCase>(),
-        gh<_i837.MarkFeedItemSeenUseCase>(),
-        gh<_i391.GetProfileUseCase>(),
-        gh<_i858.GetAllSavedNotesUseCase>(),
-        gh<_i858.SaveNoteUseCase>(),
-        gh<_i858.UnsaveNoteUseCase>(),
-        gh<_i756.EmbedAndStoreNoteUseCase>(),
-        gh<_i63.WatchFollowedUsersUseCase>(),
+    gh.lazySingleton<_i756.EmbedAndStoreNoteUseCase>(
+      () => _i756.EmbedAndStoreNoteUseCase(
+        gh<_i894.PendingEmbeddingRepository>(),
+        gh<_i273.NoteEmbeddingWorker>(),
       ),
     );
     gh.lazySingleton<_i179.DrainPendingExtractionsUseCase>(
@@ -1675,6 +1677,22 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i918.ResumeBackgroundWorkUseCase>(),
         gh<_i681.RagPipeline>(),
         gh<_i179.DrainPendingExtractionsUseCase>(),
+      ),
+    );
+    gh.factory<_i1039.VishnuFeedBloc>(
+      () => _i1039.VishnuFeedBloc(
+        gh<_i837.GetOrInitFeedLoadedAtUseCase>(),
+        gh<_i837.SetFeedLoadedAtUseCase>(),
+        gh<_i837.GetUnreadPageUseCase>(),
+        gh<_i837.GetSeenPageUseCase>(),
+        gh<_i837.WatchNewBufferCountUseCase>(),
+        gh<_i837.MarkFeedItemSeenUseCase>(),
+        gh<_i391.GetProfileUseCase>(),
+        gh<_i858.GetAllSavedNotesUseCase>(),
+        gh<_i858.SaveNoteUseCase>(),
+        gh<_i858.UnsaveNoteUseCase>(),
+        gh<_i756.EmbedAndStoreNoteUseCase>(),
+        gh<_i63.WatchFollowedUsersUseCase>(),
       ),
     );
     gh.factory<_i807.ThreadBloc>(

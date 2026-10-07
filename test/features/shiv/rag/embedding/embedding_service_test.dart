@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart' hide CancelToken;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
@@ -27,7 +30,7 @@ void main() {
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS; // gpu-preferred
     gateway = _MockGateway();
-    service = EmbeddingService(gateway);
+    service = EmbeddingService(gateway, EmbeddingQueue());
   });
 
   tearDown(() {
@@ -237,6 +240,134 @@ void main() {
       await service.dispose();
 
       expect(service.isReady, isFalse);
+    });
+  });
+
+  group('the shared gate', () {
+    late _MockEmbeddingModel model;
+    final started = <String>[];
+    final release = <String, Completer<List<double>>>{};
+
+    setUp(() {
+      started.clear();
+      release.clear();
+      model = _MockEmbeddingModel();
+      when(() => gateway.hasActiveEmbedder()).thenReturn(true);
+      when(
+        () => gateway.getActiveEmbedder(
+          preferredBackend: any(named: 'preferredBackend'),
+        ),
+      ).thenAnswer((_) async => model);
+      // Each embed starts, then waits until the test lets it finish.
+      when(
+        () => model.generateEmbedding(any(), taskType: any(named: 'taskType')),
+      ).thenAnswer((i) {
+        final text = i.positionalArguments.first as String;
+        started.add(text);
+        return (release[text] = Completer<List<double>>()).future;
+      });
+    });
+
+    Future<void> tick() =>
+        Future<void>.delayed(const Duration(milliseconds: 5));
+
+    test('runs one embed at a time', () async {
+      final a = service.embed('a', isDocument: true);
+      final b = service.embed('b', isDocument: true);
+      await tick();
+
+      expect(started, ['a'], reason: 'b must wait for a');
+      release['a']!.complete([1.0, 0.0]);
+      await tick();
+      expect(started, ['a', 'b']);
+      release['b']!.complete([0.0, 1.0]);
+      await Future.wait([a, b]);
+    });
+
+    test('a question jumps ahead of queued note and PDF embeds', () async {
+      final inFlight = service.embed('note-1', isDocument: true);
+      await tick();
+      final chunk = service.embed('pdf-chunk', isDocument: true);
+      final note = service.embed('note-2', isDocument: true);
+      final question = service.embed('question');
+      await tick();
+
+      release['note-1']!.complete([1.0]);
+      await tick();
+      release['question']!.complete([1.0]);
+      await tick();
+      release['pdf-chunk']!.complete([1.0]);
+      await tick();
+      release['note-2']!.complete([1.0]);
+      await Future.wait([inFlight, chunk, note, question]);
+
+      expect(started, ['note-1', 'question', 'pdf-chunk', 'note-2']);
+    });
+
+    test('a question still waits for the embed already running', () async {
+      final running = service.embed('note-1', isDocument: true);
+      await tick();
+      final question = service.embed('question');
+      await tick();
+
+      expect(started, ['note-1']);
+      release['note-1']!.complete([1.0]);
+      await tick();
+      release['question']!.complete([1.0]);
+      await Future.wait([running, question]);
+    });
+
+    test(
+      'a cold embedder is opened once, not once per waiting embed',
+      () async {
+        final calls = [
+          service.embed('a', isDocument: true),
+          service.embed('b', isDocument: true),
+          service.embed('c', isDocument: true),
+        ];
+        for (final t in ['a', 'b', 'c']) {
+          await tick();
+          release[t]?.complete([1.0]);
+        }
+        await Future.wait(calls);
+
+        verify(
+          () => gateway.getActiveEmbedder(
+            preferredBackend: any(named: 'preferredBackend'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('a failed embed frees the gate for the next one', () async {
+      when(
+        () => model.generateEmbedding('boom', taskType: any(named: 'taskType')),
+      ).thenThrow(Exception('inference crashed'));
+
+      final failed = await service.embed('boom', isDocument: true);
+      final next = service.embed('fine', isDocument: true);
+      await tick();
+      release['fine']!.complete([1.0]);
+
+      expect(failed, isEmpty);
+      expect(await next, isNotEmpty);
+    });
+
+    test('a model that never loads answers [] for every waiter', () async {
+      when(() => gateway.hasActiveEmbedder()).thenReturn(false);
+      when(
+        () => gateway.installEmbedder(
+          modelAsset: any(named: 'modelAsset'),
+          tokenizerAsset: any(named: 'tokenizerAsset'),
+        ),
+      ).thenThrow(Exception('asset missing'));
+
+      final results = await Future.wait([
+        service.embed('a', isDocument: true),
+        service.embed('question'),
+      ]);
+
+      expect(results, [isEmpty, isEmpty]);
     });
   });
 }
