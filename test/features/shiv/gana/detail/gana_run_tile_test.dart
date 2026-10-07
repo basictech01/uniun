@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uniun/core/enum/gana_run_status.dart';
+import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/domain/entities/gana/gana_run_entity.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
@@ -131,17 +133,78 @@ void main() {
   });
 
   group('skipped', () {
-    testWidgets('says why in words, not the enum name', (t) async {
-      await show(
-        t,
-        aGanaRun(
-          status: GanaRunStatus.skipped,
-        ).copyWith(skipReason: GanaSkipReason.noActiveModel),
-      );
+    const reasons = {
+      GanaSkipReason.noActiveModel: 'No AI model is active. Pick one in Shiv.',
+      GanaSkipReason.modelMismatch:
+          "The active model isn't the one this Gana is pinned to.",
+      GanaSkipReason.noNewInput: 'Nothing new to read.',
+      GanaSkipReason.modelSwapped:
+          'The model changed mid-run, so this run was cancelled.',
+      GanaSkipReason.noopReturned: 'The model chose to stay silent.',
+      GanaSkipReason.maxOutputsReached:
+          'It reached its max notes and switched itself off.',
+      GanaSkipReason.cloudUnavailable:
+          "UNIUN Cloud isn't connected, or no cloud model is set.",
+    };
 
-      expect(find.textContaining('No AI model is active'), findsOneWidget);
-      expect(find.text('noActiveModel'), findsNothing);
+    for (final entry in reasons.entries) {
+      testWidgets('${entry.key.name} says why in words', (t) async {
+        await show(
+          t,
+          aGanaRun(
+            status: GanaRunStatus.skipped,
+          ).copyWith(skipReason: entry.key),
+        );
+
+        expect(find.text(entry.value), findsOneWidget);
+        expect(find.text(entry.key.name), findsNothing);
+      });
+    }
+
+    testWidgets('a skip with no recorded reason is not expandable', (t) async {
+      await show(t, aGanaRun(status: GanaRunStatus.skipped));
+
+      expect(find.byType(ExpansionTile), findsNothing);
     });
+  });
+
+  testWidgets('Open note opens the published note\'s thread', (t) async {
+    final opened = <String>[];
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, __) => Scaffold(
+            body: GanaRunTile(
+              run: aGanaRun().copyWith(outputEventId: 'note-9'),
+              output: aNote(id: 'note-9'),
+            ),
+          ),
+        ),
+        GoRoute(
+          name: AppRoutes.thread,
+          path: '/thread/:noteId',
+          builder: (_, s) {
+            opened.add(s.pathParameters['noteId']!);
+            return const Scaffold(body: Text('THREAD PAGE'));
+          },
+        ),
+      ],
+    );
+    await t.pumpWidget(
+      MaterialApp.router(
+        theme: AppTheme.light,
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+    await open(t);
+
+    await t.tap(find.text('Open note'));
+    await t.pumpAndSettle();
+
+    expect(opened, ['note-9']);
   });
 
   testWidgets('a running run is a plain row with nothing to open', (t) async {
