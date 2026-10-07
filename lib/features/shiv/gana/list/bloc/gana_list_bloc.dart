@@ -65,16 +65,19 @@ class GanaListBloc extends Bloc<GanaListEvent, GanaListState> {
 
     // Fetch most-recent run per Gana in parallel.
     final lastRuns = <String, GanaRunEntity?>{};
+    final recentRuns = <String, List<GanaRunEntity>>{};
     for (final g in ganas) {
       final r = await _getRuns.call(g.ganaId);
-      lastRuns[g.ganaId] =
-          r.fold<GanaRunEntity?>((_) => null, (l) => l.isEmpty ? null : l.first);
+      final runs = r.fold<List<GanaRunEntity>>((_) => const [], (l) => l);
+      recentRuns[g.ganaId] = runs;
+      lastRuns[g.ganaId] = runs.isEmpty ? null : runs.first;
     }
 
     emit(state.copyWith(
       status: GanaListStatus.ready,
       ganas: ganas,
       lastRuns: lastRuns,
+      recentRuns: recentRuns,
     ));
   }
 

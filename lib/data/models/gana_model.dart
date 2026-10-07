@@ -118,6 +118,17 @@ class GanaModel {
   /// Anchor for interval triggers — prevents double-fires on app relaunch.
   DateTime? lastRunAt;
 
+  // ── Lifetime run counters ────────────────────────────────────────────────
+
+  /// Per-device totals, bumped by `writeGanaRun` when a run finishes. The run
+  /// log keeps only the last 10 per Gana, so these are the only lifetime
+  /// figures. Local state like the cursor — never part of the mesh body.
+  /// Nullable on purpose: Isar reads a field missing from an older row as the
+  /// minimum integer, so a non-nullable counter would start hugely negative.
+  int? runsSucceeded;
+  int? runsFailed;
+  int? runsSkipped;
+
   // ── Metadata ─────────────────────────────────────────────────────────────
 
   late DateTime createdAt;
@@ -156,6 +167,9 @@ extension GanaModelExtension on GanaModel {
         lastProcessedEventId: lastProcessedEventId,
         lastProcessedCreated: lastProcessedCreated,
         lastRunAt: lastRunAt,
+        runsSucceeded: runsSucceeded ?? 0,
+        runsFailed: runsFailed ?? 0,
+        runsSkipped: runsSkipped ?? 0,
         createdAt: createdAt,
         updatedAt: updatedAt,
       );

@@ -332,12 +332,22 @@ The third (`GanaPendingOutputModel`) was deleted in the 2026-06-20 refactor
 │ String? lastProcessedEventId │
 │ DateTime? lastProcessedCrtd  │  Retention: per-Gana 10 newest,
 │ DateTime? lastRunAt          │  global cap 1000, pruned every
-│ DateTime createdAt           │  6h by CleanupManager (Phase 3).
-│ DateTime updatedAt           │
-└──────────────────────────────┘
+│ int? runsSucceeded           │  6h by CleanupManager (Phase 3).
+│ int? runsFailed              │
+│ int? runsSkipped             │  The three counters are the only
+│ DateTime createdAt           │  lifetime figures: `writeGanaRun`
+│ DateTime updatedAt           │  bumps them in the same transaction
+└──────────────────────────────┘  as the log row, so pruning never
+                                  loses them.
 
 (`GanaPendingOutputModel` removed — engine publishes directly.)
 ```
+
+The counters are per-device local state like the cursor (not in the mesh body,
+kept across edits by `upsertGana`). They are **nullable** on purpose: Isar reads
+a field missing from an older row as the minimum integer, so a non-nullable
+counter would start hugely negative; `toDomain()` turns null into 0. A finished
+run is counted once per `runId`; `running` is never counted.
 
 Schemas registered in `lib/data/datasources/isar_schemas.dart`:
 `GanaModelSchema`, `GanaRunModelSchema`. Additive — existing installs
@@ -691,7 +701,9 @@ Shiv tab
 └──────────────────────────────────┘
 ```
 
-`GanaDetailPage` (route `shivGanaDetail/:ganaId`) shows the same config as a read-only summary plus a list of the last 10 runs from `GanaRunModel`.
+`GanaDetailPage` (route `shivGanaDetail/:ganaId`) shows the same config as a read-only summary plus lifetime done / failed / skipped, an outcome bar, and the last 10 runs from `GanaRunModel` as drop-downs: a succeeded run opens to the note it published, a failed run to a plain-words reason (no identity / publish / network / model / other, sorted from the raw message by `GanaRunError.parse`) with the raw error underneath, a skipped run to a sentence for its skip reason.
+
+`GanaDashboardPage` (route `shivGanaList`, opened from the Shiv home "Gana" button) is the Gana screen — there is no separate list page. Header: common back button and a New button (empty state has one too). Body: Active / Done / Failed / Skipped totals, a "needs attention" list (Ganas whose last run failed, with the error), every Gana with its outcome bar, counts, success rate and an on/off switch, and the 10 newest runs across all Ganas. It shares `GanaListBloc` with the list, so it refreshes as the engine runs. Success rate is done ÷ (done + failed); skipped runs are left out because a Gana waiting for input skips a lot without failing. Each Gana card also shows its trigger and scope.
 
 ---
 

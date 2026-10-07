@@ -4700,6 +4700,210 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 Manas} other{{count} Manas}}'**
   String ganaListScopeCount(int count);
 
+  /// Title of the Gana dashboard page
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get ganaDashboardTitle;
+
+  /// Dashboard tile label: Ganas currently switched on
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get ganaDashboardActive;
+
+  /// Dashboard tile label: total successful runs
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get ganaDashboardDone;
+
+  /// Dashboard tile label: total failed runs
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get ganaDashboardFailed;
+
+  /// Dashboard tile label: total skipped runs
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get ganaDashboardSkipped;
+
+  /// Section title listing Ganas whose last run failed
+  ///
+  /// In en, this message translates to:
+  /// **'NEEDS ATTENTION'**
+  String get ganaDashboardAttentionTitle;
+
+  /// Section title listing every Gana with its numbers
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR GANAS'**
+  String get ganaDashboardGanasTitle;
+
+  /// Section title for the latest runs across all Ganas
+  ///
+  /// In en, this message translates to:
+  /// **'RECENT ACTIVITY'**
+  String get ganaDashboardActivityTitle;
+
+  /// Empty text of the recent activity section
+  ///
+  /// In en, this message translates to:
+  /// **'No runs yet. They show up here as your Ganas work.'**
+  String get ganaDashboardActivityEmpty;
+
+  /// Success rate of a Gana; {percent} is a whole number
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% succeeded'**
+  String ganaDashboardRate(int percent);
+
+  /// Lifetime run counts of one Gana
+  ///
+  /// In en, this message translates to:
+  /// **'{done} done · {failed} failed · {skipped} skipped'**
+  String ganaStatsCounts(int done, int failed, int skipped);
+
+  /// Footnote explaining what the dashboard numbers cover
+  ///
+  /// In en, this message translates to:
+  /// **'Totals count runs since this version. Recent activity keeps the latest 10 runs per Gana.'**
+  String get ganaDashboardFootnote;
+
+  /// Failed-run title: no signed-in identity
+  ///
+  /// In en, this message translates to:
+  /// **'No active identity'**
+  String get ganaErrNoIdentityTitle;
+
+  /// Failed-run hint: no signed-in identity
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in so the Gana can sign and publish its note.'**
+  String get ganaErrNoIdentityHint;
+
+  /// Failed-run title: publishing failed
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t publish the note'**
+  String get ganaErrPublishTitle;
+
+  /// Failed-run hint: publishing failed
+  ///
+  /// In en, this message translates to:
+  /// **'The Gana wrote a note but sending it failed. It tries again on the next trigger.'**
+  String get ganaErrPublishHint;
+
+  /// Failed-run title: connection or timeout error
+  ///
+  /// In en, this message translates to:
+  /// **'Network problem'**
+  String get ganaErrNetworkTitle;
+
+  /// Failed-run hint: connection or timeout error
+  ///
+  /// In en, this message translates to:
+  /// **'The connection dropped or timed out. Check your internet; it retries on the next trigger.'**
+  String get ganaErrNetworkHint;
+
+  /// Failed-run title: model or engine error
+  ///
+  /// In en, this message translates to:
+  /// **'The AI model had a problem'**
+  String get ganaErrModelTitle;
+
+  /// Failed-run hint: model or engine error
+  ///
+  /// In en, this message translates to:
+  /// **'The model failed while writing. Check the model in Shiv, then try again.'**
+  String get ganaErrModelHint;
+
+  /// Failed-run title: unrecognised error
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get ganaErrOtherTitle;
+
+  /// Failed-run hint: unrecognised error
+  ///
+  /// In en, this message translates to:
+  /// **'The run stopped with an unexpected error.'**
+  String get ganaErrOtherHint;
+
+  /// Label above the raw error text of a failed run
+  ///
+  /// In en, this message translates to:
+  /// **'Technical detail'**
+  String get ganaRunTechnicalDetail;
+
+  /// Label above the note a run published
+  ///
+  /// In en, this message translates to:
+  /// **'NOTE IT PUBLISHED'**
+  String get ganaRunOutputLabel;
+
+  /// Shown when a run's published note was cleaned up
+  ///
+  /// In en, this message translates to:
+  /// **'This note is no longer on this device.'**
+  String get ganaRunOutputMissing;
+
+  /// Button that opens the note a run published
+  ///
+  /// In en, this message translates to:
+  /// **'Open note'**
+  String get ganaRunOpenNote;
+
+  /// How many input messages a run read
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Read 1 message} other{Read {count} messages}}'**
+  String ganaRunInputCount(int count);
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'No AI model is active. Pick one in Shiv.'**
+  String get ganaSkipNoActiveModel;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'The active model isn\'t the one this Gana is pinned to.'**
+  String get ganaSkipModelMismatch;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new to read.'**
+  String get ganaSkipNoNewInput;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'The model changed mid-run, so this run was cancelled.'**
+  String get ganaSkipModelSwapped;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'The model chose to stay silent.'**
+  String get ganaSkipNoopReturned;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'It reached its max notes and switched itself off.'**
+  String get ganaSkipMaxOutputs;
+
+  /// Skip reason explanation
+  ///
+  /// In en, this message translates to:
+  /// **'UNIUN Cloud isn\'t connected, or no cloud model is set.'**
+  String get ganaSkipCloudUnavailable;
+
   /// Empty-state title in the Ganas section
   ///
   /// In en, this message translates to:

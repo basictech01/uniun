@@ -439,12 +439,13 @@ class GanaEngine {
         backendOverride: LlmBackendType.uniunCloud,
         modelIdOverride: cloudModelId,
       ));
-      result.fold((f) => error = f.toString(), (t) => text = t);
+      // Stage-tagged so the run log says where it failed (see GanaRunError).
+      result.fold((f) => error = 'cloud: $f', (t) => text = t);
     } else {
       try {
         text = await _runner.generateOneShot(prompt, kind: LlmTaskKind.gana);
       } catch (e) {
-        error = e.toString();
+        error = 'inference: $e';
       }
     }
     final infMs = DateTime.now().difference(infStart).inMilliseconds;
