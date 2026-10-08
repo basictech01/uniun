@@ -519,6 +519,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i756.SearchVectorNotesUseCase>(
       () => _i756.SearchVectorNotesUseCase(gh<_i739.VectorRepository>()),
     );
+    gh.lazySingleton<_i756.StoreNoteVectorUseCase>(
+      () => _i756.StoreNoteVectorUseCase(gh<_i739.VectorRepository>()),
+    );
     gh.lazySingleton<_i799.GetActiveUserUseCase>(
       () => _i799.GetActiveUserUseCase(gh<_i103.UserRepository>()),
     );
@@ -600,6 +603,21 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i232.DeleteNoteUseCase>(
       () => _i232.DeleteNoteUseCase(gh<_i775.DeletedNoteRepository>()),
+    );
+    gh.lazySingleton<_i756.NextPendingEmbeddingUseCase>(
+      () => _i756.NextPendingEmbeddingUseCase(
+        gh<_i894.PendingEmbeddingRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i756.RecordEmbeddingFailureUseCase>(
+      () => _i756.RecordEmbeddingFailureUseCase(
+        gh<_i894.PendingEmbeddingRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i756.RemovePendingEmbeddingUseCase>(
+      () => _i756.RemovePendingEmbeddingUseCase(
+        gh<_i894.PendingEmbeddingRepository>(),
+      ),
     );
     gh.factory<_i880.UniunRepository>(
       () => _i307.UniunRepositoryImpl(
@@ -1572,9 +1590,11 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i491.NoteEmbeddingTrigger>(
       () => _i714.NoteEmbeddingWorker(
-        gh<_i894.PendingEmbeddingRepository>(),
+        gh<_i756.NextPendingEmbeddingUseCase>(),
+        gh<_i756.RecordEmbeddingFailureUseCase>(),
+        gh<_i756.RemovePendingEmbeddingUseCase>(),
         gh<_i587.EmbeddingService>(),
-        gh<_i739.VectorRepository>(),
+        gh<_i756.StoreNoteVectorUseCase>(),
         gh<_i179.ExtractKnowledgeUseCase>(),
         gh<_i552.InferenceScheduler>(),
       ),

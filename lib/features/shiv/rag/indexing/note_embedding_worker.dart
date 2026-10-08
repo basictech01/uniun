@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/data/datasources/llm/inference_scheduler.dart';
 import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
-import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/services/note_embedding_trigger.dart';
 import 'package:uniun/domain/usecases/knowledge_usecases.dart';
+import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 /// Embeds the notes waiting in the pending-embeddings table, one at a time and
@@ -22,16 +22,20 @@ import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 @LazySingleton(as: NoteEmbeddingTrigger)
 class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   NoteEmbeddingWorker(
-    this._pending,
+    this._nextPending,
+    this._recordFailure,
+    this._removePending,
     this._embedding,
-    this._vector,
+    this._storeVector,
     this._extract,
     this._scheduler,
   );
 
-  final PendingEmbeddingRepository _pending;
+  final NextPendingEmbeddingUseCase _nextPending;
+  final RecordEmbeddingFailureUseCase _recordFailure;
+  final RemovePendingEmbeddingUseCase _removePending;
   final EmbeddingService _embedding;
-  final VectorRepository _vector;
+  final StoreNoteVectorUseCase _storeVector;
   final ExtractKnowledgeUseCase _extract;
   final InferenceScheduler _scheduler;
 
@@ -84,7 +88,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   /// and should be retried later.
   Future<bool> _drain() async {
     while (true) {
-      final queued = await _pending.next();
+      final queued = await _nextPending.call();
       final item = queued.fold<PendingEmbeddingItem?>((f) {
         debugPrint('❌ NoteEmbeddingWorker: cannot read the queue: $f');
         return null;
@@ -114,7 +118,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
           throw StateError('the embedder returned no vector for this note');
         }
       } catch (e, st) {
-        final attempts = (await _pending.recordFailure(
+        final attempts = (await _recordFailure.call(
           item.eventId,
         )).getOrElse(() => 0);
         debugPrint(
@@ -122,7 +126,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
           '($attempts/$maxAttempts): $e\n$st',
         );
         if (attempts < maxAttempts) return true;
-        await _pending.remove(item.eventId);
+        await _removePending.call(item.eventId);
         debugPrint(
           '🗑️ NoteEmbeddingWorker: dropped $shortId after '
           '$maxAttempts failures',
@@ -131,7 +135,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
       }
 
       try {
-        await _vector.upsert(item.eventId, vec);
+        await _storeVector.call((item.eventId, vec));
       } catch (e) {
         // A storage problem is not this note's fault: keep it, don't count it,
         // and try again later.
@@ -142,7 +146,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
         return true;
       }
       // Row removed last: a crash between the two just embeds it again.
-      (await _pending.remove(item.eventId)).leftMap(
+      (await _removePending.call(item.eventId)).leftMap(
         (f) =>
             debugPrint('⚠️ NoteEmbeddingWorker: could not clear $shortId: $f'),
       );

@@ -16,6 +16,7 @@ import 'package:uniun/domain/usecases/knowledge_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 import '../../../../_helpers/isar_test_harness.dart';
+import '../../../../_helpers/note_embedding_worker_factory.dart';
 
 class _MockEmbedding extends Mock implements EmbeddingService {}
 
@@ -45,12 +46,12 @@ void main() {
     when(() => vector.upsert(any(), any())).thenAnswer((_) async {});
     when(() => extract.call(any())).thenAnswer((_) async {});
     scheduler = InferenceScheduler();
-    worker = NoteEmbeddingWorker(
-      pending,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    worker = aNoteEmbeddingWorker(
+      pending: pending,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
   });
 
@@ -298,12 +299,12 @@ void main() {
       'stranded', () async {
     embeds();
     final racing = _InMemoryPending()..rows['a'] = 'first note';
-    final w = NoteEmbeddingWorker(
-      racing,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    final w = aNoteEmbeddingWorker(
+      pending: racing,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
     // The moment the pass sees an empty table, a new note arrives and nudges.
     racing.onEmpty = () {
@@ -378,12 +379,12 @@ void main() {
   test('retries on its own after the retry delay', () {
     // In memory: real Isar I/O never completes under fakeAsync.
     final fake = _InMemoryPending()..rows['n1'] = 'hello world';
-    final timed = NoteEmbeddingWorker(
-      fake,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    final timed = aNoteEmbeddingWorker(
+      pending: fake,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
     fakeAsync((async) {
       embeds(const []);
@@ -409,12 +410,12 @@ void main() {
       final broken = _InMemoryPending()
         ..rows['n1'] = 'hello world'
         ..failNext = true;
-      final w = NoteEmbeddingWorker(
-        broken,
-        embedding,
-        vector,
-        extract,
-        scheduler,
+      final w = aNoteEmbeddingWorker(
+        pending: broken,
+        embedding: embedding,
+        vector: vector,
+        extract: extract,
+        scheduler: scheduler,
       );
       fakeAsync((async) {
         embeds();

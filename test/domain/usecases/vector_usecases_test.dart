@@ -80,8 +80,9 @@ void main() {
     setUp(() {
       pending = _MockPendingEmbeddings();
       trigger = _MockNoteEmbeddingTrigger();
-      when(() => pending.enqueue(any(), any()))
-          .thenAnswer((_) async => const Right(unit));
+      when(
+        () => pending.enqueue(any(), any()),
+      ).thenAnswer((_) async => const Right(unit));
     });
 
     test(
@@ -131,9 +132,9 @@ void main() {
     test(
       'a queueing failure is logged, not rethrown, and wakes nothing',
       () async {
-        when(() => pending.enqueue(any(), any())).thenAnswer(
-          (_) async => Left(Failure.errorFailure('disk full')),
-        );
+        when(
+          () => pending.enqueue(any(), any()),
+        ).thenAnswer((_) async => Left(Failure.errorFailure('disk full')));
 
         await EmbedAndStoreNoteUseCase(
           pending,
@@ -313,6 +314,73 @@ void main() {
 
       expect(results.every((r) => r), isTrue);
       verify(() => vectors.upsert(any(), any())).called(12);
+    });
+  });
+
+  group('queue and store use cases', () {
+    late _MockPendingEmbeddings pending;
+    late _MockVectorRepository repo;
+
+    setUp(() {
+      pending = _MockPendingEmbeddings();
+      repo = _MockVectorRepository();
+    });
+
+    test('NextPendingEmbeddingUseCase returns the repository answer', () async {
+      const item = PendingEmbeddingItem(eventId: 'n1', text: 'hello');
+      when(() => pending.next()).thenAnswer((_) async => const Right(item));
+
+      final r = await NextPendingEmbeddingUseCase(pending).call();
+
+      expect(r, const Right<Failure, PendingEmbeddingItem?>(item));
+    });
+
+    test('NextPendingEmbeddingUseCase passes a failure through', () async {
+      when(
+        () => pending.next(),
+      ).thenAnswer((_) async => Left(Failure.errorFailure('db')));
+
+      final r = await NextPendingEmbeddingUseCase(pending).call();
+
+      expect(r.isLeft(), isTrue);
+    });
+
+    test('RecordEmbeddingFailureUseCase returns the attempt count', () async {
+      when(
+        () => pending.recordFailure('n1'),
+      ).thenAnswer((_) async => const Right(2));
+
+      final r = await RecordEmbeddingFailureUseCase(pending).call('n1');
+
+      expect(r, const Right<Failure, int>(2));
+    });
+
+    test('RemovePendingEmbeddingUseCase removes the row by id', () async {
+      when(
+        () => pending.remove('n1'),
+      ).thenAnswer((_) async => const Right(unit));
+
+      final r = await RemovePendingEmbeddingUseCase(pending).call('n1');
+
+      expect(r.isRight(), isTrue);
+      verify(() => pending.remove('n1')).called(1);
+    });
+
+    test('StoreNoteVectorUseCase upserts the id and vector', () async {
+      when(() => repo.upsert(any(), any())).thenAnswer((_) async {});
+
+      await StoreNoteVectorUseCase(repo).call(('n1', [0.1, 0.2]));
+
+      verify(() => repo.upsert('n1', [0.1, 0.2])).called(1);
+    });
+
+    test('StoreNoteVectorUseCase lets a store failure throw', () async {
+      when(() => repo.upsert(any(), any())).thenThrow(StateError('stopped'));
+
+      expect(
+        () => StoreNoteVectorUseCase(repo).call(('n1', [0.1])),
+        throwsStateError,
+      );
     });
   });
 }

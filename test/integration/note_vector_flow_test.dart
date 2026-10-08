@@ -20,6 +20,7 @@ import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart';
 
+import '../_helpers/note_embedding_worker_factory.dart';
 import '../_helpers/isar_seeds.dart';
 import '../_helpers/isar_test_harness.dart';
 
@@ -65,12 +66,12 @@ void main() {
   void wire() {
     embedding = EmbeddingService(gateway, EmbeddingQueue());
     repo = TostoreVectorRepositoryImpl(store, isar);
-    worker = NoteEmbeddingWorker(
-      pending,
-      embedding,
-      repo,
-      extract,
-      InferenceScheduler(),
+    worker = aNoteEmbeddingWorker(
+      pending: pending,
+      embedding: embedding,
+      vector: repo,
+      extract: extract,
+      scheduler: InferenceScheduler(),
     );
     save = EmbedAndStoreNoteUseCase(pending, worker);
   }
