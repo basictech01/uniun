@@ -426,6 +426,11 @@ cores, several times slower).
   model), and wait for a first token rather than a fixed delay.
 - `scheduler_model_switch_test`'s second test needs two downloaded models and
   still skips with one.
+- A debug build skews timing: run timing tests in profile mode with
+  `flutter drive --driver=test_driver/integration_test.dart --target=integration_test/<file>.dart --profile`
+  (`test_driver/integration_test.dart` is the 3-line host side). `embedding_benchmark_test` and
+  `note_save_timing_e2e_test` are the examples; the latter runs unchanged on old and new code, so check
+  out `main`, copy the file in, run it, and compare.
 
 Adding one means adding an import + `main()` call to `integration_test/all_tests.dart`
 — that list is the source of truth. **Never gate a device test on a silent

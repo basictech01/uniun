@@ -68,7 +68,7 @@ The combination of mechanisms in this doc is what we ship.
    ┌───────────────────────────────────────────────────────┐
    │  Parallel & unscheduled — EmbeddingQueue (different    │
    │  model, different chip path):                          │
-   │      EmbeddingService ──► Semaphore(2)                 │
+   │      EmbeddingService ──► one at a time, questions first│
    │                                                        │
    │  Never blocks the LLM scheduler. Never preempted.      │
    └───────────────────────────────────────────────────────┘
@@ -473,7 +473,7 @@ DATA                                                (lib/data/)
                                                       .stopGeneration()
 
   EmbeddingQueue                                    datasources/llm/
-    embedding_queue.dart                            — Semaphore(2)
+    embedding_queue.dart                            — one embed at a time, priorities
 ```
 
 `SchedulerCoordinator` mirrors the existing pattern set by
@@ -505,11 +505,14 @@ DATA                                                (lib/data/)
 
 ## 7. Embedding side queue
 
+How notes reach this queue (the pending table and the worker) is in [`embedding.md`](embedding.md).
+
 ```
 EmbeddingService.embed(text)
-   │
+   │   isDocument:false → interactive (a question)
+   │   isDocument:true  → background (a note, a PDF/DOCX chunk)
    ▼
-EmbeddingQueue ─► Semaphore(2) ─► flutter_gemma_embeddings
+EmbeddingQueue ─► one in flight; interactive waiters first ─► flutter_gemma_embeddings
                                     (separate model, separate context)
 ```
 
@@ -523,15 +526,20 @@ Why a separate queue, not just unbounded concurrency:
 - On a relay flood (200 new notes / second), unbounded embedder calls
   spike CPU and battery for no benefit — the consumer (RAG vector
   store) batches anyway.
-- A `Semaphore(2)` cap is enough to keep the pipeline saturated on a
-  midrange phone while leaving headroom for the chat model.
+- The cap is now **1** (it was 2): the plugin serves embeds one at a time in
+  a single worker isolate, and two at a time measured no faster than one
+  (11.55 s per note both ways on a Snapdragon 710). Interactive requests are
+  served ahead of queued background ones.
 
 Why this is **not** wired into `InferenceScheduler`:
 
 - Embedding cannot block, preempt, or be preempted by the chat path.
-- Calls are short (20–80 ms). By the time the scheduler would route
-  one, it would already be done. Adding it would only buy scheduler
-  chatter.
+- Calls are short on a fast phone. On a Snapdragon 710 (vivo 1933) one embed measured **~11.5 s** (CPU/XNNPACK, constant per call, same for
+  one at a time, 2 at a time and `generateEmbeddings`), so on weak devices a call is
+  not short; it still runs in the plugin's own worker isolate and cannot be
+  preempted. Notes are embedded one at a time by `NoteEmbeddingWorker` from
+  the persistent `PendingEmbedding` table (see `rag.md`), not through this
+  scheduler.
 - Adding it would mean two queues need to know about each other's
   load, which is harder to reason about than two independent ones.
 

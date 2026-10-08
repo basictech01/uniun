@@ -1,20 +1,25 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/core/enum/document_kind.dart';
+import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/entities/shiv/scored_chunk.dart';
 import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/domain/repositories/document_vector_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
-import 'package:uniun/domain/usecases/knowledge_usecases.dart';
+import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
+import 'package:uniun/domain/services/note_embedding_trigger.dart';
 import 'package:uniun/domain/usecases/vector_usecases.dart';
-import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 class _MockVectorRepository extends Mock implements VectorRepository {}
 
 class _MockEmbeddingService extends Mock implements EmbeddingService {}
 
-class _MockExtractKnowledge extends Mock implements ExtractKnowledgeUseCase {}
+class _MockPendingEmbeddings extends Mock
+    implements PendingEmbeddingRepository {}
+
+class _MockNoteEmbeddingTrigger extends Mock implements NoteEmbeddingTrigger {}
 
 class _MockDocumentVectors extends Mock implements DocumentVectorRepository {}
 
@@ -69,90 +74,75 @@ void main() {
   });
 
   group('EmbedAndStoreNoteUseCase', () {
-    late _MockEmbeddingService embedding;
-    late _MockVectorRepository vector;
-    late _MockExtractKnowledge extract;
+    late _MockPendingEmbeddings pending;
+    late _MockNoteEmbeddingTrigger trigger;
 
     setUp(() {
-      embedding = _MockEmbeddingService();
-      vector = _MockVectorRepository();
-      extract = _MockExtractKnowledge();
+      pending = _MockPendingEmbeddings();
+      trigger = _MockNoteEmbeddingTrigger();
+      when(() => pending.enqueue(any(), any()))
+          .thenAnswer((_) async => const Right(unit));
     });
 
     test(
       'skips entirely when the content is too short after URL stripping',
       () async {
         await EmbedAndStoreNoteUseCase(
-          embedding,
-          vector,
-          extract,
+          pending,
+          trigger,
         ).call(('n1', 'https://example.com/x'));
 
-        verifyZeroInteractions(embedding);
-        verifyZeroInteractions(vector);
+        verifyZeroInteractions(pending);
+        verifyZeroInteractions(trigger);
       },
     );
 
-    test('embeds the URL-stripped text and upserts, then fires knowledge '
-        'extraction', () async {
-      when(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
-      ).thenAnswer((_) async => [0.1, 0.2]);
-      when(() => vector.upsert('n1', [0.1, 0.2])).thenAnswer((_) async {});
-      when(() => extract.call(any())).thenAnswer((_) async {});
-
+    test('queues the URL-stripped text and wakes the trigger', () async {
       await EmbedAndStoreNoteUseCase(
-        embedding,
-        vector,
-        extract,
+        pending,
+        trigger,
       ).call(('n1', 'a real caption https://example.com/img.png'));
 
-      verify(
-        () => embedding.embed('a real caption', isDocument: true),
-      ).called(1);
-      verify(() => vector.upsert('n1', [0.1, 0.2])).called(1);
-      await Future<void>.delayed(Duration.zero);
-      // A record field's `==` is identity-based for the embedded List, so a
-      // literal-tuple match would never equal the tuple built by production
-      // code — capture and compare fields instead.
-      final captured =
-          verify(
-                () => extract.call(captureAny(), cached: any(named: 'cached')),
-              ).captured.single
-              as (String, String, List<double>);
-      expect(captured.$1, 'n1');
-      expect(captured.$2, 'a real caption');
-      expect(captured.$3, [0.1, 0.2]);
+      verifyInOrder([
+        () => pending.enqueue('n1', 'a real caption'),
+        () => trigger.nudge(),
+      ]);
     });
 
-    test('an empty embedding vector skips the upsert and extraction', () async {
-      when(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
-      ).thenAnswer((_) async => <double>[]);
+    test('text of exactly 4 characters is queued, 3 is not', () async {
+      final useCase = EmbedAndStoreNoteUseCase(pending, trigger);
 
+      await useCase.call(('a', 'abc'));
+      await useCase.call(('b', 'abcd'));
+
+      verifyNever(() => pending.enqueue('a', any()));
+      verify(() => pending.enqueue('b', 'abcd')).called(1);
+    });
+
+    test('keeps unicode text intact', () async {
       await EmbedAndStoreNoteUseCase(
-        embedding,
-        vector,
-        extract,
-      ).call(('n1', 'some text'));
+        pending,
+        trigger,
+      ).call(('n1', 'नमस्ते दुनिया 🌟'));
 
-      verifyZeroInteractions(vector);
-      verifyZeroInteractions(extract);
+      verify(() => pending.enqueue('n1', 'नमस्ते दुनिया 🌟')).called(1);
     });
 
-    test('an embedding failure is caught, not rethrown', () async {
-      when(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
-      ).thenThrow(Exception('model not loaded'));
+    test(
+      'a queueing failure is logged, not rethrown, and wakes nothing',
+      () async {
+        when(() => pending.enqueue(any(), any())).thenAnswer(
+          (_) async => Left(Failure.errorFailure('disk full')),
+        );
 
-      await EmbedAndStoreNoteUseCase(
-        embedding,
-        vector,
-        extract,
-      ).call(('n1', 'some text'));
+        await EmbedAndStoreNoteUseCase(
+          pending,
+          trigger,
+        ).call(('n1', 'some text'));
 
-      verifyZeroInteractions(vector);
-    });
+        verifyNever(() => trigger.nudge());
+      },
+    );
   });
 
   group('SearchDocumentChunksUseCase', () {
@@ -259,7 +249,7 @@ void main() {
     setUp(() {
       embedding = _MockEmbeddingService();
       vectors = _MockDocumentVectors();
-      useCase = EmbedAndStoreChunkUseCase(embedding, vectors, EmbeddingQueue());
+      useCase = EmbedAndStoreChunkUseCase(embedding, vectors);
       when(() => vectors.upsert(any(), any())).thenAnswer((_) async {});
     });
 

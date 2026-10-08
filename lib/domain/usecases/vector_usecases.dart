@@ -9,8 +9,8 @@ import 'package:uniun/domain/entities/shiv/scored_chunk.dart';
 import 'package:uniun/domain/entities/shiv/scored_note.dart';
 import 'package:uniun/domain/repositories/document_vector_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
-import 'package:uniun/domain/usecases/knowledge_usecases.dart';
-import 'package:uniun/data/datasources/llm/embedding_queue.dart';
+import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
+import 'package:uniun/domain/services/note_embedding_trigger.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 @lazySingleton
@@ -34,32 +34,23 @@ class SearchVectorNotesUseCase
   }
 }
 
-/// Embeds [content] via [EmbeddingService] and persists the vector via
-/// [VectorRepository]. Single use case — callers never touch EmbeddingService.
+/// Queues a note for embedding; `NoteEmbeddingWorker` does the embedding, so a
+/// kill or a failed embed does not lose the note.
 ///
-/// Input: (eventId, raw nostr content) tuple. The use case strips media URLs
-/// (NIP-92 attachments embed their URL into `content`) and skips entirely
-/// when no text remains — image-only / video-only notes have nothing
-/// meaningful to embed for RAG.
-///
-/// Fire-and-forget safe — returns void, silently no-ops if model not ready
-/// or there is nothing to embed.
+/// Input: (eventId, raw nostr content). Media URLs are stripped (NIP-92
+/// attachments put their URL in `content`) and a note with no text left is
+/// skipped. Fire-and-forget safe: never throws.
 @lazySingleton
-class EmbedAndStoreNoteUseCase
-    extends UseCase<void, (String, String)> {
-  final EmbeddingService _embedding;
-  final VectorRepository _vector;
-  final ExtractKnowledgeUseCase _extract;
+class EmbedAndStoreNoteUseCase extends UseCase<void, (String, String)> {
+  final PendingEmbeddingRepository _pending;
+  final NoteEmbeddingTrigger _trigger;
 
-  EmbedAndStoreNoteUseCase(this._embedding, this._vector, this._extract);
+  EmbedAndStoreNoteUseCase(this._pending, this._trigger);
 
-  /// Strips http(s) URLs from `content`. Media notes carry their blob URL
-  /// inline; embedding it produces a useless vector. A typed caption like
-  /// "check this article: https://…" survives with the prose intact.
   static final _urlPattern = RegExp(r'https?://\S+', caseSensitive: false);
 
-  /// Below this many post-strip characters there is no signal worth a
-  /// vector — punctuation, single emojis, or empty captions all skip.
+  /// Below this many characters after stripping there is no signal worth a
+  /// vector: punctuation, a single emoji, an empty caption.
   static const int _minEmbeddableChars = 4;
 
   @override
@@ -68,24 +59,14 @@ class EmbedAndStoreNoteUseCase
     final shortId = eventId.length > 8 ? eventId.substring(0, 8) : eventId;
     final text = rawContent.replaceAll(_urlPattern, '').trim();
     if (text.length < _minEmbeddableChars) {
-      debugPrint('🧠 EmbedAndStore: skip note=$shortId (no embeddable text — '
-          'media-only or empty after URL strip)');
+      debugPrint('🧠 EmbedAndStore: skip note=$shortId (no embeddable text)');
       return;
     }
-    debugPrint('🧠 EmbedAndStore: start note=$shortId chars=${text.length}');
-    try {
-      final vec = await _embedding.embed(text, isDocument: true);
-      if (vec.isEmpty) {
-        debugPrint('⚠️ EmbedAndStore: embed returned empty vector for $shortId');
-        return;
-      }
-      debugPrint('🧠 EmbedAndStore: embedded (dim=${vec.length}), upserting to Tostore…');
-      await _vector.upsert(eventId, vec);
-      debugPrint('✅ EmbedAndStore: Tostore upsert OK for $shortId');
-      unawaited(_extract.call((eventId, text, vec)));
-    } catch (e, st) {
-      debugPrint('❌ EmbedAndStore failed for $shortId: $e\n$st');
-    }
+    final queued = await _pending.enqueue(eventId, text);
+    queued.fold(
+      (f) => debugPrint('❌ EmbedAndStore: could not queue $shortId: $f'),
+      (_) => _trigger.nudge(),
+    );
   }
 }
 
@@ -132,21 +113,21 @@ class SearchDocumentChunksUseCase extends UseCase<
 /// ready, which the caller must treat as "retry later", NOT as "this document
 /// has no text" — [EmbeddingService.embed] answers `[]` instead of throwing.
 ///
-/// Runs through [EmbeddingQueue], so a document yielding dozens of chunks
-/// cannot storm the CPU.
+/// The embed goes through [EmbeddingQueue] inside [EmbeddingService], one at a
+/// time at background priority, so a document yielding dozens of chunks cannot
+/// storm the CPU or hold up a Shiv question.
 @lazySingleton
 class EmbedAndStoreChunkUseCase extends UseCase<bool, (String, String)> {
   final EmbeddingService _embedding;
   final DocumentVectorRepository _vector;
-  final EmbeddingQueue _queue;
 
-  EmbedAndStoreChunkUseCase(this._embedding, this._vector, this._queue);
+  EmbedAndStoreChunkUseCase(this._embedding, this._vector);
 
   @override
   Future<bool> call((String, String) input, {bool cached = false}) async {
     final (chunkId, text) = input;
     try {
-      final vec = await _queue.run(() => _embedding.embed(text, isDocument: true));
+      final vec = await _embedding.embed(text, isDocument: true);
       if (vec.isEmpty) return false;
       await _vector.upsert(chunkId, vec);
       return true;

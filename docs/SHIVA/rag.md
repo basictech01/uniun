@@ -194,6 +194,12 @@
                                                             
 ---
 
+## Notes: how a note gets its vector (#231)
+
+A note is queued in a `PendingEmbedding` table and embedded by `NoteEmbeddingWorker`, one at a time and newest first, with the row deleted only after its vector is stored. Every embed (note, PDF/DOCX chunk, Shiv question) goes through one gate that serves a question first. Full explanation, diagram, rules and measurements: [`embedding.md`](embedding.md).
+
+---
+
 ## Documents and images (PDF, DOCX, images)
 
 A PDF, a Word (`.docx`) file or an **image** attached to a note has its text

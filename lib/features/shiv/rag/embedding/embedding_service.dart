@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/core/utils/llm_backend.dart';
+import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 
 /// On-device text embedding using Gecko 110M (1024-dim), run through
@@ -25,9 +26,10 @@ import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 /// Output: 1024-dimensional L2-normalised float vector.
 @lazySingleton
 class EmbeddingService {
-  EmbeddingService(this._gateway);
+  EmbeddingService(this._gateway, this._queue);
 
   final FlutterGemmaGateway _gateway;
+  final EmbeddingQueue _queue;
 
   static const int embeddingDim = 1024;
 
@@ -86,7 +88,19 @@ class EmbeddingService {
   /// Getting this right is what makes asymmetric retrieval accurate.
   ///
   /// Returns [] if the model is not loaded (no crash, just no RAG context).
-  Future<List<double>> embed(String text, {bool isDocument = false}) async {
+  ///
+  /// Every call goes through [EmbeddingQueue]: a query is interactive (someone
+  /// is waiting) and a document is background, so a Shiv question is never
+  /// stuck behind a backlog of notes and PDF chunks.
+  Future<List<double>> embed(String text, {bool isDocument = false}) {
+    return _queue.run(
+      () => _embed(text, isDocument: isDocument),
+      priority:
+          isDocument ? EmbedPriority.background : EmbedPriority.interactive,
+    );
+  }
+
+  Future<List<double>> _embed(String text, {required bool isDocument}) async {
     if (!isReady) await init();
     if (!isReady) return [];
     try {

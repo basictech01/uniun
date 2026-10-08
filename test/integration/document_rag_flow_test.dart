@@ -4,6 +4,7 @@
 @Timeout(Duration(minutes: 2))
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +14,6 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:pdfrx/pdfrx.dart';
 import 'package:uniun/core/enum/document_kind.dart';
 import 'package:uniun/data/datasources/docx/docx_text_source.dart';
-import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/tostore_module.dart';
 import 'package:uniun/data/models/documents/document_chunk_model.dart';
 import 'package:uniun/data/models/documents/document_index_model.dart';
@@ -26,6 +26,10 @@ import 'package:uniun/domain/entities/llm/llm_model_info.dart';
 import 'package:uniun/domain/entities/profile/profile_entity.dart';
 import 'package:uniun/domain/entities/shiv/scored_chunk.dart';
 import 'package:uniun/domain/entities/shiv/scored_note.dart';
+import 'package:uniun/data/datasources/llm/embedding_queue.dart';
+import 'package:uniun/data/datasources/llm/inference_scheduler.dart';
+import 'package:uniun/data/repositories/pending_embedding_repository_impl.dart';
+import 'package:uniun/features/shiv/rag/indexing/note_embedding_worker.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/usecases/saved_note_usecases.dart';
 import 'package:uniun/domain/usecases/knowledge_usecases.dart';
@@ -122,6 +126,7 @@ void main() {
 
   setUpAll(() async {
     registerFallbackValue(<String>[]);
+    registerFallbackValue(('', '', <double>[]));
     registerFallbackValue((<String>[], 1));
     final boot = await Directory.systemTemp.createTemp('pdf_rag_flow_boot');
     PathProviderPlatform.instance = FakePathProviderPlatform(
@@ -157,7 +162,7 @@ void main() {
       ),
       // Real use case over the real vector repository — only the embedder
       // itself is stubbed.
-      EmbedAndStoreChunkUseCase(embedding, vectors, EmbeddingQueue()),
+      EmbedAndStoreChunkUseCase(embedding, vectors),
       // No signed-in user: documents count through saved notes only.
       _MockGetActiveUser()..stubSignedOut(),
     );
@@ -987,10 +992,196 @@ void main() {
       firstHits.map((h) => h.chunkId),
     );
   });
+
+  group('a plain note and a PDF note published together', () {
+    late _GatedEmbedding gated;
+    late _RecordingNoteVectors notes;
+    late PendingEmbeddingRepositoryImpl pendingRepo;
+    late NoteEmbeddingWorker worker;
+    late EmbedAndStoreNoteUseCase save;
+    late DocumentIndexer gatedIndexer;
+
+    setUp(() {
+      gated = _GatedEmbedding();
+      notes = _RecordingNoteVectors();
+      pendingRepo = PendingEmbeddingRepositoryImpl(isar: isar);
+      worker = NoteEmbeddingWorker(
+        pendingRepo,
+        gated,
+        notes,
+        _MockExtractKnowledge()..stub(),
+        InferenceScheduler(),
+      );
+      save = EmbedAndStoreNoteUseCase(pendingRepo, worker);
+      gatedIndexer = DocumentIndexer(
+        isar,
+        DocumentExtractionService(
+          PdfrxTextSource(),
+          ArchiveDocxTextSource(),
+          FakeOcrTextSource(),
+          FakeImageLabelSource(),
+        ),
+        EmbedAndStoreChunkUseCase(gated, vectors),
+        _MockGetActiveUser()..stubSignedOut(),
+      );
+    });
+
+    tearDown(() => gatedIndexer.dispose());
+
+    Future<void> noteQueueEmpty() async {
+      for (var i = 0; i < 600; i++) {
+        if ((await pendingRepo.count()).getOrElse(() => -1) == 0) return;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    }
+
+    test(
+      'both are searchable and the embedder runs one embed at a time',
+      () async {
+        gated.embedTime = const Duration(milliseconds: 15);
+        final indexing = gatedIndexer.reconcile();
+        // Publish the notes only once the PDF's chunks are really being embedded,
+        // so the two pipelines have to share the gate.
+        while (gated.texts.isEmpty) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        await Future.wait([
+          save.call((
+            'plain',
+            'A plain note about espresso machines and grinders',
+          )),
+          save.call((
+            'pdfnote',
+            'See the attached circular on cloud computing',
+          )),
+        ]);
+        await indexing;
+        await noteQueueEmpty();
+
+        expect(notes.stored.keys.toSet(), {'plain', 'pdfnote'});
+        final row = await isar.documentIndexModels
+            .filter()
+            .sha256EqualTo(sha)
+            .findFirst();
+        expect(row?.status, DocumentIndexStatus.indexed);
+        final target = await isar.documentChunkModels
+            .where()
+            .sha256EqualToAnyOrdinal(sha)
+            .findAll()
+            .then(
+              (all) => all.firstWhere(
+                (c) =>
+                    c.text.toLowerCase().contains('cloud computing is a model'),
+              ),
+            );
+        final hits = await vectors.search(
+          gated.vectorFor(target.text),
+          topK: 3,
+        );
+        expect(hits.first.chunkId, chunkIdOf(sha, target.ordinal));
+        expect(gated.maxInFlight, 1);
+        // Both pipelines really embedded on the one gate.
+        expect(
+          gated.texts,
+          contains('A plain note about espresso machines and grinders'),
+        );
+        expect(gated.texts.length, greaterThan(row!.chunkCount));
+      },
+    );
+
+    test(
+      'a question asked mid-index is embedded right after the one in flight, '
+      'ahead of the remaining chunks',
+      () async {
+        gated.embedTime = const Duration(milliseconds: 15);
+        final indexing = gatedIndexer.reconcile();
+        while (gated.texts.length < 3) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        // Other pipelines (notes, more chunks) have embeds queued too.
+        for (var i = 0; i < 4; i++) {
+          unawaited(gated.embed('queued background $i', isDocument: true));
+        }
+        final startedBefore = gated.texts.length;
+
+        final answer = await gated.embed('what is cloud computing');
+        final position = gated.texts.indexOf('what is cloud computing');
+        await indexing;
+
+        expect(answer, isNotEmpty);
+        expect(
+          position,
+          lessThanOrEqualTo(startedBefore + 1),
+          reason: 'only the embed already running may go first',
+        );
+        expect(
+          gated.texts.length - position,
+          greaterThan(3),
+          reason: 'most of the PDF was still queued behind the question',
+        );
+      },
+    );
+
+    test(
+      'a note queued while the PDF is indexing is not starved by it',
+      () async {
+        gated.embedTime = const Duration(milliseconds: 10);
+        final indexing = gatedIndexer.reconcile();
+        await Future<void>.delayed(const Duration(milliseconds: 30));
+
+        await save.call(('late', 'a note published while the PDF indexes'));
+        await noteQueueEmpty();
+        await indexing;
+
+        expect(notes.stored.keys, contains('late'));
+      },
+    );
+  });
 }
 
 /// Note vector store double — notes are not what this flow exercises, so it
 /// returns whatever the test seeds and nothing more.
+/// A note vector store that remembers what it was given.
+class _RecordingNoteVectors extends _FakeNoteVectors {
+  final Map<String, List<double>> stored = {};
+
+  @override
+  Future<void> upsert(String id, List<double> vector) async =>
+      stored[id] = vector;
+}
+
+class _MockExtractKnowledge extends Mock implements ExtractKnowledgeUseCase {
+  void stub() => when(() => call(any())).thenAnswer((_) async {});
+}
+
+/// The deterministic embedder behind the REAL gate: what the service does, with
+/// the model replaced by [vectorFor]. Records how many embeds ran at once and
+/// what was embedded.
+class _GatedEmbedding extends _StubEmbedding {
+  final EmbeddingQueue queue = EmbeddingQueue();
+  Duration embedTime = const Duration(milliseconds: 2);
+  int _inFlight = 0;
+  int maxInFlight = 0;
+  final List<String> texts = [];
+
+  @override
+  Future<List<double>> embed(String text, {bool isDocument = false}) {
+    return queue.run(
+      () async {
+        _inFlight++;
+        if (_inFlight > maxInFlight) maxInFlight = _inFlight;
+        texts.add(text);
+        await Future<void>.delayed(embedTime);
+        _inFlight--;
+        return vectorFor(text);
+      },
+      priority: isDocument
+          ? EmbedPriority.background
+          : EmbedPriority.interactive,
+    );
+  }
+}
+
 class _FakeNoteVectors implements VectorRepository {
   List<ScoredNote> results = const [];
 

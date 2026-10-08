@@ -40,6 +40,44 @@ void main() {
   bool cancelledAtAnyTokenFor(List<String> trace, String label) =>
       trace.any((s) => s.startsWith('cancel:$label@'));
 
+  group('isChatRunning', () {
+    test('is false when idle, true during a chat job, false after', () async {
+      final s = InferenceScheduler()..notifyLoadedModel('m');
+      expect(s.isChatRunning, isFalse);
+
+      final job = s.run<void>(
+        kind: LlmTaskKind.chat,
+        modelId: 'm',
+        work: blockerFor(const Duration(milliseconds: 60)),
+      );
+      await Future.delayed(const Duration(milliseconds: 20));
+      expect(s.isChatRunning, isTrue);
+
+      await job;
+      expect(s.isChatRunning, isFalse);
+    });
+
+    test('is false while a job of another kind runs', () async {
+      final s = InferenceScheduler()..notifyLoadedModel('m');
+      final jobs = [
+        for (final kind in [
+          LlmTaskKind.extract,
+          LlmTaskKind.gana,
+          LlmTaskKind.nataraj,
+        ])
+          s.run<void>(
+            kind: kind,
+            modelId: 'm',
+            work: blockerFor(const Duration(milliseconds: 40)),
+          ),
+      ];
+      await Future.delayed(const Duration(milliseconds: 15));
+
+      expect(s.isChatRunning, isFalse);
+      await Future.wait(jobs);
+    });
+  });
+
   group('Scenario 1 — chat preempts nataraj at the next token boundary', () {
     test('chat (T0) cancels running nataraj and runs first', () async {
       final scheduler = InferenceScheduler();
