@@ -365,6 +365,12 @@ libmdbx races otherwise — see SIGBUS prevention in `tests.yml`).
 
 ## 6. Pipeline awareness
 
+`.github/workflows/builds.yml` is separate: it compiles the app for Android
+(`flutter build apk --debug`), iOS (`--debug --no-codesign`) and Windows
+(`flutter build windows --debug`) on PRs, pushes to `main` and nightly. It runs
+no tests; it catches Gradle, CocoaPods, MSVC and native-hook breakage the Linux
+test shards cannot see.
+
 The CI workflow (`.github/workflows/tests.yml`) shards tests by top-level
 path:
 
@@ -387,7 +393,9 @@ clock: run every Isar call under `tester.runAsync` (or start it with
 the pattern (`io`, `chatTest`).
 
 The root `integration_test/` directory is **not** part of this and never runs in
-CI — it is device-bound (`IntegrationTestWidgetsFlutterBinding`). Tests that need
+CI — it is device-bound (`IntegrationTestWidgetsFlutterBinding`). CI does
+analyze it (`flutter analyze lib/ test/ integration_test/`), so a device test
+that no longer compiles fails the PR. Tests that need
 real flutter_gemma (the chat models, or the bundled Gecko embedder) live there
 because the models are Git-LFS assets CI does not check out. Run them by hand:
 

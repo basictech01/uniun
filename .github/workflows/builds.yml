@@ -1,0 +1,98 @@
+name: Builds
+
+# Compiles the real app for Android, iOS and Windows. tests.yml covers Dart
+# logic on Linux only; this catches what only a platform build finds: Gradle,
+# CocoaPods, MSVC/CMake and the native-asset hooks (flutter_gemma, openmls,
+# pdfrx, tostore). Debug builds, no signing, nothing is uploaded or released.
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+  schedule:
+    # Nightly, so a toolchain or runner-image change that breaks a build shows
+    # up even when no one has opened a PR.
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.44.2"
+
+jobs:
+  build:
+    name: ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+    timeout-minutes: 60
+    strategy:
+      # One platform failing must not hide the others.
+      fail-fast: false
+      matrix:
+        target:
+          - name: android
+            os: ubuntu-latest
+            command: flutter build apk --debug
+          - name: ios
+            os: macos-latest
+            command: flutter build ios --debug --no-codesign
+          - name: windows
+            os: windows-latest
+            command: flutter build windows --debug
+    steps:
+      # No LFS: the embedding model is a 145 MB LFS file and every job would
+      # count against the repo's LFS bandwidth. The build only bundles it, so a
+      # pointer file compiles the same.
+      - uses: actions/checkout@v4
+
+      - if: matrix.target.name == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/flutter_gemma
+          key: gemma-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+
+      - run: flutter pub get
+
+      - run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build ${{ matrix.target.name }}
+        run: ${{ matrix.target.command }}
+
+  builds-passed:
+    name: builds
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - run: |
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "::error::A platform build failed."
+            exit 1
+          fi
+          echo "All platform builds passed."
