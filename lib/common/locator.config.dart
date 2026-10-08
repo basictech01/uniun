@@ -13,7 +13,6 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:isar_community/isar.dart' as _i214;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
-import 'package:tostore/tostore.dart' as _i789;
 import 'package:uniun/common/widgets/composer/cubit/reference_picker_cubit.dart'
     as _i734;
 import 'package:uniun/common/widgets/note_card/cubit/note_card_cubit.dart'
@@ -39,6 +38,7 @@ import 'package:uniun/data/datasources/llm/local_llm_runner.dart' as _i937;
 import 'package:uniun/data/datasources/llm/remote_llm_data_source.dart'
     as _i141;
 import 'package:uniun/data/datasources/media_cache_data_source.dart' as _i366;
+import 'package:uniun/data/datasources/note_vector_store.dart' as _i796;
 import 'package:uniun/data/datasources/ocr/ocr_text_source.dart' as _i787;
 import 'package:uniun/data/datasources/pdf/pdf_text_source.dart' as _i623;
 import 'package:uniun/data/datasources/surrounding_read_state_store.dart'
@@ -300,8 +300,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i981.LlmCredentialsDataSource>(
       () => _i981.LlmCredentialsDataSource(),
     );
-    await gh.singletonAsync<_i789.ToStore>(
-      () => tostoreModule.createTostore(),
+    await gh.singletonAsync<_i796.NoteVectorStore>(
+      () => tostoreModule.createNoteVectorStore(),
       preResolve: true,
     );
     gh.lazySingleton<_i794.ShareIntentService>(
@@ -323,12 +323,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i362.IsarDocumentVectorRepositoryImpl(gh<_i214.Isar>()),
     );
     gh.lazySingleton<_i787.OcrTextSource>(() => _i787.MlKitOcrTextSource());
-    gh.lazySingleton<_i739.VectorRepository>(
-      () => _i831.TostoreVectorRepositoryImpl(
-        gh<_i789.ToStore>(),
-        gh<_i214.Isar>(),
-      ),
-    );
     gh.factory<_i733.DrawerDataSource>(
       () => _i733.DrawerDataSource(gh<_i214.Isar>()),
     );
@@ -420,6 +414,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i967.ProfileRepository>(
       () => _i484.ProfileRepositoryImpl(isar: gh<_i214.Isar>()),
+    );
+    gh.lazySingleton<_i739.VectorRepository>(
+      () => _i831.TostoreVectorRepositoryImpl(
+        gh<_i796.NoteVectorStore>(),
+        gh<_i214.Isar>(),
+      ),
     );
     gh.lazySingleton<_i635.E2EEGroupRepository>(
       () => _i896.E2EEGroupRepositoryImpl(

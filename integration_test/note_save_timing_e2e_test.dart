@@ -12,9 +12,8 @@ import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:tostore/tostore.dart';
 import 'package:uniun/common/locator.dart';
-import 'package:uniun/data/datasources/tostore_module.dart';
+import 'package:uniun/data/datasources/note_vector_store.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
 import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
@@ -32,7 +31,7 @@ void main() {
       );
       final save = getIt<EmbedAndStoreNoteUseCase>();
       final embedding = getIt<EmbeddingService>();
-      final store = getIt<ToStore>();
+      final store = getIt<NoteVectorStore>();
       final vectors = getIt<VectorRepository>();
       final stamp = DateTime.now().microsecondsSinceEpoch;
       final ids = <String>[];
@@ -43,12 +42,7 @@ void main() {
         reason: '[] means the bundled embedding model did not load',
       );
 
-      Future<bool> stored(String id) async {
-        final rows = await store
-            .query(embeddingsTableName)
-            .where(embeddingsIdField, '=', id);
-        return rows.data.isNotEmpty;
-      }
+      Future<bool> stored(String id) => store.contains(id);
 
       /// Milliseconds after [start] at which each id first shows up as stored.
       Future<Map<String, int>> whenStored(

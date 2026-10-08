@@ -97,11 +97,12 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
       while (_scheduler.isChatRunning) {
         await Future<void>.delayed(chatPollInterval);
       }
+      final List<double> vec;
       try {
         // `embed` answers [] both when the model is not loaded (try later, keep
         // the note) and when it failed on this text (count it, or one bad note
         // would block the queue).
-        final vec = await _embedding.embed(item.text, isDocument: true);
+        vec = await _embedding.embed(item.text, isDocument: true);
         if (vec.isEmpty) {
           if (!_embedding.isReady) {
             debugPrint(
@@ -112,15 +113,6 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
           }
           throw StateError('the embedder returned no vector for this note');
         }
-        await _vector.upsert(item.eventId, vec);
-        // Row removed last: a crash between the two just embeds it again.
-        (await _pending.remove(item.eventId)).leftMap(
-          (f) => debugPrint(
-            '⚠️ NoteEmbeddingWorker: could not clear $shortId: $f',
-          ),
-        );
-        debugPrint('✅ NoteEmbeddingWorker: embedded $shortId');
-        unawaited(_extract.call((item.eventId, item.text, vec)));
       } catch (e, st) {
         final attempts = (await _pending.recordFailure(
           item.eventId,
@@ -135,7 +127,27 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
           '🗑️ NoteEmbeddingWorker: dropped $shortId after '
           '$maxAttempts failures',
         );
+        continue;
       }
+
+      try {
+        await _vector.upsert(item.eventId, vec);
+      } catch (e) {
+        // A storage problem is not this note's fault: keep it, don't count it,
+        // and try again later.
+        debugPrint(
+          '⚠️ NoteEmbeddingWorker: vector store failed, keeping $shortId '
+          'and stopping: $e',
+        );
+        return true;
+      }
+      // Row removed last: a crash between the two just embeds it again.
+      (await _pending.remove(item.eventId)).leftMap(
+        (f) =>
+            debugPrint('⚠️ NoteEmbeddingWorker: could not clear $shortId: $f'),
+      );
+      debugPrint('✅ NoteEmbeddingWorker: embedded $shortId');
+      unawaited(_extract.call((item.eventId, item.text, vec)));
     }
   }
 }

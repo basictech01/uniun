@@ -27,7 +27,7 @@ class DocumentChunkModel {
 
   late String text;
 
-  /// The embedding, stored as 32-bit floats (4 KB for 1024 dimensions), or
+  /// The embedding, stored as 32-bit floats (3 KB for 768 dimensions), or
   /// `null` until the chunk has been embedded — a chunk with no vector is
   /// never returned by search.
   List<float>? vector;
