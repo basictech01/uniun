@@ -22,6 +22,7 @@ case "${1:-}" in
   run)
     keep_awake
     trap 'adb shell svc power stayon false' EXIT
+    echo "Building and installing, then the test is running on the phone (output stays quiet until it finishes)..."
     flutter test --no-uninstall "${2:-integration_test/all_tests.dart}" "${@:3}"
     ;;
   *)

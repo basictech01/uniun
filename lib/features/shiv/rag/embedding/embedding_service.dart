@@ -7,7 +7,7 @@ import 'package:uniun/core/utils/llm_backend.dart';
 import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 
-/// On-device text embedding using Gecko 110M (1024-dim), run through
+/// On-device text embedding using Gecko 110M (768-dim), run through
 /// flutter_gemma's LiteRT embedder.
 ///
 /// ## Why flutter_gemma instead of tflite_flutter
@@ -23,7 +23,7 @@ import 'package:uniun/data/datasources/llm/flutter_gemma_gateway.dart';
 /// so RAG works offline on first launch with no network fetch. `installEmbedder`
 /// copies the asset into flutter_gemma's managed storage once (idempotent).
 ///
-/// Output: 1024-dimensional L2-normalised float vector.
+/// Output: 768-dimensional L2-normalised float vector.
 @lazySingleton
 class EmbeddingService {
   EmbeddingService(this._gateway, this._queue);
@@ -31,7 +31,7 @@ class EmbeddingService {
   final FlutterGemmaGateway _gateway;
   final EmbeddingQueue _queue;
 
-  static const int embeddingDim = 1024;
+  static const int embeddingDim = 768;
 
   /// Bundled asset paths — also referenced by [EmbeddingModelDownloader] so the
   /// install can be pre-warmed during the LLM download UX.
@@ -81,7 +81,7 @@ class EmbeddingService {
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
-  /// Embed [text] → 1024-dim L2-normalised vector.
+  /// Embed [text] → 768-dim L2-normalised vector.
   ///
   /// [isDocument] selects the task prefix: documents being indexed (note
   /// content) use the document prefix, search queries use the query prefix.

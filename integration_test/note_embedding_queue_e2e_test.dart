@@ -12,10 +12,9 @@ import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:isar_community/isar.dart';
-import 'package:tostore/tostore.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/core/enum/note_type.dart';
-import 'package:uniun/data/datasources/tostore_module.dart';
+import 'package:uniun/data/datasources/note_vector_store.dart';
 import 'package:uniun/data/models/notes/note_model.dart';
 import 'package:uniun/domain/repositories/pending_embedding_repository.dart';
 import 'package:uniun/domain/repositories/vector_repository.dart';
@@ -66,28 +65,29 @@ void main() {
         ),
       );
       await getIt<EmbedAndStoreNoteUseCase>().call((id, text));
-      expect((await pending.count()).getOrElse(() => -1), greaterThanOrEqualTo(1));
+      expect(
+        (await pending.count()).getOrElse(() => -1),
+        greaterThanOrEqualTo(1),
+      );
 
       try {
         final deadline = DateTime.now().add(const Duration(minutes: 3));
-        while ((await pending.count()).getOrElse(() => -1) > 0 && DateTime.now().isBefore(deadline)) {
+        while ((await pending.count()).getOrElse(() => -1) > 0 &&
+            DateTime.now().isBefore(deadline)) {
           await Future<void>.delayed(const Duration(seconds: 2));
         }
 
-        expect((await pending.count()).getOrElse(() => -1), 0, reason: 'queue should be drained');
-
-        // Read the stored vector back directly. A similarity search is not used
-        // here: notes still go through ToStore's approximate index, which the
-        // audit records as reaching only part of what is stored.
-        final stored = await getIt<ToStore>()
-            .query(embeddingsTableName)
-            .where(embeddingsIdField, '=', id);
         expect(
-          stored.data,
-          hasLength(1),
+          (await pending.count()).getOrElse(() => -1),
+          0,
+          reason: 'queue should be drained',
+        );
+
+        expect(
+          await getIt<NoteVectorStore>().contains(id),
+          isTrue,
           reason: 'the vector should be stored',
         );
-        expect(stored.data.single[embeddingsVectorField], isA<VectorData>());
       } finally {
         await vectors.delete(id);
         await isar.writeTxn(

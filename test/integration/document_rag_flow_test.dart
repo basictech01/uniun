@@ -49,6 +49,7 @@ import 'package:dartz/dartz.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../_helpers/note_embedding_worker_factory.dart';
 import '../_helpers/docx_fixtures.dart';
 import '../_helpers/fake_image_label_source.dart';
 import '../_helpers/fake_ocr_text_source.dart';
@@ -1005,12 +1006,12 @@ void main() {
       gated = _GatedEmbedding();
       notes = _RecordingNoteVectors();
       pendingRepo = PendingEmbeddingRepositoryImpl(isar: isar);
-      worker = NoteEmbeddingWorker(
-        pendingRepo,
-        gated,
-        notes,
-        _MockExtractKnowledge()..stub(),
-        InferenceScheduler(),
+      worker = aNoteEmbeddingWorker(
+        pending: pendingRepo,
+        embedding: gated,
+        vector: notes,
+        extract: _MockExtractKnowledge()..stub(),
+        scheduler: InferenceScheduler(),
       );
       save = EmbedAndStoreNoteUseCase(pendingRepo, worker);
       gatedIndexer = DocumentIndexer(

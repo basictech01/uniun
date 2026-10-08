@@ -16,6 +16,7 @@ import 'package:uniun/domain/usecases/knowledge_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
 import '../../../../_helpers/isar_test_harness.dart';
+import '../../../../_helpers/note_embedding_worker_factory.dart';
 
 class _MockEmbedding extends Mock implements EmbeddingService {}
 
@@ -45,12 +46,12 @@ void main() {
     when(() => vector.upsert(any(), any())).thenAnswer((_) async {});
     when(() => extract.call(any())).thenAnswer((_) async {});
     scheduler = InferenceScheduler();
-    worker = NoteEmbeddingWorker(
-      pending,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    worker = aNoteEmbeddingWorker(
+      pending: pending,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
   });
 
@@ -60,10 +61,7 @@ void main() {
 
   /// Lets the unawaited pass finish; [untilIdle] false waits a fixed moment
   /// (for a worker that is deliberately waiting).
-  Future<void> settle({
-    NoteEmbeddingWorker? of,
-    bool untilIdle = true,
-  }) async {
+  Future<void> settle({NoteEmbeddingWorker? of, bool untilIdle = true}) async {
     final w = of ?? worker;
     await Future<void>.delayed(const Duration(milliseconds: 20));
     for (var i = 0; untilIdle && i < 500 && w.isRunning; i++) {
@@ -219,6 +217,60 @@ void main() {
     verifyNever(() => extract.call(any()));
   });
 
+  test('a vector store that keeps failing never costs the note its place, '
+      'however many passes fail', () async {
+    embeds();
+    when(() => vector.upsert(any(), any())).thenThrow(Exception('store down'));
+    await pending.enqueue('n1', 'hello world');
+
+    for (var i = 0; i < NoteEmbeddingWorker.maxAttempts + 3; i++) {
+      worker.nudge();
+      await settle();
+    }
+
+    expect((await pending.count()).getOrElse(() => -1), 1);
+    expect(
+      (await pending.recordFailure('n1')).getOrElse(() => -1),
+      1,
+      reason: 'a store failure must not be counted against the note',
+    );
+    verifyNever(() => extract.call(any()));
+  });
+
+  test('a store that fails and then recovers gets the note embedded and '
+      'cleared', () async {
+    embeds();
+    var down = true;
+    when(() => vector.upsert(any(), any())).thenAnswer((_) async {
+      if (down) throw StateError('the note vector store has stopped');
+    });
+    await pending.enqueue('n1', 'hello world');
+    worker.nudge();
+    await settle();
+    expect((await pending.count()).getOrElse(() => -1), 1);
+
+    down = false;
+    worker.nudge();
+    await settle();
+
+    expect((await pending.count()).getOrElse(() => -1), 0);
+    verify(() => extract.call(any())).called(1);
+  });
+
+  test('while the store is down the pass stops at the first note instead of '
+      'spinning through the queue', () async {
+    embeds();
+    when(() => vector.upsert(any(), any())).thenThrow(Exception('store down'));
+    await pending.enqueue('a', 'first note body');
+    await pending.enqueue('b', 'second note body');
+
+    worker.nudge();
+    await settle();
+
+    verify(() => vector.upsert(any(), any())).called(1);
+    expect((await pending.count()).getOrElse(() => -1), 2);
+  });
+
   test('a note that keeps throwing is dropped after the attempt limit and the '
       'rest go through', () async {
     when(
@@ -247,12 +299,12 @@ void main() {
       'stranded', () async {
     embeds();
     final racing = _InMemoryPending()..rows['a'] = 'first note';
-    final w = NoteEmbeddingWorker(
-      racing,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    final w = aNoteEmbeddingWorker(
+      pending: racing,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
     // The moment the pass sees an empty table, a new note arrives and nudges.
     racing.onEmpty = () {
@@ -327,12 +379,12 @@ void main() {
   test('retries on its own after the retry delay', () {
     // In memory: real Isar I/O never completes under fakeAsync.
     final fake = _InMemoryPending()..rows['n1'] = 'hello world';
-    final timed = NoteEmbeddingWorker(
-      fake,
-      embedding,
-      vector,
-      extract,
-      scheduler,
+    final timed = aNoteEmbeddingWorker(
+      pending: fake,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
     );
     fakeAsync((async) {
       embeds(const []);
@@ -358,12 +410,12 @@ void main() {
       final broken = _InMemoryPending()
         ..rows['n1'] = 'hello world'
         ..failNext = true;
-      final w = NoteEmbeddingWorker(
-        broken,
-        embedding,
-        vector,
-        extract,
-        scheduler,
+      final w = aNoteEmbeddingWorker(
+        pending: broken,
+        embedding: embedding,
+        vector: vector,
+        extract: extract,
+        scheduler: scheduler,
       );
       fakeAsync((async) {
         embeds();
@@ -486,7 +538,7 @@ class _InMemoryPending implements PendingEmbeddingRepository {
 
   @override
   Future<Either<Failure, PendingEmbeddingItem?>> next() async {
-    if (failNext) return Left(Failure.errorFailure('database closed'));
+    if (failNext) return const Left(Failure.errorFailure('database closed'));
     if (rows.isEmpty) {
       onEmpty?.call();
       return const Right(null);

@@ -14,7 +14,7 @@ import 'package:uniun/domain/repositories/document_vector_repository.dart';
 /// An approximate index (ToStore's graph) cannot reach every stored vector —
 /// on a phone only 20 of 83 chunks found themselves — so a stored chunk could
 /// never come back for any question. Comparing the query with every vector is
-/// exact, and cheap at this scale: a few thousand 1024-dim vectors is a few
+/// exact, and cheap at this scale: a few thousand 768-dim vectors is a few
 /// milliseconds of arithmetic.
 @LazySingleton(as: DocumentVectorRepository)
 class IsarDocumentVectorRepositoryImpl implements DocumentVectorRepository {

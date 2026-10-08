@@ -46,6 +46,7 @@ flowchart TD
 | `NoteEmbeddingWorker` | `lib/features/shiv/rag/indexing/` | Drains the table. |
 | `EmbeddingQueue` | `lib/data/datasources/llm/embedding_queue.dart` | The one gate: one embed in flight, interactive before background. |
 | `EmbeddingService` | `lib/features/shiv/rag/embedding/` | Loads Gecko, runs every embed through the gate. |
+| `NoteVectorStore` | `lib/data/datasources/note_vector_store.dart` | Where a note's vector is kept: the `tostore` store, in its own isolate, behind a message API. Opened at `tostore_<dim>d_v<N>` (#232). |
 
 ## Rules
 
@@ -53,6 +54,7 @@ flowchart TD
 - **The table only holds notes that still need a vector.** Empty means no work: a pass is one query. There is no polling and no database watcher; the only timer is the 5-minute retry after a failed pass.
 - **When it runs:** when a row is added, at app start (`main.dart`), and after the retry timer. It runs only while the app is open; rows wait for the next launch otherwise.
 - **One worker, one note at a time, newest first.** A note queued while it runs sets a "go again" flag, so passes never overlap and nothing is stranded.
+- **A vector store failure is not the note's fault.** If saving the vector throws (for example the store isolate stopped), the row is kept, the pass stops and it retries later; it is never counted toward the 3-failure drop, so a store outage cannot cost notes their place in the queue.
 - **`embed` answers `[]` for two different reasons.** Model not loaded → keep the note, stop, retry later (`EmbeddingService.isReady` is false). Model loaded but no vector for this text → count a failure and drop the note after 3, or one bad note would block the queue forever.
 - **A question waits for at most one embed.** When a slot frees, interactive waiters go before queued background ones. The embed already running cannot be interrupted.
 - **Chat first.** The worker waits (polls every 2 s) while `InferenceScheduler.isChatRunning`. Gana, extraction and Nataraj jobs do not hold it back.
@@ -65,7 +67,8 @@ Measured on a vivo 1933 (Snapdragon 710), real Gecko model:
 
 - One embed costs **~11.5 s**, whatever the text: 4 characters 11.54 s, ~200 chars 11.53 s, ~1,500 chars 11.57 s, ~6,000 chars 11.61 s. The forward pass is compiled for a fixed input (the model name says 1024 tokens) and a batch of 1, so every call processes a full padded input.
 - One at a time, two at a time, `generateEmbeddings` in groups of 4 and all at once all took the same ~46.3 s for 4 notes (1.00x). In the plugin `generateEmbeddings` is one request per text to a single worker isolate, so batching saves nothing (#125).
-- The model returns 768-dimension vectors where the app declares 1024 (#234).
+- The model returns 768-dimension vectors (the "1024" in its name is the input length); the app and the note store now declare 768 (#234).
+- Shorter-input Gecko files give the same vectors' quality at a fraction of the cost (see the 2026-10-08 audit entry); the bundled file is still the 1024-token one (follow-up: #266, measure before switching).
 
 | | Before the queue | After |
 |---|---|---|

@@ -16,6 +16,7 @@ import 'package:uniun/domain/usecases/knowledge_usecases.dart';
 import 'package:uniun/domain/usecases/vector_usecases.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 
+import '../_helpers/note_embedding_worker_factory.dart';
 import '../_helpers/isar_test_harness.dart';
 
 class _MockGateway extends Mock implements FlutterGemmaGateway {}
@@ -74,12 +75,12 @@ void main() {
   void wire() {
     embedding = EmbeddingService(gateway, EmbeddingQueue());
     scheduler = InferenceScheduler();
-    worker = NoteEmbeddingWorker(
-      pending,
-      embedding,
-      vectors,
-      extract,
-      scheduler,
+    worker = aNoteEmbeddingWorker(
+      pending: pending,
+      embedding: embedding,
+      vector: vectors,
+      extract: extract,
+      scheduler: scheduler,
     );
     save = EmbedAndStoreNoteUseCase(pending, worker);
   }
