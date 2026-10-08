@@ -78,7 +78,7 @@ void main() {
     test('carries unread / new-reference flags', () {
       final state = _state(
         groups: const [
-          DrawerGroupItem(id: 'c1', name: 'news', hasUnread: true),
+          DrawerGroupItem(id: 'c1', name: 'news', unreadCount: 1),
         ],
         followedNotes: const [
           DrawerFollowedNoteItem(

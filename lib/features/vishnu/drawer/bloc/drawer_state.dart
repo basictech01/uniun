@@ -54,24 +54,28 @@ class DrawerPrivateGroupItem {
   const DrawerPrivateGroupItem({
     required this.id,
     required this.name,
-    this.hasUnread = false,
+    this.unreadCount = 0,
   });
 
   final String id;
   final String name;
-  final bool hasUnread;
+  final int unreadCount;
+
+  bool get hasUnread => unreadCount > 0;
 }
 
 class DrawerGroupItem {
   const DrawerGroupItem({
     required this.id,
     required this.name,
-    this.hasUnread = false,
+    this.unreadCount = 0,
   });
 
   final String id;
   final String name;
-  final bool hasUnread;
+  final int unreadCount;
+
+  bool get hasUnread => unreadCount > 0;
 }
 
 class DrawerDmItem {

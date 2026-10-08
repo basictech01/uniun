@@ -190,7 +190,7 @@ class _VishnuDrawerState extends State<VishnuDrawer> {
                                 _ListRow(
                                   leading: const _IconSquare(Icons.tag_rounded),
                                   title: ch.name,
-                                  trailing: ch.hasUnread ? const _Dot() : null,
+                                  trailing: ch.unreadCount > 0 ? _CountBadge(ch.unreadCount) : null,
                                   onTap: () {
                                     _close(context);
                                     context.pushNamed(
@@ -218,7 +218,7 @@ class _VishnuDrawerState extends State<VishnuDrawer> {
                                       const _IconSquare(Icons.lock_rounded),
                                   title: ch.name,
                                   subtitle: l10n.drawerPrivateLabel,
-                                  trailing: ch.hasUnread ? const _Dot() : null,
+                                  trailing: ch.unreadCount > 0 ? _CountBadge(ch.unreadCount) : null,
                                   onTap: () {
                                     _close(context);
                                     context.pushNamed(

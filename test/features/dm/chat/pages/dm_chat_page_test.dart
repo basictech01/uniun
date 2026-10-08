@@ -229,6 +229,23 @@ void main() {
     expect(counts.hasListener, isFalse);
   });
 
+  testWidgets('notes on screen are marked read at once; notes off screen are '
+      'not, so leaving keeps what was read', (t) async {
+    when(() => oldest.call(any())).thenAnswer(
+      (_) async =>
+          Right<Failure, DateTime?>(t0.add(const Duration(minutes: 10))),
+    );
+
+    await open(t, notes(40));
+    await t.pump(const Duration(milliseconds: 600));
+
+    final marked = verify(
+      () => bloc.add(captureAny(that: isA<DmChatMarkSeenEvent>())),
+    ).captured.cast<DmChatMarkSeenEvent>().map((e) => e.eventId).toSet();
+    expect(marked, contains('m10'), reason: 'the first unread is on screen');
+    expect(marked, isNot(contains('m39')), reason: 'the newest is far below');
+  });
+
   testWidgets('tapping the jump button scrolls to the newest and marks read', (
     t,
   ) async {

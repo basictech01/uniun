@@ -131,7 +131,7 @@ void main() {
     test('private group hasUnread flag flows through', () {
       final state = _state(
         privateGroups: const [
-          DrawerPrivateGroupItem(id: 'g', name: 'inner', hasUnread: true),
+          DrawerPrivateGroupItem(id: 'g', name: 'inner', unreadCount: 1),
         ],
       );
       expect(buildDrawerSearchResults(state, 'inner').single.hasUnread,

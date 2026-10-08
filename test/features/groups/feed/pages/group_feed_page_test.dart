@@ -74,6 +74,7 @@ void main() {
   late _MockMessages messages;
   late _MockAfter after;
   late _MockMarkGroup markGroup;
+  late _MockMarkOne markOne;
   late StreamController<int> counts;
 
   NoteEntity msg(int i) => aGroupMessage(
@@ -113,7 +114,7 @@ void main() {
     ).thenAnswer((_) async => const Left(Failure.errorFailure('none')));
     final isSaved = _MockIsSaved();
     when(() => isSaved.call(any())).thenAnswer((_) async => const Right(false));
-    final markOne = _MockMarkOne();
+    markOne = _MockMarkOne();
     when(() => markOne.call(any())).thenAnswer((_) async => const Right(unit));
     final watch = _MockWatch();
     when(() => watch.call(any())).thenAnswer((_) => counts.stream);
@@ -192,6 +193,24 @@ void main() {
 
     expect(find.byType(NewNotesDivider), findsNothing);
     verify(() => markGroup.call(gid)).called(greaterThanOrEqualTo(1));
+  });
+
+  testWidgets('notes on screen are marked read at once; notes off screen are '
+      'not, so leaving keeps what was read', (t) async {
+    final boundary = t0.add(const Duration(minutes: 20));
+    when(() => oldest.call(gid)).thenAnswer((_) async => Right(boundary));
+    when(
+      () => messages.call(any()),
+    ).thenAnswer((_) async => Right([for (var i = 19; i >= 0; i--) msg(i)]));
+    when(
+      () => after.call(any()),
+    ).thenAnswer((_) async => Right([for (var i = 20; i < 40; i++) msg(i)]));
+
+    await open(t);
+    await t.pump(const Duration(milliseconds: 600));
+
+    verify(() => markOne.call('m20')).called(1);
+    verifyNever(() => markOne.call('m39'));
   });
 
   testWidgets('a short group that fits the screen is marked read', (t) async {

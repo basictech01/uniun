@@ -147,7 +147,7 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
               (c) => DrawerGroupItem(
                 id: c.groupId,
                 name: c.name,
-                hasUnread: (groupUnread[c.groupId] ?? 0) > 0,
+                unreadCount: groupUnread[c.groupId] ?? 0,
               ),
             )
             .toList(),
@@ -192,7 +192,7 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
             (c) => DrawerPrivateGroupItem(
               id: c.groupId,
               name: c.name,
-              hasUnread: (privateGroupUnread[c.groupId] ?? 0) > 0,
+              unreadCount: privateGroupUnread[c.groupId] ?? 0,
             ),
           )
           .toList();

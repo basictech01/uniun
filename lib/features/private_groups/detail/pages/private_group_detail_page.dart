@@ -63,7 +63,6 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView>
   void markContainerRead() => context
       .read<PrivateGroupDetailBloc>()
       .add(MarkAllPrivateGroupSeenEvent());
-  final Set<String> _everVisible = <String>{};
 
   /// Whether the jump-to-latest button is showing (set when scrolled above the
   /// bottom).
@@ -158,18 +157,14 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView>
     );
   }
 
-  void _onMessageVisibility(String eventId, VisibilityInfo info) {
-    // VisibilityDetector callbacks are scheduler-driven and can fire AFTER
-    // the page is popped — guard against using a defunct State.context.
-    if (!mounted) return;
-    if (info.visibleFraction >= 0.5) {
-      _everVisible.add(eventId);
-    } else if (info.visibleFraction == 0 && _everVisible.contains(eventId)) {
-      context
-          .read<PrivateGroupDetailBloc>()
-          .add(MarkPrivateGroupMessageSeenEvent(eventId));
-    }
-  }
+  void _onMessageVisibility(String eventId, VisibilityInfo info) =>
+      markIfOnScreen(
+        eventId,
+        info.visibleFraction,
+        (id) => context.read<PrivateGroupDetailBloc>().add(
+          MarkPrivateGroupMessageSeenEvent(id),
+        ),
+      );
 
   void _openThread(BuildContext context, String messageId) {
     context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId}).then(

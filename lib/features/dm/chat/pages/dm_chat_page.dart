@@ -68,8 +68,6 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
   String? _myAvatarUrl;
   List<String> _conversationRelays = const [];
 
-  final Set<String> _everVisible = <String>{};
-
   /// Whether the jump-to-latest button is showing (set when scrolled above the
   /// bottom).
   bool _showJumpButton = false;
@@ -120,17 +118,12 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
     context.read<DmChatBloc>().add(DmChatMarkAllSeenEvent());
   }
 
-  void _onMessageVisibility(String eventId, VisibilityInfo info) {
-    if (info.visibleFraction >= 0.5) {
-      _everVisible.add(eventId);
-    } else if (info.visibleFraction == 0 && _everVisible.contains(eventId)) {
-      // visibility_detector fires its callbacks via a scheduler task that can
-      // run after the widget tree has been disposed (route pop). Touching
-      // `context` then throws — guard with `mounted`.
-      if (!mounted) return;
-      context.read<DmChatBloc>().add(DmChatMarkSeenEvent(eventId));
-    }
-  }
+  void _onMessageVisibility(String eventId, VisibilityInfo info) =>
+      markIfOnScreen(
+        eventId,
+        info.visibleFraction,
+        (id) => context.read<DmChatBloc>().add(DmChatMarkSeenEvent(id)),
+      );
 
   /// The conversation, oldest first, opened at the first note that was unread
   /// when the page opened.

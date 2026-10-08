@@ -189,6 +189,48 @@ void main() {
     );
   }, timeout: const Timeout(Duration(minutes: 3)));
 
+  testWidgets('public group: notes read on screen stay read after going '
+      'back, the rest stay unread', (t) async {
+    const gid = '${_prefix}group-some';
+    await isar.writeTxn(() => isar.groupModels.put(groupSeed(gid)));
+    for (var i = 0; i < 10; i++) {
+      await addNote(
+        '${_prefix}s-read-$i',
+        kind: kGroupMessageKind,
+        groupId: gid,
+        created: base.add(Duration(minutes: i)),
+      );
+    }
+    for (var i = 0; i < 30; i++) {
+      await addNote(
+        '${_prefix}s-new-$i',
+        kind: kGroupMessageKind,
+        groupId: gid,
+        created: base.add(Duration(hours: 1, minutes: i)),
+        unread: true,
+      );
+    }
+
+    await t.pumpWidget(_app(const GroupFeedPage(groupId: gid)));
+    await t.pump(const Duration(seconds: 3));
+    var afterReading = await unreadWith('${_prefix}s-new-');
+    for (var i = 0; i < 40 && afterReading >= 30; i++) {
+      await t.pump(const Duration(milliseconds: 250));
+      afterReading = await unreadWith('${_prefix}s-new-');
+    }
+    expect(afterReading, lessThan(30), reason: 'notes on screen were read');
+    expect(afterReading, greaterThan(0), reason: 'the rest are still unread');
+
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(seconds: 1));
+
+    expect(
+      await unreadWith('${_prefix}s-new-'),
+      afterReading,
+      reason: 'going back changes nothing',
+    );
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
   testWidgets(
     'DM: opens at the first unread and clears at the end',
     (t) async {

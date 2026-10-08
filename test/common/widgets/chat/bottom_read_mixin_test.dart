@@ -234,6 +234,46 @@ void main() {
     expect(h.marks, 2);
   });
 
+  group('markIfOnScreen', () {
+    Future<_PlainState> host(WidgetTester t) async {
+      final key = GlobalKey<_PlainState>();
+      await t.pumpWidget(_app(_Plain(key: key)));
+      return key.currentState!;
+    }
+
+    testWidgets('a note at least half on screen is marked', (t) async {
+      final h = await host(t);
+      final seen = <String>[];
+
+      h.markIfOnScreen('a', 0.5, seen.add);
+      h.markIfOnScreen('b', 1, seen.add);
+
+      expect(seen, ['a', 'b']);
+    });
+
+    testWidgets('a note less than half on screen is not marked', (t) async {
+      final h = await host(t);
+      final seen = <String>[];
+
+      h.markIfOnScreen('a', 0.49, seen.add);
+      h.markIfOnScreen('b', 0, seen.add);
+
+      expect(seen, isEmpty);
+    });
+
+    testWidgets('a callback arriving after the page is gone is ignored', (
+      t,
+    ) async {
+      final h = await host(t);
+      await t.pumpWidget(const SizedBox());
+      final seen = <String>[];
+
+      h.markIfOnScreen('a', 1, seen.add);
+
+      expect(seen, isEmpty);
+    });
+  });
+
   testWidgets('by default a surface is allowed to mark and is not reversed', (
     t,
   ) async {
