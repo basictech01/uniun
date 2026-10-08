@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/domain/entities/followed_note/thread_unread_marker.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/widgets/composer/composer_host.dart';
 import 'package:uniun/common/widgets/thread/thread_conversation_body.dart';
@@ -25,6 +26,7 @@ class MessageThreadPage extends StatelessWidget {
     this.parentNotes = const [],
     this.mentionedNotes = const [],
     this.replyCount,
+    this.unreadMarkers = const {},
     this.isSending = false,
     this.appBar,
     this.title,
@@ -36,6 +38,7 @@ class MessageThreadPage extends StatelessWidget {
   final List<NoteEntity> mentionedNotes;
   final List<NoteEntity> replies;
   final int? replyCount;
+  final Map<String, ThreadUnreadMarker> unreadMarkers;
   final bool isSending;
 
   /// Custom app bar. When null, a default back + [title] bar is shown.
@@ -66,6 +69,7 @@ class MessageThreadPage extends StatelessWidget {
         mentionedNotes: mentionedNotes,
         replies: replies,
         replyCount: replyCount,
+        unreadMarkers: unreadMarkers,
         onOpenThread: onOpenThread,
       ),
       bottomNavigationBar: ComposerHost(

@@ -3977,6 +3977,18 @@
   "@receiveShareNothingToShare": {
     "description": "Error when trying to publish with no text and no attachments"
   },
+  "threadNewNote": "New",
+  "@threadNewNote": {
+    "description": "Marker above a note in a followed note's thread that has not been opened yet"
+  },
+  "threadNewReplyInside": "New reply inside",
+  "@threadNewReplyInside": {
+    "description": "Marker above a note in a followed note's thread when an unopened reply sits further down"
+  },
+  "newNotesDivider": "New notes",
+  "@newNotesDivider": {
+    "description": "Line shown above the first unread note when a chat opens"
+  },
   "jumpToLatest": "Jump to latest",
   "@jumpToLatest": {
     "description": "Tooltip on the floating button that scrolls a chat to the newest message and marks the surface read"

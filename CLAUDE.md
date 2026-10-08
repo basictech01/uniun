@@ -84,7 +84,7 @@ Nostr Relay Network
 
 ### Key Technical Decisions
 
-- **Unread tracking is unified, not per-surface.** A single `UnreadNoteModel` collection holds one row per unread message across every surface (feed/group/DM/private group), discriminated by `kind`; presence = unread, deletion = read. There is no separate `ChannelReadStateModel`/`DMReadStateModel`/`FeedReadStateModel`.
+- **Unread tracking is unified, not per-surface.** A single `UnreadNoteModel` collection holds one row per unread message across every surface (feed/group/DM/private group), discriminated by `kind`; presence = unread, deletion = read. There is no separate `ChannelReadStateModel`/`DMReadStateModel`/`FeedReadStateModel`. Chat pages (group, private group, DM) use the shared `lib/common/widgets/chat/` pieces: `BottomReadMixin` marks the container read whenever the list is at the newest note and the page is on top and in the foreground (on open, on arrival, on scroll), but never while the list is still empty/loading; `BoundaryChatList` opens at the first unread note with a `NewNotesDivider`; `UnreadCountCubit` feeds the count badge on `JumpToBottomButton`. Do not mark read from a scroll listener alone: a chat that opens at the bottom never scrolls.
 - **Notes are queued for embedding, not embedded in place.** `EmbedAndStoreNoteUseCase` writes a `PendingEmbedding` row (`PendingEmbeddingRepository`, returns `Either`) and calls `NoteEmbeddingTrigger.nudge()`; `NoteEmbeddingWorker` (`lib/features/shiv/rag/indexing/`) embeds one note at a time, newest first, stores the vector, then deletes the row **last**, so a kill or a not-ready embedder loses nothing and an empty table means no work. Every embed (note, PDF/DOCX chunk, Shiv question) goes through `EmbeddingQueue`, one at a time, a question first; the worker waits while a chat reply is generating. Embedding costs ~11.5 s a note on a weak phone whatever the text length, and batching (`generateEmbeddings`) is no faster, so never assume it is cheap and never call the model directly. Not built yet: backfill of notes embedded before the queue, #232. See [`docs/SHIVA/embedding.md`](docs/SHIVA/embedding.md).
 - **The note vector store lives in its own isolate.** `NoteVectorStore` (`lib/data/datasources/note_vector_store.dart`) owns the `tostore` instance; `TostoreVectorRepositoryImpl` talks to it by message, and nothing else may open the store — tostore keeps per-isolate state, so a second opener does not see the first one's writes. It exists because the store stalled the UI for up to 522 ms on the main isolate (13 ms in its own isolate). Commands run in order; a call after the isolate stops throws instead of hanging. Do not call `ToStore.open` anywhere else.
 - **Image input in Shiv chat is for vision models only.** `AIModelId.supportsImages` (Gemma 4 E2B/E4B; Qwen3 and DeepSeek R1 are text-only, cloud models report false) gates the attach button via `ChatImageSupportCubit`. An image turn must use `createChat(supportImage: true)`: a `.litertlm` engine rejects images on the concurrent `openChat` sessions. flutter_gemma rebuilds a cached text-only engine itself when `supportImage` changes — do not close it by hand.
@@ -358,7 +358,7 @@ Read these files for the full picture rather than expanding this section:
 Subscribing to a note's reference graph — distinct from saved notes (which are for Shiv AI).
 
 - `FollowedNoteModel` (`eventId`, `contentPreview`, `followedAt`, `newReferenceCount`). Gateway opens `{"kinds":[1],"#e":["followedNoteId"]}` per followed note; SyncEngine bumps `newReferenceCount` on each match.
-- `FollowedNotesCubit`: `load() / followNote() / unfollowNote() / clearNewReferences()`.
+- `FollowedNotesCubit`: `load() / followNote() / unfollowNote()`.
 - UX: drawer hosts a collapsible "Followed Notes" section. Tapping a row opens `FollowedNoteDetailPage` directly — there is NO standalone `FollowedNotesPage`.
 
 ### Reports & Moderation (NIP-56)
@@ -621,8 +621,9 @@ UNIUN has **two** kinds of "follow", aimed at different things. They are not ali
 **2. Followed Notes (note-graph subscription, unrelated to NIP-02)**
 - `FollowedNoteModel` (Isar) — `eventId`, `contentPreview`, `followedAt`, `newReferenceCount`.
 - Subscribes to a single note's **reference graph**, not its author. The Gateway opens `{kinds:[1], "#e":["followedNoteId"]}` per followed note — any new Kind-1 that e-tags the target surfaces, regardless of who wrote it.
-- `newReferenceCount` is incremented by the inbound handler on each new match; cleared when the user opens the followed-note detail page.
-- Use cases: `FollowedNoteRepository.followNote / unfollowNote / clearNewReferences / isFollowed`.
+- `newReferenceCount` is derived, not stored: unread notes anywhere below the followed note (replies of replies included, walked through the `NoteRelation` edges by `descendantIdsOf`). It drops as each note is opened. Nothing clears it in bulk.
+- In a followed note's thread (and only there) a note shows a dot ("New") when it is itself unread and "New reply inside" when an unread note sits further down (`FollowedNoteRepository.watchThreadUnreadMarkers`, `UnreadTrailMark`). A new note is marked read only when its own thread page opens (`ThreadBloc` marks the opened note), never by seeing its parent.
+- Use cases: `FollowedNoteRepository.followNote / unfollowNote / isFollowed / watchThreadUnreadMarkers`.
 
 These are orthogonal — following a user does not auto-follow their notes' graphs, and following a note does not imply following its author.
 

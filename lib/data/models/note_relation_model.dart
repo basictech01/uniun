@@ -24,3 +24,26 @@ class NoteRelationModel {
 
   late DateTime createdAt;
 }
+
+/// Every event below [rootId] in the reference graph (replies of replies
+/// included), [rootId] itself excluded. Safe on cycles.
+Future<Set<String>> descendantIdsOf(Isar isar, String rootId) async {
+  final seen = <String>{rootId};
+  final found = <String>{};
+  var frontier = <String>[rootId];
+  while (frontier.isNotEmpty) {
+    final edges = await isar.noteRelationModels
+        .filter()
+        .anyOf(frontier, (q, id) => q.parentIdEqualTo(id))
+        .findAll();
+    final next = <String>[];
+    for (final e in edges) {
+      if (seen.add(e.childId)) {
+        found.add(e.childId);
+        next.add(e.childId);
+      }
+    }
+    frontier = next;
+  }
+  return found;
+}

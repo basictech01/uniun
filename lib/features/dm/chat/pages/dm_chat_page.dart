@@ -9,7 +9,13 @@ import 'package:uniun/common/qr/uniun_qr_button.dart';
 import 'package:uniun/common/qr/uniun_qr_card.dart';
 import 'package:uniun/common/widgets/composer/composer_host.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
+import 'package:uniun/common/widgets/chat/boundary_chat_list.dart';
+import 'package:uniun/domain/entities/note/note_entity.dart';
+import 'package:uniun/common/widgets/chat/bottom_read_mixin.dart';
+import 'package:uniun/common/widgets/chat/new_notes_divider.dart';
 import 'package:uniun/common/widgets/jump_to_bottom_button.dart';
+import 'package:uniun/common/widgets/chat/unread_count_cubit.dart';
+import 'package:uniun/domain/usecases/unread_usecases.dart';
 import 'package:uniun/common/widgets/note_card/note_card.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/domain/repositories/dm_conversation_repository.dart';
@@ -31,20 +37,30 @@ class DmChatPage extends StatelessWidget {
     return BlocProvider(
       create: (_) =>
           getIt<DmChatBloc>()..add(DmChatLoadEvent(otherPubkey: otherPubkey)),
-      child: const _DmChatView(),
+      child: _DmChatView(otherPubkey: otherPubkey),
     );
   }
 }
 
 class _DmChatView extends StatefulWidget {
-  const _DmChatView();
+  const _DmChatView({required this.otherPubkey});
+  final String otherPubkey;
 
   @override
   State<_DmChatView> createState() => _DmChatViewState();
 }
 
-class _DmChatViewState extends State<_DmChatView> {
+class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
   final _scrollController = ScrollController();
+
+  late final UnreadCountCubit _unread;
+
+  @override
+  ScrollController get readScrollController => _scrollController;
+
+  @override
+  void markContainerRead() =>
+      context.read<DmChatBloc>().add(DmChatMarkAllSeenEvent());
 
   // To identify if a message is ours.
   String? _myPubkeyHex;
@@ -55,38 +71,48 @@ class _DmChatViewState extends State<_DmChatView> {
   final Set<String> _everVisible = <String>{};
 
   /// Whether the jump-to-latest button is showing (set when scrolled above the
-  /// bottom — on this reversed list, that means away from the minimum offset).
+  /// bottom).
   bool _showJumpButton = false;
+
+  /// `created` of the oldest note that was unread when the chat opened; null
+  /// when everything was read. Fixed for the life of the page.
+  DateTime? _boundary;
+  bool _boundaryLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    _unread = UnreadCountCubit(
+      getIt<WatchDmUnreadCountUseCase>().call(widget.otherPubkey),
+    );
     _resolveActiveUser();
     _scrollController.addListener(_onScroll);
+    getIt<GetDmOldestUnreadTimeUseCase>().call(widget.otherPubkey).then((r) {
+      if (!mounted) return;
+      setState(() {
+        _boundary = r.getOrElse(() => null);
+        _boundaryLoaded = true;
+      });
+    });
   }
 
-  /// On a reversed list the newest message sits at the minimum scroll offset, so
-  /// reaching it (the default position on open) marks the conversation read.
+  /// Reaching the newest note marks the conversation read.
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     final pos = _scrollController.position;
-    if (pos.pixels <= pos.minScrollExtent + 8) {
-      context.read<DmChatBloc>().add(DmChatMarkAllSeenEvent());
-    }
+    onReadScroll();
 
-    final showJump =
-        pos.pixels - pos.minScrollExtent > kJumpToBottomTolerance;
+    final showJump = pos.maxScrollExtent - pos.pixels > kJumpToBottomTolerance;
     if (showJump != _showJumpButton) {
       setState(() => _showJumpButton = showJump);
     }
   }
 
-  /// Jumps to the newest message (offset 0 on this reversed list) and marks the
-  /// conversation read.
+  /// Jumps to the newest message and marks the conversation read.
   void _jumpToLatest() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
+        _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
       );
@@ -104,6 +130,37 @@ class _DmChatViewState extends State<_DmChatView> {
       if (!mounted) return;
       context.read<DmChatBloc>().add(DmChatMarkSeenEvent(eventId));
     }
+  }
+
+  /// The conversation, oldest first, opened at the first note that was unread
+  /// when the page opened.
+  Widget _messageList(DmChatState state) {
+    final oldestFirst = state.messages.reversed.toList(growable: false);
+    final boundary = _boundary;
+    final index = boundary == null
+        ? oldestFirst.length
+        : oldestFirst.indexWhere((m) => !m.created.isBefore(boundary));
+    return BoundaryChatList<NoteEntity>(
+      controller: _scrollController,
+      notes: oldestFirst,
+      boundaryIndex: index < 0 ? oldestFirst.length : index,
+      openedAtBoundary: boundary != null,
+      unreadDivider: const NewNotesDivider(),
+      header: const _EncryptedNoticePill(),
+      topPadding: 16,
+      bottomPadding: 16,
+      itemBuilder: (context, msg) => VisibilityDetector(
+        key: ValueKey('dm-${msg.id}'),
+        onVisibilityChanged: (info) => _onMessageVisibility(msg.id, info),
+        // Same redesigned NoteCard as the feed/groups — it self-loads its
+        // profile and resolves own-vs-other internally via NoteCardCubit.
+        child: NoteCard(
+          key: ValueKey(msg.id),
+          note: msg,
+          onTap: () => _openThread(context, msg.id),
+        ),
+      ),
+    );
   }
 
   Future<void> _resolveActiveUser() async {
@@ -154,11 +211,17 @@ class _DmChatViewState extends State<_DmChatView> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _unread.close();
     super.dispose();
   }
 
   void _openThread(BuildContext context, String messageId) {
-    context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId});
+    context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId}).then(
+      (_) {
+        // Notes that arrived while the thread covered the chat.
+        if (mounted) scheduleBottomCheck();
+      },
+    );
   }
 
   /// Truncates a full npub to the `npub1q9x…k4ze` form shown under the name.
@@ -186,6 +249,7 @@ class _DmChatViewState extends State<_DmChatView> {
         }
       },
       builder: (context, state) {
+        contentChanged(state.messages.length);
         final shortKey =
             state.otherPubkey != null && state.otherPubkey!.length > 12
             ? '${state.otherPubkey!.substring(0, 12)}...'
@@ -275,46 +339,21 @@ class _DmChatViewState extends State<_DmChatView> {
               Expanded(
                 child: Stack(
                   children: [
-                    state.isLoading && state.messages.isEmpty
+                    state.isLoading && state.messages.isEmpty ||
+                            !_boundaryLoaded
                         ? const Center(child: DropLoadingIndicator())
-                        : ListView.builder(
-                            controller: _scrollController,
-                            reverse: true, // show latest at bottom
-                            // No horizontal padding — the NoteCard supplies its
-                            // own 16px sides (matches the feed/group lists).
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            // +1 footer slot. On a reversed list the highest
-                            // index sits at the top of history, so the E2E
-                            // notice renders above the oldest message.
-                            itemCount: state.messages.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == state.messages.length) {
-                                return const _EncryptedNoticePill();
-                              }
-                              final msg = state.messages[index];
-                              // Same redesigned NoteCard as the feed/groups —
-                              // it self-loads its profile and resolves own-vs-
-                              // other internally via NoteCardCubit.
-                              final card = NoteCard(
-                                key: ValueKey(msg.id),
-                                note: msg,
-                                onTap: () => _openThread(context, msg.id),
-                              );
-                              return VisibilityDetector(
-                                key: ValueKey('dm-${msg.id}'),
-                                onVisibilityChanged: (info) =>
-                                    _onMessageVisibility(msg.id, info),
-                                child: card,
-                              );
-                            },
-                          ),
+                        : _messageList(state),
                     Positioned(
                       right: 16,
                       bottom: 12,
-                      child: JumpToBottomButton(
+                      child: BlocBuilder<UnreadCountCubit, int>(
+                        bloc: _unread,
+                        builder: (context, unread) => JumpToBottomButton(
                         visible: _showJumpButton,
+                        unreadCount: unread,
                         onPressed: _jumpToLatest,
                         tooltip: AppLocalizations.of(context)!.jumpToLatest,
+                      ),
                       ),
                     ),
                   ],

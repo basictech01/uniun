@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uniun/domain/entities/followed_user/followed_user_entity.dart';
@@ -45,7 +46,9 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
     this._requestProfileFetch,
     this._drawerData,
   ) : super(DrawerInitial()) {
-    on<DrawerLoadEvent>(_onLoad);
+    // A burst of changes (a batch of notes arriving) restarts the reload
+    // instead of queueing one per change, so the dot shows up sooner.
+    on<DrawerLoadEvent>(_onLoad, transformer: restartable());
 
     // NIP-28 public groups: creating/joining a group writes a GroupModel,
     // so the new group shows in the drawer immediately without a refresh.
@@ -64,8 +67,7 @@ class DrawerBloc extends Bloc<DrawerEvent, DrawerState> {
       if (!isClosed) add(DrawerLoadEvent());
     });
     // Unread badges (and derived followed-note ref count): kind-1/42/... inbound
-    // handlers insert unread rows, opening a thread deletes them, and
-    // clearNewReferences bulk-deletes the child rows of a followed root.
+    // handlers insert unread rows and reading a note deletes them.
     _unreadWatcher = _drawerData.watchUnread().listen((_) {
       if (!isClosed) add(DrawerLoadEvent());
     });

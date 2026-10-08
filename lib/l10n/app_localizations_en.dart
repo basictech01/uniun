@@ -3130,6 +3130,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveShareNothingToShare => 'Add text or media first';
 
   @override
+  String get threadNewNote => 'New';
+
+  @override
+  String get threadNewReplyInside => 'New reply inside';
+
+  @override
+  String get newNotesDivider => 'New notes';
+
+  @override
   String get jumpToLatest => 'Jump to latest';
 
   @override

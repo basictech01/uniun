@@ -758,6 +758,25 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i719.GetGroupOldestUnreadTimeUseCase>(
       () => _i719.GetGroupOldestUnreadTimeUseCase(gh<_i497.UnreadRepository>()),
     );
+    gh.lazySingleton<_i719.GetPrivateGroupOldestUnreadTimeUseCase>(
+      () => _i719.GetPrivateGroupOldestUnreadTimeUseCase(
+        gh<_i497.UnreadRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i719.GetDmOldestUnreadTimeUseCase>(
+      () => _i719.GetDmOldestUnreadTimeUseCase(gh<_i497.UnreadRepository>()),
+    );
+    gh.lazySingleton<_i719.WatchGroupUnreadCountUseCase>(
+      () => _i719.WatchGroupUnreadCountUseCase(gh<_i497.UnreadRepository>()),
+    );
+    gh.lazySingleton<_i719.WatchPrivateGroupUnreadCountUseCase>(
+      () => _i719.WatchPrivateGroupUnreadCountUseCase(
+        gh<_i497.UnreadRepository>(),
+      ),
+    );
+    gh.lazySingleton<_i719.WatchDmUnreadCountUseCase>(
+      () => _i719.WatchDmUnreadCountUseCase(gh<_i497.UnreadRepository>()),
+    );
     gh.lazySingleton<_i756.EmbedAndStoreChunkUseCase>(
       () => _i756.EmbedAndStoreChunkUseCase(
         gh<_i587.EmbeddingService>(),
@@ -923,8 +942,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i561.WatchIsFollowedUseCase>(
       () => _i561.WatchIsFollowedUseCase(gh<_i836.FollowedNoteRepository>()),
     );
-    gh.lazySingleton<_i561.ClearNewReferencesUseCase>(
-      () => _i561.ClearNewReferencesUseCase(gh<_i836.FollowedNoteRepository>()),
+    gh.lazySingleton<_i561.WatchThreadUnreadMarkersUseCase>(
+      () => _i561.WatchThreadUnreadMarkersUseCase(
+        gh<_i836.FollowedNoteRepository>(),
+      ),
     );
     gh.factory<_i43.SavedNoteRepository>(
       () => _i669.SavedNoteRepositoryImpl(
@@ -1725,6 +1746,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i858.GetAllSavedNotesUseCase>(),
         gh<_i858.GetSavedRepliesUseCase>(),
         gh<_i858.GetSavedReferencesUseCase>(),
+        gh<_i719.MarkUnreadSeenUseCase>(),
+        gh<_i561.WatchThreadUnreadMarkersUseCase>(),
       ),
     );
     return this;

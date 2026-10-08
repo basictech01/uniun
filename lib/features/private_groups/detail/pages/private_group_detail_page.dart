@@ -4,12 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
+import 'package:uniun/common/widgets/chat/boundary_chat_list.dart';
+import 'package:uniun/common/widgets/chat/bottom_read_mixin.dart';
+import 'package:uniun/common/widgets/chat/new_notes_divider.dart';
+import 'package:uniun/domain/entities/note/note_entity.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/qr/uniun_qr_button.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/common/qr/uniun_qr_card.dart';
 import 'package:uniun/common/widgets/composer/composer_host.dart';
 import 'package:uniun/common/widgets/jump_to_bottom_button.dart';
+import 'package:uniun/common/widgets/chat/unread_count_cubit.dart';
+import 'package:uniun/domain/usecases/unread_usecases.dart';
 import 'package:uniun/common/widgets/note_card/note_card.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/domain/entities/profile/profile_entity.dart';
@@ -31,36 +37,66 @@ class PrivateGroupDetailPage extends StatelessWidget {
           create: (_) => getIt<PrivateGroupDetailBloc>(param1: groupId),
         ),
       ],
-      child: const _PrivateGroupDetailView(),
+      child: _PrivateGroupDetailView(groupId: groupId),
     );
   }
 }
 
 class _PrivateGroupDetailView extends StatefulWidget {
-  const _PrivateGroupDetailView();
+  const _PrivateGroupDetailView({required this.groupId});
+  final String groupId;
 
   @override
   State<_PrivateGroupDetailView> createState() => _PrivateGroupDetailViewState();
 }
 
-class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
+class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView>
+    with BottomReadMixin {
   final _scrollController = ScrollController();
+
+  late final UnreadCountCubit _unread;
+
+  @override
+  ScrollController get readScrollController => _scrollController;
+
+  @override
+  void markContainerRead() => context
+      .read<PrivateGroupDetailBloc>()
+      .add(MarkAllPrivateGroupSeenEvent());
   final Set<String> _everVisible = <String>{};
 
   /// Whether the jump-to-latest button is showing (set when scrolled above the
   /// bottom).
   bool _showJumpButton = false;
 
+  /// `created` of the oldest note that was unread when the page opened; null
+  /// when everything was read. Fixed for the life of the page.
+  DateTime? _boundary;
+  bool _boundaryLoaded = false;
+
   @override
   void initState() {
     super.initState();
+    _unread = UnreadCountCubit(
+      getIt<WatchPrivateGroupUnreadCountUseCase>().call(widget.groupId),
+    );
     _scrollController.addListener(_onScroll);
+    getIt<GetPrivateGroupOldestUnreadTimeUseCase>().call(widget.groupId).then((
+      r,
+    ) {
+      if (!mounted) return;
+      setState(() {
+        _boundary = r.getOrElse(() => null);
+        _boundaryLoaded = true;
+      });
+    });
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _unread.close();
     super.dispose();
   }
 
@@ -68,11 +104,7 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
   void _onScroll() {
     if (!mounted || !_scrollController.hasClients) return;
     final pos = _scrollController.position;
-    if (pos.pixels >= pos.maxScrollExtent - 8) {
-      context
-          .read<PrivateGroupDetailBloc>()
-          .add(MarkAllPrivateGroupSeenEvent());
-    }
+    onReadScroll();
 
     final showJump =
         pos.maxScrollExtent - pos.pixels > kJumpToBottomTolerance;
@@ -95,6 +127,37 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
         .add(MarkAllPrivateGroupSeenEvent());
   }
 
+  /// The group, oldest first, opened at the first note that was unread when the
+  /// page opened.
+  Widget _messageList(PrivateGroupDetailState state) {
+    final boundary = _boundary;
+    final index = boundary == null
+        ? state.messages.length
+        : state.messages.indexWhere((m) => !m.created.isBefore(boundary));
+    return BoundaryChatList<NoteEntity>(
+      controller: _scrollController,
+      notes: state.messages,
+      boundaryIndex: index < 0 ? state.messages.length : index,
+      openedAtBoundary: boundary != null,
+      unreadDivider: const NewNotesDivider(),
+      topPadding: 16,
+      bottomPadding: 16,
+      itemBuilder: (context, msg) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        // NoteCard self-loads its author profile.
+        child: VisibilityDetector(
+          key: ValueKey('pc-${msg.id}'),
+          onVisibilityChanged: (info) => _onMessageVisibility(msg.id, info),
+          child: NoteCard(
+            key: ValueKey(msg.id),
+            note: msg,
+            onTap: () => _openThread(context, msg.id),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _onMessageVisibility(String eventId, VisibilityInfo info) {
     // VisibilityDetector callbacks are scheduler-driven and can fire AFTER
     // the page is popped — guard against using a defunct State.context.
@@ -109,7 +172,12 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
   }
 
   void _openThread(BuildContext context, String messageId) {
-    context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId});
+    context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId}).then(
+      (_) {
+        // Notes that arrived while the thread covered the chat.
+        if (mounted) scheduleBottomCheck();
+      },
+    );
   }
 
   void _showJoinRequests(BuildContext context) {
@@ -160,6 +228,7 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
         }
       },
       builder: (context, state) {
+        contentChanged(state.messages.length);
         final title = state.group?.name ?? "Private Group";
         final requestsCount = state.joinRequests.length;
 
@@ -257,41 +326,22 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView> {
                     Expanded(
                       child: Stack(
                         children: [
-                          state.isLoading && state.messages.isEmpty
+                          state.isLoading && state.messages.isEmpty ||
+                                  !_boundaryLoaded
                               ? const Center(child: DropLoadingIndicator())
-                              : ListView.builder(
-                                  controller: _scrollController,
-                                  reverse:
-                                      false, // oldest at top, newest at bottom
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
-                                  ),
-                                  itemCount: state.messages.length,
-                                  itemBuilder: (context, index) {
-                                    final msg = state.messages[index];
-                                    // NoteCard self-loads its author profile.
-                                    return VisibilityDetector(
-                                      key: ValueKey('pc-${msg.id}'),
-                                      onVisibilityChanged: (info) =>
-                                          _onMessageVisibility(msg.id, info),
-                                      child: NoteCard(
-                                        key: ValueKey(msg.id),
-                                        note: msg,
-                                        onTap: () =>
-                                            _openThread(context, msg.id),
-                                      ),
-                                    );
-                                  },
-                                ),
+                              : _messageList(state),
                           Positioned(
                             right: 16,
                             bottom: 12,
-                            child: JumpToBottomButton(
-                              visible: _showJumpButton,
-                              onPressed: _jumpToLatest,
-                              tooltip:
-                                  AppLocalizations.of(context)!.jumpToLatest,
+                            child: BlocBuilder<UnreadCountCubit, int>(
+                              bloc: _unread,
+                              builder: (context, unread) => JumpToBottomButton(
+                                visible: _showJumpButton,
+                                unreadCount: unread,
+                                onPressed: _jumpToLatest,
+                                tooltip:
+                                    AppLocalizations.of(context)!.jumpToLatest,
+                              ),
                             ),
                           ),
                         ],

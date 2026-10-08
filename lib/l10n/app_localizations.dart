@@ -5660,6 +5660,24 @@ abstract class AppLocalizations {
   /// **'Add text or media first'**
   String get receiveShareNothingToShare;
 
+  /// Marker above a note in a followed note's thread that has not been opened yet
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get threadNewNote;
+
+  /// Marker above a note in a followed note's thread when an unopened reply sits further down
+  ///
+  /// In en, this message translates to:
+  /// **'New reply inside'**
+  String get threadNewReplyInside;
+
+  /// Line shown above the first unread note when a chat opens
+  ///
+  /// In en, this message translates to:
+  /// **'New notes'**
+  String get newNotesDivider;
+
   /// Tooltip on the floating button that scrolls a chat to the newest message and marks the surface read
   ///
   /// In en, this message translates to:

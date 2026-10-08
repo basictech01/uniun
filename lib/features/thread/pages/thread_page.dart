@@ -133,6 +133,7 @@ class _ThreadViewState extends State<_ThreadView> {
           mentionedNotes: state.mentionedNotes,
           replies: state.replies,
           replyCount: state.replies.length,
+          unreadMarkers: state.unreadMarkers,
           isSending: state.postStatus == ThreadPostStatus.posting,
           onSendReply: (text, refs, attachments) => bloc.add(
             PostReplyEvent(text,

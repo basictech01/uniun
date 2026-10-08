@@ -6,6 +6,17 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-09 — notification dot stays after reading (#201)
+
+Reading a group, DM or private group often left its drawer dot on. **Root cause:** nothing marked a chat read when it opened. The mark-all event was sent only from the scroll listener, and the per-note fallback only fires when a note scrolls fully out of view, so a chat that opens at the newest note (short, or already at the bottom) never scrolls and never marks, and a note arriving while the user is at the bottom is never marked either. Followed notes had two more gaps: the badge counted only direct replies (a reply to a reply never counted), and it was cleared in bulk when the row was tapped in the drawer.
+
+- **Fix:** `BottomReadMixin` marks the container read when the list is at the newest note, checked after the first frame, when the content changes, when the app resumes and when the page comes back to the top, and not while another page covers it or the app is in the background. Public groups, private groups and DMs share it.
+- **Bug found while testing the fix:** marking an empty list read. A page that builds its list before the notes load is "at the bottom" of nothing, so the first version marked every unread note read before the user saw it. The mixin now ignores a list with no notes. Covered by a unit test and by `test/integration/unread_flow_test.dart`.
+- **Open where you left off:** group, private group and DM open at the first unread note under a "New notes" divider (`BoundaryChatList`, one widget for all three); the jump-to-latest button shows the unread count.
+- **Followed notes:** the count walks the whole reply tree; a note in a followed tree shows "New", its parents show "New reply inside", and a note is read only when its own thread opens. The bulk clear was removed.
+- **Drawer:** reloads restart instead of queueing, so a burst of arrivals shows the dot after the last one.
+- **Tests:** unit tests for the mixin, list, cubit, trail mark, repository and use cases; `test/integration/unread_flow_test.dart` (23 tests over one real Isar, including nested replies 300 deep, 300 siblings, a reply cycle, re-delivery, a page covering the chat); sabotaging the tree walk and the mark-on-open each turned tests red. Device test `integration_test/unread_dots_e2e_test.dart` drives the real pages.
+
 ## 2026-10-08 — tostore 3.5.1 and the note vector store in its own isolate (#232)
 
 `tostore` 3.1.2 → 3.5.1, and the note store moved into a dedicated isolate (`NoteVectorStore`). The store path is now `tostore_<dim>d_v<N>` (`kNoteVectorStoreFormat`), the old unversioned folder is deleted, and there is no migration: no users yet, notes re-embed as they are saved.

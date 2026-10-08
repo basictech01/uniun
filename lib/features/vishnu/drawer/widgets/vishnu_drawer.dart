@@ -6,9 +6,7 @@ import 'package:uniun/common/qr/uniun_qr_card.dart';
 import 'package:uniun/common/qr/uniun_qr_scanner_page.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/core/router/app_routes.dart';
-import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/note_thread_navigator.dart';
-import 'package:uniun/domain/usecases/followed_note_usecases.dart';
 import 'package:uniun/features/profile/pages/user_profile_page.dart';
 import 'package:uniun/features/vishnu/drawer/bloc/drawer_bloc.dart' as app_drawer;
 import 'package:uniun/features/vishnu/drawer/utils/drawer_search.dart';
@@ -65,7 +63,6 @@ class _VishnuDrawerState extends State<VishnuDrawer> {
         );
       case DrawerSearchKind.followedNote:
         _close(context);
-        getIt<ClearNewReferencesUseCase>().call(result.id);
         await openEventThread(
           context,
           result.id,
@@ -251,8 +248,6 @@ class _VishnuDrawerState extends State<VishnuDrawer> {
                                       : null,
                                   onTap: () async {
                                     _close(context);
-                                    getIt<ClearNewReferencesUseCase>()
-                                        .call(item.eventId);
                                     await openEventThread(
                                       context,
                                       item.eventId,

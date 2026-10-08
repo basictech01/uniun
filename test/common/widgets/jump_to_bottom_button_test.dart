@@ -40,11 +40,62 @@ void main() {
     // visible:false wraps the button in an IgnorePointer, so the tap should
     // fall through without firing the callback (warnIfMissed: the hit is
     // intentionally swallowed).
-    await tester.tap(
-      find.byType(JumpToBottomButton),
-      warnIfMissed: false,
-    );
+    await tester.tap(find.byType(JumpToBottomButton), warnIfMissed: false);
     await tester.pump();
     expect(taps, 0);
+  });
+
+  group('unread count badge', () {
+    Widget withCount(int n) => MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: JumpToBottomButton(
+            visible: true,
+            onPressed: () {},
+            unreadCount: n,
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('shows nothing at 0', (tester) async {
+      await tester.pumpWidget(withCount(0));
+      expect(find.text('0'), findsNothing);
+    });
+
+    testWidgets('shows the number', (tester) async {
+      await tester.pumpWidget(withCount(7));
+      expect(find.text('7'), findsOneWidget);
+    });
+
+    testWidgets('caps at 99+', (tester) async {
+      await tester.pumpWidget(withCount(150));
+      expect(find.text('99+'), findsOneWidget);
+      expect(find.text('150'), findsNothing);
+    });
+
+    testWidgets('exactly 99 is shown as is', (tester) async {
+      await tester.pumpWidget(withCount(99));
+      expect(find.text('99'), findsOneWidget);
+    });
+
+    testWidgets('the badge does not block the tap', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: JumpToBottomButton(
+                visible: true,
+                onPressed: () => taps++,
+                unreadCount: 3,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(InkWell));
+      expect(taps, 1);
+    });
   });
 }

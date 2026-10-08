@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/core/error/failures.dart';
+import 'package:uniun/domain/entities/followed_note/thread_unread_marker.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
 import 'package:uniun/domain/repositories/note_resolver_repository.dart';
+import 'package:uniun/domain/usecases/followed_note_usecases.dart';
 import 'package:uniun/domain/usecases/post_reply_usecase.dart';
 import 'package:uniun/domain/usecases/profile_usecases.dart';
 import 'package:uniun/domain/usecases/saved_note_usecases.dart';
+import 'package:uniun/domain/usecases/unread_usecases.dart';
 import 'package:uniun/features/thread/bloc/thread_bloc.dart';
 
 import '../../../_helpers/fixtures.dart';
@@ -24,6 +29,11 @@ class _MockGetSavedReplies extends Mock implements GetSavedRepliesUseCase {}
 class _MockGetSavedReferences extends Mock
     implements GetSavedReferencesUseCase {}
 
+class _MockMarkSeen extends Mock implements MarkUnreadSeenUseCase {}
+
+class _MockWatchMarkers extends Mock
+    implements WatchThreadUnreadMarkersUseCase {}
+
 /// Covers: ThreadBloc's normal-mode load (root resolution failure, parent
 /// chain via the reply marker, mention resolution, replies, profile
 /// hydration across every visible author), savedOnly-mode load (root/
@@ -38,6 +48,8 @@ void main() {
   late _MockGetAllSaved getAllSaved;
   late _MockGetSavedReplies getSavedReplies;
   late _MockGetSavedReferences getSavedReferences;
+  late _MockMarkSeen markSeen;
+  late _MockWatchMarkers watchMarkers;
 
   ThreadBloc build() => ThreadBloc(
         resolver,
@@ -46,6 +58,8 @@ void main() {
         getAllSaved,
         getSavedReplies,
         getSavedReferences,
+        markSeen,
+        watchMarkers,
       );
 
   setUpAll(() {
@@ -59,6 +73,12 @@ void main() {
     getAllSaved = _MockGetAllSaved();
     getSavedReplies = _MockGetSavedReplies();
     getSavedReferences = _MockGetSavedReferences();
+    markSeen = _MockMarkSeen();
+    watchMarkers = _MockWatchMarkers();
+    when(() => markSeen.call(any()))
+        .thenAnswer((_) async => const Right(unit));
+    when(() => watchMarkers.call(any()))
+        .thenAnswer((_) => const Stream.empty());
 
     when(() => getAllSaved.call()).thenAnswer((_) async => const Right([]));
     when(() => getProfile.call(any()))
@@ -155,6 +175,106 @@ void main() {
       expect(states.any((s) => s.status == ThreadStatus.loading), isFalse);
       await sub.cancel();
       await bloc.close();
+    });
+  });
+
+  group('unread handling', () {
+    test('opening a thread marks that note read', () async {
+      when(() => resolver.resolveById('root-1'))
+          .thenAnswer((_) async => Right(aNote(id: 'root-1')));
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verify(() => markSeen.call('root-1')).called(1);
+      await bloc.close();
+    });
+
+    test('replies are not marked read just by being listed', () async {
+      when(() => resolver.resolveById('root-1'))
+          .thenAnswer((_) async => Right(aNote(id: 'root-1')));
+      when(() => resolver.resolveReplies('root-1')).thenAnswer(
+          (_) async => Right([aNote(id: 'reply-1'), aNote(id: 'reply-2')]));
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verifyNever(() => markSeen.call('reply-1'));
+      verifyNever(() => markSeen.call('reply-2'));
+      await bloc.close();
+    });
+
+    test('saved-only mode does not mark anything read', () async {
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('n1', savedOnly: true));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verifyNever(() => markSeen.call(any()));
+      await bloc.close();
+    });
+
+    test('markers are watched for the root and every reply', () async {
+      when(() => resolver.resolveById('root-1'))
+          .thenAnswer((_) async => Right(aNote(id: 'root-1')));
+      when(() => resolver.resolveReplies('root-1')).thenAnswer(
+          (_) async => Right([aNote(id: 'reply-1'), aNote(id: 'reply-2')]));
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      verify(() => watchMarkers.call(['root-1', 'reply-1', 'reply-2']))
+          .called(1);
+      await bloc.close();
+    });
+
+    test('marker updates reach the state, and an empty update clears them',
+        () async {
+      final controller = StreamController<Map<String, ThreadUnreadMarker>>();
+      when(() => watchMarkers.call(any())).thenAnswer((_) => controller.stream);
+      when(() => resolver.resolveById('root-1'))
+          .thenAnswer((_) async => Right(aNote(id: 'root-1')));
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      controller.add({
+        'reply-1': const ThreadUnreadMarker(unread: true, unreadInside: false),
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.unreadMarkers.keys, ['reply-1']);
+
+      controller.add(const {});
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(bloc.state.unreadMarkers, isEmpty);
+
+      await bloc.close();
+      await controller.close();
+    });
+
+    test('a reload replaces the old marker subscription', () async {
+      var listeners = 0;
+      when(() => watchMarkers.call(any())).thenAnswer((_) {
+        return Stream<Map<String, ThreadUnreadMarker>>.multi((c) {
+          listeners++;
+          c.onCancel = () => listeners--;
+        });
+      });
+      when(() => resolver.resolveById('root-1'))
+          .thenAnswer((_) async => Right(aNote(id: 'root-1')));
+      final bloc = build();
+
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      bloc.add(const LoadThreadEvent('root-1'));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(listeners, 1);
+
+      await bloc.close();
+      expect(listeners, 0);
     });
   });
 

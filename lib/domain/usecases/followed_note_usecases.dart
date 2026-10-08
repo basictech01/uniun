@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/core/usecases/usecase.dart';
 import 'package:uniun/domain/entities/followed_note/followed_note_entity.dart';
+import 'package:uniun/domain/entities/followed_note/thread_unread_marker.dart';
 import 'package:uniun/domain/repositories/followed_note_repository.dart';
 
 // ── FollowNoteInput ───────────────────────────────────────────────────────────
@@ -70,19 +71,13 @@ class WatchIsFollowedUseCase {
   Stream<bool> call(String eventId) => _repository.watchIsFollowed(eventId);
 }
 
-// ── ClearNewReferencesUseCase ─────────────────────────────────────────────────
+// ── WatchThreadUnreadMarkersUseCase ───────────────────────────────────────────
 
 @lazySingleton
-class ClearNewReferencesUseCase
-    extends UseCase<Either<Failure, Unit>, String> {
+class WatchThreadUnreadMarkersUseCase {
   final FollowedNoteRepository _repository;
-  const ClearNewReferencesUseCase(this._repository);
+  const WatchThreadUnreadMarkersUseCase(this._repository);
 
-  @override
-  Future<Either<Failure, Unit>> call(
-    String eventId, {
-    bool cached = false,
-  }) {
-    return _repository.clearNewReferences(eventId);
-  }
+  Stream<Map<String, ThreadUnreadMarker>> call(List<String> noteIds) =>
+      _repository.watchThreadUnreadMarkers(noteIds);
 }
