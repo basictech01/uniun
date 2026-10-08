@@ -22,7 +22,7 @@ void main() {
   });
 
   tearDown(() async {
-    await isar.close(deleteFromDisk: true);
+    if (isar.isOpen) await isar.close(deleteFromDisk: true);
   });
 
   Future<List<String>> remainingIds() async =>
@@ -318,6 +318,43 @@ void main() {
         )).getOrElse(() => DateTime(1)),
         isNull,
       );
+    });
+  });
+
+  group('a closed database is reported as a failure, never thrown', () {
+    setUp(() async {
+      await isar.close();
+    });
+
+    test('markSeen', () async {
+      expect((await repo.markSeen('a')).isLeft(), isTrue);
+    });
+
+    test('markGroupSeen', () async {
+      expect((await repo.markGroupSeen('g')).isLeft(), isTrue);
+    });
+
+    test('markPrivateGroupSeen', () async {
+      expect((await repo.markPrivateGroupSeen('p')).isLeft(), isTrue);
+    });
+
+    test('markConversationSeen', () async {
+      expect((await repo.markConversationSeen(1)).isLeft(), isTrue);
+    });
+
+    test('oldestUnreadTimeForGroup', () async {
+      expect((await repo.oldestUnreadTimeForGroup('g')).isLeft(), isTrue);
+    });
+
+    test('oldestUnreadTimeForPrivateGroup', () async {
+      expect(
+        (await repo.oldestUnreadTimeForPrivateGroup('p')).isLeft(),
+        isTrue,
+      );
+    });
+
+    test('oldestUnreadTimeForDm', () async {
+      expect((await repo.oldestUnreadTimeForDm(kAlicePub)).isLeft(), isTrue);
     });
   });
 }

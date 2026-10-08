@@ -249,7 +249,8 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
         }
       },
       builder: (context, state) {
-        contentChanged(state.messages.length);
+        // Nothing is on screen until the unread boundary is known.
+        contentChanged(_boundaryLoaded ? state.messages.length : 0);
         final shortKey =
             state.otherPubkey != null && state.otherPubkey!.length > 12
             ? '${state.otherPubkey!.substring(0, 12)}...'

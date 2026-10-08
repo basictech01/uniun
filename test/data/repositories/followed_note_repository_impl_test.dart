@@ -26,7 +26,7 @@ void main() {
   });
 
   tearDown(() async {
-    await isar.close(deleteFromDisk: true);
+    if (isar.isOpen) await isar.close(deleteFromDisk: true);
   });
 
   Future<void> seedEdge(String parent, String child) =>
@@ -312,6 +312,28 @@ void main() {
       final list = (await repo.getAll()).getOrElse(() => throw 'x');
       expect(list, hasLength(50));
       expect(list.every((e) => e.newReferenceCount == 1), isTrue);
+    });
+  });
+
+  group('a closed database is reported as a failure, never thrown', () {
+    setUp(() async {
+      await isar.close();
+    });
+
+    test('getAll', () async {
+      expect((await repo.getAll()).isLeft(), isTrue);
+    });
+
+    test('followNote', () async {
+      expect((await repo.followNote('a', 'x')).isLeft(), isTrue);
+    });
+
+    test('unfollowNote', () async {
+      expect((await repo.unfollowNote('a')).isLeft(), isTrue);
+    });
+
+    test('isFollowed', () async {
+      expect((await repo.isFollowed('a')).isLeft(), isTrue);
     });
   });
 }

@@ -58,6 +58,12 @@ class _BoundaryChatListState<T> extends State<BoundaryChatList<T>> {
         widget.unreadDivider != null &&
         unread.isNotEmpty;
 
+    // The space under the newest note belongs to whichever side holds it, so
+    // an all-read chat sits exactly at its bottom edge (scroll offset at the
+    // maximum) and counts as "at the bottom".
+    final trailingInRead = unread.isEmpty;
+    final pad = SizedBox(height: widget.bottomPadding);
+
     return CustomScrollView(
       controller: widget.controller,
       center: _centerKey,
@@ -70,23 +76,30 @@ class _BoundaryChatListState<T> extends State<BoundaryChatList<T>> {
         SliverPadding(
           padding: EdgeInsets.only(top: widget.topPadding),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (ctx, i) => widget.itemBuilder(ctx, read[read.length - 1 - i]),
-              childCount: read.length,
-            ),
+            delegate: SliverChildBuilderDelegate((ctx, i) {
+              if (trailingInRead) {
+                if (i == 0) return pad;
+                return widget.itemBuilder(ctx, read[read.length - i]);
+              }
+              return widget.itemBuilder(ctx, read[read.length - 1 - i]);
+            }, childCount: read.length + (trailingInRead ? 1 : 0)),
           ),
         ),
         SliverList(
           key: _centerKey,
-          delegate: SliverChildBuilderDelegate((ctx, i) {
-            if (hasDivider) {
-              if (i == 0) return widget.unreadDivider;
-              return widget.itemBuilder(ctx, unread[i - 1]);
-            }
-            return widget.itemBuilder(ctx, unread[i]);
-          }, childCount: unread.length + (hasDivider ? 1 : 0)),
+          delegate: SliverChildBuilderDelegate(
+            (ctx, i) {
+              final dividerSlots = hasDivider ? 1 : 0;
+              if (hasDivider && i == 0) return widget.unreadDivider;
+              final at = i - dividerSlots;
+              if (at == unread.length) return pad;
+              return widget.itemBuilder(ctx, unread[at]);
+            },
+            childCount: unread.isEmpty
+                ? 0
+                : unread.length + (hasDivider ? 1 : 0) + 1,
+          ),
         ),
-        SliverToBoxAdapter(child: SizedBox(height: widget.bottomPadding)),
       ],
     );
   }

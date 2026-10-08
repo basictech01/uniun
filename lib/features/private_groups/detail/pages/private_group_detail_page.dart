@@ -228,7 +228,8 @@ class _PrivateGroupDetailViewState extends State<_PrivateGroupDetailView>
         }
       },
       builder: (context, state) {
-        contentChanged(state.messages.length);
+        // Nothing is on screen until the unread boundary is known.
+        contentChanged(_boundaryLoaded ? state.messages.length : 0);
         final title = state.group?.name ?? "Private Group";
         final requestsCount = state.joinRequests.length;
 

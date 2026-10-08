@@ -233,4 +233,43 @@ void main() {
     await t.pump();
     expect(h.marks, 2);
   });
+
+  testWidgets('by default a surface is allowed to mark and is not reversed', (
+    t,
+  ) async {
+    final key = GlobalKey<_PlainState>();
+    await t.pumpWidget(_app(_Plain(key: key)));
+    await t.pump();
+
+    expect(key.currentState!.canMarkRead, isTrue);
+    expect(key.currentState!.readListReversed, isFalse);
+    expect(key.currentState!.marks, 1);
+  });
+}
+
+/// A host that overrides only what is required, so the defaults run.
+class _Plain extends StatefulWidget {
+  const _Plain({super.key});
+
+  @override
+  State<_Plain> createState() => _PlainState();
+}
+
+class _PlainState extends State<_Plain> with BottomReadMixin {
+  final controller = ScrollController();
+  int marks = 0;
+
+  @override
+  ScrollController get readScrollController => controller;
+  @override
+  void markContainerRead() => marks++;
+
+  @override
+  Widget build(BuildContext context) {
+    contentChanged(3);
+    return ListView(
+      controller: controller,
+      children: const [SizedBox(height: 100), SizedBox(height: 100)],
+    );
+  }
 }
