@@ -3985,6 +3985,10 @@
   "@threadNewReplyInside": {
     "description": "Marker above a note in a followed note's thread when an unopened reply sits further down"
   },
+  "unreadBadgeOverflow": "99+",
+  "@unreadBadgeOverflow": {
+    "description": "Shown on the jump-to-latest badge when more than 99 notes are unread"
+  },
   "newNotesDivider": "New notes",
   "@newNotesDivider": {
     "description": "Line shown above the first unread note when a chat opens"

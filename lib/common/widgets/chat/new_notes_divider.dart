@@ -10,7 +10,7 @@ class NewNotesDivider extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final label = AppLocalizations.of(context)!.newNotesDivider;
     final line = Expanded(
-      child: Divider(height: 1, color: scheme.primary.withValues(alpha: 0.4)),
+      child: Divider(height: 1, color: scheme.primaryContainer),
     );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -21,11 +21,9 @@ class NewNotesDivider extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
               label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: scheme.primary),
             ),
           ),
           line,

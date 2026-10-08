@@ -32,22 +32,16 @@ class UnreadTrailMark extends StatelessWidget {
               color: color,
               shape: BoxShape.circle,
               boxShadow: fresh
-                  ? [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.25),
-                        spreadRadius: 3,
-                      ),
-                    ]
+                  ? [BoxShadow(color: scheme.errorContainer, spreadRadius: 3)]
                   : null,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             fresh ? l10n.threadNewNote : l10n.threadNewReplyInside,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: color),
           ),
         ],
       ),

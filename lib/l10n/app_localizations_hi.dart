@@ -3153,6 +3153,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get threadNewReplyInside => 'अंदर नया जवाब';
 
   @override
+  String get unreadBadgeOverflow => '99+';
+
+  @override
   String get newNotesDivider => 'नए नोट';
 
   @override

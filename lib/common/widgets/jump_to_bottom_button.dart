@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uniun/core/theme/app_custom_colors.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 
 /// Distance (in pixels) from the bottom edge within which a chat list counts as
 /// "at the bottom". Past this, the [JumpToBottomButton] shows; within it, the
@@ -37,6 +38,9 @@ class JumpToBottomButton extends StatelessWidget {
   final int unreadCount;
 
   static const Duration _anim = Duration(milliseconds: 150);
+
+  /// Above this the badge shows the localized overflow text.
+  static const int _badgeCap = 99;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +99,11 @@ class JumpToBottomButton extends StatelessWidget {
       isLabelVisible: unreadCount > 0,
       backgroundColor: colorScheme.primary,
       textColor: colorScheme.onPrimary,
-      label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
+      label: Text(
+        unreadCount > _badgeCap
+            ? AppLocalizations.of(context)!.unreadBadgeOverflow
+            : '$unreadCount',
+      ),
       child: button,
     );
     return Semantics(

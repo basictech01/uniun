@@ -5672,6 +5672,12 @@ abstract class AppLocalizations {
   /// **'New reply inside'**
   String get threadNewReplyInside;
 
+  /// Shown on the jump-to-latest badge when more than 99 notes are unread
+  ///
+  /// In en, this message translates to:
+  /// **'99+'**
+  String get unreadBadgeOverflow;
+
   /// Line shown above the first unread note when a chat opens
   ///
   /// In en, this message translates to:

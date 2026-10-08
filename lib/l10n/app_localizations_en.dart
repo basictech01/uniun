@@ -3136,6 +3136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get threadNewReplyInside => 'New reply inside';
 
   @override
+  String get unreadBadgeOverflow => '99+';
+
+  @override
   String get newNotesDivider => 'New notes';
 
   @override

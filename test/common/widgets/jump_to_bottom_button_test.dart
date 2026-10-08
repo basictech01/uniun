@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniun/common/widgets/jump_to_bottom_button.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 
 /// Behaviour guard for the shared jump-to-latest affordance used by the chat
 /// surfaces (group feed, private group, DM): it must invoke its callback
@@ -9,6 +10,8 @@ import 'package:uniun/common/widgets/jump_to_bottom_button.dart';
 void main() {
   Widget host({required bool visible, required VoidCallback onPressed}) {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: Center(
           child: JumpToBottomButton(
@@ -47,6 +50,8 @@ void main() {
 
   group('unread count badge', () {
     Widget withCount(int n) => MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: Center(
           child: JumpToBottomButton(
@@ -83,6 +88,8 @@ void main() {
       var taps = 0;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: Center(
               child: JumpToBottomButton(
