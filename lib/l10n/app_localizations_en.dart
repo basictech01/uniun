@@ -3315,4 +3315,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get brahmaPublishConfirmBody =>
       'Published notes are permanent. They go out to the relay and cannot be edited or deleted. Keep it as a draft if you\'re still working on it.';
+
+  @override
+  String get errorUnexpected => 'Something went wrong.';
+
+  @override
+  String get savedNoSearchResults => 'No notes match your search.';
+
+  @override
+  String qrScannerInvalidCode(String error) {
+    return 'Invalid QR: $error';
+  }
+
+  @override
+  String get qrScannerInstruction =>
+      'Scan a UNIUN QR — user, public group, or private group';
+
+  @override
+  String qrCopiedToClipboard(String label) {
+    return '$label • copied to clipboard';
+  }
+
+  @override
+  String get privateGroupShareQrTooltip => 'Share QR';
+
+  @override
+  String get privateGroupLeaveAction => 'Leave Group';
+
+  @override
+  String get privateGroupPendingApprovalTitle => 'Pending approval';
+
+  @override
+  String get privateGroupPendingApprovalBody =>
+      'Your request to join has been sent. You\'ll be able to read and send messages once the group admin approves you.';
+
+  @override
+  String get dmShareKeysTooltip => 'Share keys';
+
+  @override
+  String get groupFeedNoMessages => 'No messages yet. Be the first!';
+
+  @override
+  String threadShowMoreReferences(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Show $count more references',
+      one: 'Show 1 more reference',
+    );
+    return '$_temp0';
+  }
 }

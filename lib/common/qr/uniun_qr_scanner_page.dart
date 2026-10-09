@@ -28,7 +28,10 @@ import 'package:uniun/l10n/app_localizations.dart';
 enum UniunQrScanIntent { generic, follow, dm }
 
 class UniunQrScannerPage extends StatefulWidget {
-  const UniunQrScannerPage({super.key, this.intent = UniunQrScanIntent.generic});
+  const UniunQrScannerPage({
+    super.key,
+    this.intent = UniunQrScanIntent.generic,
+  });
 
   /// What to do once a user QR is decoded. Set by the launching route via
   /// `extra` — see [appRouter]'s scanQr route.
@@ -57,7 +60,11 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Invalid QR: ${e is FormatException ? e.message : e}'),
+          content: Text(
+            AppLocalizations.of(
+              context,
+            )!.qrScannerInvalidCode('${e is FormatException ? e.message : e}'),
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -98,9 +105,9 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
     final connected = await uniun.isConnected();
     if (!mounted) return;
     if (!connected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.qrLoginNotConnected)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.qrLoginNotConnected)));
       Navigator.of(context).pop();
       return;
     }
@@ -108,18 +115,20 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
     final result = await uniun.approveQrLogin(payload.id);
     if (!mounted) return;
     result.fold(
-      (f) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.qrLoginFailed(f.toString()))),
-      ),
-      (_) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.qrLoginApproved)),
-      ),
+      (f) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.qrLoginFailed(f.toString())))),
+      (_) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.qrLoginApproved))),
     );
     Navigator.of(context).pop();
   }
 
   Future<void> _dispatchUser(
-      UniunQrPayload payload, UniunQrScanIntent intent) async {
+    UniunQrPayload payload,
+    UniunQrScanIntent intent,
+  ) async {
     if (intent == UniunQrScanIntent.dm) {
       context.pushReplacementNamed(AppRoutes.createDm, extra: payload);
       return;
@@ -130,7 +139,9 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
       hex = normalizeNostrPubkey(payload.id);
     } on FormatException {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.followActionInvalidKey)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.followActionInvalidKey),
+        ),
       );
       Navigator.of(context).pop();
       return;
@@ -142,11 +153,13 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
       );
       if (!mounted) return;
       result.fold(
-        (f) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(f.toString())),
-        ),
+        (f) => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(f.toString()))),
         (_) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.followActionSuccess)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.followActionSuccess),
+          ),
         ),
       );
       Navigator.of(context).pop();
@@ -169,8 +182,8 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
         : capture!.barcodes.first.rawValue?.trim();
     if (raw == null || raw.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No QR code found in the selected image.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.joinGroupQrGalleryError),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -187,12 +200,12 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         leading: const UniunBackButton(color: Colors.white),
-        title: const Text('Scan QR'),
+        title: Text(AppLocalizations.of(context)!.joinPrivateGroupScanQr),
         actions: [
           IconButton(
             onPressed: _pickFromGallery,
             icon: const Icon(Icons.photo_library_outlined),
-            tooltip: 'Pick from gallery',
+            tooltip: AppLocalizations.of(context)!.joinGroupQrFromGallery,
           ),
         ],
       ),
@@ -215,20 +228,23 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
                 width: 240,
                 height: 240,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).colorScheme.primary, width: 3),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 3,
+                  ),
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
             ),
           ),
-          const Align(
+          Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Text(
-                'Scan a UNIUN QR — user, public group, or private group',
+                AppLocalizations.of(context)!.qrScannerInstruction,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
           ),

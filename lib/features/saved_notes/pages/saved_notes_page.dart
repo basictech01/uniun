@@ -17,9 +17,7 @@ class SavedNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => SavedNotesCubit()..load()),
-      ],
+      providers: [BlocProvider(create: (_) => SavedNotesCubit()..load())],
       child: const _SavedNotesView(),
     );
   }
@@ -70,141 +68,154 @@ class _SavedNotesViewState extends State<_SavedNotesView> {
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
         elevation: 0,
       ),
       body: KeyboardDismissOnTap(
         child: BlocBuilder<SavedNotesCubit, SavedNotesState>(
-        builder: (context, state) {
-          if (state.status == SavedNotesStatus.initial ||
-              state.status == SavedNotesStatus.loading) {
-            return Center(
-              child: DropLoadingIndicator(
-                  color: Theme.of(context).colorScheme.primary),
-            );
-          }
-          if (state.status == SavedNotesStatus.error) {
-            return Center(
-              child: Text(
-                state.errorMessage ?? 'Failed to load saved notes',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            );
-          }
+          builder: (context, state) {
+            if (state.status == SavedNotesStatus.initial ||
+                state.status == SavedNotesStatus.loading) {
+              return Center(
+                child: DropLoadingIndicator(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            }
+            if (state.status == SavedNotesStatus.error) {
+              return Center(
+                child: Text(
+                  state.errorMessage ?? 'Failed to load saved notes',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              );
+            }
 
-          final filtered = _filter(state.notes);
+            final filtered = _filter(state.notes);
 
-          return Column(
-            children: [
-              // ── Search bar ──────────────────────────────────────────────
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _query = v),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurface,
+            return Column(
+              children: [
+                // ── Search bar ──────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
                   ),
-                  decoration: InputDecoration(
-                    hintText: l10n.savedNotesSearch,
-                    hintStyle: TextStyle(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (v) => setState(() => _query = v),
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    suffixIcon: _query.isNotEmpty
-                        ? GestureDetector(
-                            onTap: () {
-                              _searchController.clear();
-                              setState(() => _query = '');
-                            },
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 18,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                    decoration: InputDecoration(
+                      hintText: l10n.savedNotesSearch,
+                      hintStyle: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      suffixIcon: _query.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                              child: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLow,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // ── List ────────────────────────────────────────────────────
-              Expanded(
-                child: RefreshIndicator(
-                  color: Theme.of(context).colorScheme.primary,
-                  onRefresh: () => context.read<SavedNotesCubit>().load(),
-                  child: filtered.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: [
-                            SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.5,
-                              child: state.notes.isEmpty
-                                  ? const _EmptyState()
-                                  : const _NoResultsState(),
-                            ),
-                          ],
-                        )
-                      : Builder(
-                          builder: (ctx) {
-                            return ListView.separated(
-                              padding: const EdgeInsets.only(bottom: 24),
-                              itemCount: filtered.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox.shrink(),
-                              itemBuilder: (ctx, i) {
-                                final cubit = context.read<SavedNotesCubit>();
-                                final note = filtered[i];
-                                final savedEventIds = state.notes
-                                    .map((n) => n.eventId)
-                                    .toSet();
-                                return NoteCard(
-                                  key: ValueKey(note.eventId),
-                                  note: note.toNoteEntity(
-                                    savedEventIds: savedEventIds,
-                                    sourceLabel: state.sourceLabels[note.eventId],
-                                  ),
-                                  onTap: () async {
-                                    await openEventThread(
-                                      ctx,
-                                      note.eventId,
-                                      openAsNote: () => Navigator.push(
+                // ── List ────────────────────────────────────────────────────
+                Expanded(
+                  child: RefreshIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                    onRefresh: () => context.read<SavedNotesCubit>().load(),
+                    child: filtered.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.5,
+                                child: state.notes.isEmpty
+                                    ? const _EmptyState()
+                                    : const _NoResultsState(),
+                              ),
+                            ],
+                          )
+                        : Builder(
+                            builder: (ctx) {
+                              return ListView.separated(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                itemCount: filtered.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox.shrink(),
+                                itemBuilder: (ctx, i) {
+                                  final cubit = context.read<SavedNotesCubit>();
+                                  final note = filtered[i];
+                                  final savedEventIds = state.notes
+                                      .map((n) => n.eventId)
+                                      .toSet();
+                                  return NoteCard(
+                                    key: ValueKey(note.eventId),
+                                    note: note.toNoteEntity(
+                                      savedEventIds: savedEventIds,
+                                      sourceLabel:
+                                          state.sourceLabels[note.eventId],
+                                    ),
+                                    onTap: () async {
+                                      await openEventThread(
                                         ctx,
-                                        MaterialPageRoute(
-                                          builder: (_) => ThreadPage(
-                                            noteId: note.eventId,
-                                            savedOnly: true,
+                                        note.eventId,
+                                        openAsNote: () => Navigator.push(
+                                          ctx,
+                                          MaterialPageRoute(
+                                            builder: (_) => ThreadPage(
+                                              noteId: note.eventId,
+                                              savedOnly: true,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                    cubit.load();
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                      );
+                                      cubit.load();
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
         ),
       ),
     );
@@ -263,7 +274,7 @@ class _NoResultsState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'No notes match your search.',
+        AppLocalizations.of(context)!.savedNoSearchResults,
         style: TextStyle(
           fontSize: 14,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -272,4 +283,3 @@ class _NoResultsState extends StatelessWidget {
     );
   }
 }
-

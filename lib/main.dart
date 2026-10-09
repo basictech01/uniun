@@ -99,10 +99,9 @@ Future<void> main() async {
   // Remove native splash immediately → SplashPage takes over
   FlutterNativeSplash.remove();
 
-  runApp(UniunApp(
-    initialLocale: initialLocale,
-    initialThemeMode: initialThemeMode,
-  ));
+  runApp(
+    UniunApp(initialLocale: initialLocale, initialThemeMode: initialThemeMode),
+  );
 }
 
 /// `background_downloader` (used by flutter_gemma to fetch models) stores its
@@ -143,10 +142,8 @@ class UniunApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => LocaleCubit(
-            getIt<SetAppLocaleUseCase>(),
-            initial: initialLocale,
-          ),
+          create: (_) =>
+              LocaleCubit(getIt<SetAppLocaleUseCase>(), initial: initialLocale),
         ),
         BlocProvider(
           create: (_) => ThemeCubit(
@@ -168,7 +165,7 @@ class UniunApp extends StatelessWidget {
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,
                 ],
-                supportedLocales: const [Locale('en'), Locale('hi')],
+                supportedLocales: AppLocalizations.supportedLocales,
                 locale: locale,
                 theme: AppTheme.light,
                 darkTheme: AppTheme.dark,

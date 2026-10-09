@@ -20,6 +20,22 @@ void main() {
       expect(locale, const Locale('hi'));
     });
 
+    test('restores Gujarati over the system locale', () {
+      final locale = LocaleCubit.resolveInitial(
+        savedCode: 'gu',
+        systemLocales: const [Locale('en')],
+      );
+      expect(locale, const Locale('gu'));
+    });
+
+    test('restores Japanese over the system locale', () {
+      final locale = LocaleCubit.resolveInitial(
+        savedCode: 'ja',
+        systemLocales: const [Locale('en')],
+      );
+      expect(locale, const Locale('ja'));
+    });
+
     test('ignores a saved code that is not a supported language', () {
       // 'bn' (Bengali) exists in the registry but ships no translation yet.
       final locale = LocaleCubit.resolveInitial(
@@ -35,6 +51,22 @@ void main() {
         systemLocales: const [Locale('fr'), Locale('hi'), Locale('en')],
       );
       expect(locale, const Locale('hi'));
+    });
+
+    test('selects Gujarati from the system locales', () {
+      final locale = LocaleCubit.resolveInitial(
+        savedCode: null,
+        systemLocales: const [Locale('fr'), Locale('gu', 'IN')],
+      );
+      expect(locale, const Locale('gu'));
+    });
+
+    test('selects Japanese from the system locales', () {
+      final locale = LocaleCubit.resolveInitial(
+        savedCode: null,
+        systemLocales: const [Locale('fr'), Locale('ja', 'JP')],
+      );
+      expect(locale, const Locale('ja'));
     });
 
     test('falls back to English when nothing matches', () {
@@ -62,6 +94,22 @@ void main() {
       act: (cubit) => cubit.setLanguage(AppLanguage.hindi),
       expect: () => const [Locale('hi')],
       verify: (_) => verify(() => setLocale.call('hi')).called(1),
+    );
+
+    blocTest<LocaleCubit, Locale>(
+      'persists Gujarati when selected',
+      build: () => LocaleCubit(setLocale, initial: const Locale('en')),
+      act: (cubit) => cubit.setLanguage(AppLanguage.gujarati),
+      expect: () => const [Locale('gu')],
+      verify: (_) => verify(() => setLocale.call('gu')).called(1),
+    );
+
+    blocTest<LocaleCubit, Locale>(
+      'persists Japanese when selected',
+      build: () => LocaleCubit(setLocale, initial: const Locale('en')),
+      act: (cubit) => cubit.setLanguage(AppLanguage.japanese),
+      expect: () => const [Locale('ja')],
+      verify: (_) => verify(() => setLocale.call('ja')).called(1),
     );
 
     blocTest<LocaleCubit, Locale>(

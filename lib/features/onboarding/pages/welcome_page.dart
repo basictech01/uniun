@@ -7,6 +7,7 @@ import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/core/l10n/app_language.dart';
 import 'package:uniun/core/l10n/locale_cubit.dart';
 import 'package:uniun/core/router/app_routes.dart';
+
 /// Welcome / landing screen.
 /// No top app bar, no bottom nav — pure onboarding shell.
 ///
@@ -174,9 +175,15 @@ class _BrandBlock extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-                      Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.06),
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.0),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.18),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.06),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.0),
                     ],
                     stops: const [0.0, 0.45, 0.75],
                   ),
@@ -195,7 +202,10 @@ class _BrandBlock extends StatelessWidget {
           shaderCallback: (bounds) => LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primaryContainer],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primaryContainer,
+            ],
           ).createShader(bounds),
           child: const Text(
             'UNIUN',
@@ -265,11 +275,17 @@ class _TrimurtiPillars extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)),
+          border: Border.all(
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.12),
+          ),
           // soft brand glow radiating behind the pillar card
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.18),
               blurRadius: 36,
               spreadRadius: -6,
               offset: const Offset(0, 10),
@@ -377,12 +393,17 @@ class _PrimaryButton extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primaryContainer],
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primaryContainer,
+            ],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.28),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.28),
               blurRadius: 32,
               offset: const Offset(0, 12),
             ),
@@ -412,7 +433,9 @@ class _SecondaryButton extends StatelessWidget {
           color: Theme.of(context).colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.4),
           ),
           boxShadow: [
             BoxShadow(
@@ -430,8 +453,8 @@ class _SecondaryButton extends StatelessWidget {
 
 // ── Language picker ───────────────────────────────────────────────────────────
 
-/// Top-of-screen language controls: a compact EN / हिन्दी segmented toggle for
-/// the two shipping languages, with a "More languages" link to the full picker.
+/// Top-of-screen language controls: a compact EN / हिन्दी segmented toggle,
+/// with a "More languages" link to the full picker.
 class _LanguageBar extends StatelessWidget {
   const _LanguageBar({required this.l10n});
 
@@ -474,7 +497,8 @@ class _LanguageBar extends StatelessWidget {
   }
 }
 
-/// Two-segment pill bound to [LocaleCubit] — one segment per shipping language.
+/// Two-segment pill bound to [LocaleCubit]. Other supported languages remain
+/// available in the full picker without crowding the welcome screen.
 class _LanguageToggle extends StatelessWidget {
   const _LanguageToggle();
 
@@ -487,13 +511,15 @@ class _LanguageToggle extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(99),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final lang in AppLanguage.supportedLanguages)
+          for (final lang in const [AppLanguage.english, AppLanguage.hindi])
             _Segment(
               label: lang.nativeName,
               selected: lang == active,
@@ -524,7 +550,9 @@ class _Segment extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+          color: selected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(99),
         ),
         child: Text(
@@ -532,7 +560,9 @@ class _Segment extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: selected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: selected
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),

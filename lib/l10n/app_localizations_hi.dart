@@ -1617,16 +1617,16 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get graphSearchPrevMatch => 'Previous match';
+  String get graphSearchPrevMatch => 'पिछला मिलान';
 
   @override
-  String get graphSearchNextMatch => 'Next match';
+  String get graphSearchNextMatch => 'अगला मिलान';
 
   @override
-  String get graphPrevConnection => 'Previous connection';
+  String get graphPrevConnection => 'पिछला संबंध';
 
   @override
-  String get graphNextConnection => 'Next connection';
+  String get graphNextConnection => 'अगला संबंध';
 
   @override
   String get groupEntryTitle => 'दल';
@@ -1875,7 +1875,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pendingRequestsApprove => 'स्वीकृत करें';
 
   @override
-  String get settingsCloudProvider => 'Cloud AI';
+  String get settingsCloudProvider => 'क्लाउड AI';
 
   @override
   String get cloudProviderTitle => 'UNIUN Cloud';
@@ -3247,48 +3247,48 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsThemeDark => 'डार्क';
 
   @override
-  String get settingsNearbySync => 'Nearby Sync';
+  String get settingsNearbySync => 'आसपास के डिवाइस से सिंक';
 
   @override
-  String get meshTitle => 'Sync with nearby devices';
+  String get meshTitle => 'आसपास के डिवाइस से सिंक करें';
 
   @override
   String get meshSubtitle =>
-      'Beta · Sync your notes with your other devices on the same Wi-Fi — no internet needed.';
+      'बीटा · उसी Wi-Fi पर अपने दूसरे डिवाइस के साथ नोट्स सिंक करें — इंटरनेट की ज़रूरत नहीं।';
 
   @override
   String meshConnected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count peers',
-      one: '1 peer',
-      zero: 'No peers',
+      other: '$count डिवाइस जुड़े हैं',
+      one: '1 डिवाइस जुड़ा है',
+      zero: 'कोई डिवाइस जुड़ा नहीं है',
     );
     return '$_temp0';
   }
 
   @override
-  String get drawerSurrounding => 'Surrounding';
+  String get drawerSurrounding => 'आसपास';
 
   @override
-  String get surroundingTitle => 'Surrounding';
+  String get surroundingTitle => 'आसपास';
 
   @override
-  String get surroundingEmpty => 'Nothing nearby yet';
+  String get surroundingEmpty => 'अभी आसपास कुछ नहीं है';
 
   @override
   String get surroundingEmptySub =>
-      'Notes broadcast by nearby devices on the mesh will appear here. They\'re cleared each day.';
+      'आसपास के डिवाइस से साझा किए गए नोट्स यहाँ दिखाई देंगे। ये हर दिन हटा दिए जाते हैं।';
 
   @override
-  String get surroundingSave => 'Keep';
+  String get surroundingSave => 'रखें';
 
   @override
-  String get surroundingSaved => 'Saved';
+  String get surroundingSaved => 'सहेजा गया';
 
   @override
-  String get surroundingSourceLabel => '📍 Nearby';
+  String get surroundingSourceLabel => '📍 आसपास';
 
   @override
   String get noteCardTranslate => 'अनुवाद करें';
@@ -3333,4 +3333,54 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get brahmaPublishConfirmBody =>
       'प्रकाशित नोट स्थायी होते हैं। वे रिले पर चले जाते हैं और उन्हें संपादित या हटाया नहीं जा सकता। अगर आप अभी भी काम कर रहे हैं तो इसे ड्राफ़्ट में रखें।';
+
+  @override
+  String get errorUnexpected => 'कुछ गड़बड़ हो गई।';
+
+  @override
+  String get savedNoSearchResults => 'आपकी खोज से कोई नोट मेल नहीं खाता।';
+
+  @override
+  String qrScannerInvalidCode(String error) {
+    return 'अमान्य QR कोड: $error';
+  }
+
+  @override
+  String get qrScannerInstruction =>
+      'UNIUN का QR कोड स्कैन करें — उपयोगकर्ता, सार्वजनिक दल या निजी दल';
+
+  @override
+  String qrCopiedToClipboard(String label) {
+    return '$label • क्लिपबोर्ड पर कॉपी किया गया';
+  }
+
+  @override
+  String get privateGroupShareQrTooltip => 'QR कोड साझा करें';
+
+  @override
+  String get privateGroupLeaveAction => 'दल छोड़ें';
+
+  @override
+  String get privateGroupPendingApprovalTitle => 'स्वीकृति बाकी है';
+
+  @override
+  String get privateGroupPendingApprovalBody =>
+      'दल में शामिल होने का आपका अनुरोध भेज दिया गया है। दल का एडमिन स्वीकृति देगा, उसके बाद आप संदेश पढ़ और भेज सकेंगे।';
+
+  @override
+  String get dmShareKeysTooltip => 'कुंजियाँ साझा करें';
+
+  @override
+  String get groupFeedNoMessages => 'अभी तक कोई संदेश नहीं। पहला संदेश भेजें!';
+
+  @override
+  String threadShowMoreReferences(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count और संदर्भ दिखाएँ',
+      one: '1 और संदर्भ दिखाएँ',
+    );
+    return '$_temp0';
+  }
 }
