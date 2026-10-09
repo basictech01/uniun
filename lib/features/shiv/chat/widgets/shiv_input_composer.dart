@@ -179,7 +179,7 @@ class _ShivInputComposerState extends State<ShivInputComposer> {
               _CircleButton(
                 icon: _scope.icon,
                 onTap: _pickScope,
-                tooltip: 'Grounded in $scopeLabel',
+                tooltip: l10n.composerChatGroundedHint(scopeLabel),
                 filled: true,
               ),
               const SizedBox(width: 8),

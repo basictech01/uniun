@@ -131,11 +131,17 @@ class _PublishModeTile extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
-              child: Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+              child: Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -158,13 +164,17 @@ class _PublishModeTile extends StatelessWidget {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 1),
+                            horizontal: 6,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'RECOMMENDED',
+                            AppLocalizations.of(
+                              context,
+                            )!.aiModelRecommendedBadge.toUpperCase(),
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,

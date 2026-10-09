@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_gu.dart';
 import 'app_localizations_hi.dart';
 
 // ignore_for_file: type=lint
@@ -95,6 +96,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('gu'),
     Locale('hi'),
   ];
 
@@ -5989,6 +5991,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Published notes are permanent. They go out to the relay and cannot be edited or deleted. Keep it as a draft if you\'re still working on it.'**
   String get brahmaPublishConfirmBody;
+
+  /// Generic error message when a screen has no more specific failure text
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong.'**
+  String get errorUnexpected;
+
+  /// Empty search result on the saved notes page
+  ///
+  /// In en, this message translates to:
+  /// **'No notes match your search.'**
+  String get savedNoSearchResults;
+
+  /// Error shown when a scanned UNIUN QR cannot be decoded
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR: {error}'**
+  String qrScannerInvalidCode(String error);
+
+  /// Instruction below the universal QR scanner
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a UNIUN QR — user, public group, or private group'**
+  String get qrScannerInstruction;
+
+  /// Confirmation after copying a QR card's identifier
+  ///
+  /// In en, this message translates to:
+  /// **'{label} • copied to clipboard'**
+  String qrCopiedToClipboard(String label);
+
+  /// Tooltip for sharing a private group's QR code
+  ///
+  /// In en, this message translates to:
+  /// **'Share QR'**
+  String get privateGroupShareQrTooltip;
+
+  /// Menu action for leaving a private group
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Group'**
+  String get privateGroupLeaveAction;
+
+  /// Title while a request to join a private group awaits admin approval
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get privateGroupPendingApprovalTitle;
+
+  /// Explanation while a request to join a private group awaits admin approval
+  ///
+  /// In en, this message translates to:
+  /// **'Your request to join has been sent. You\'ll be able to read and send messages once the group admin approves you.'**
+  String get privateGroupPendingApprovalBody;
+
+  /// Tooltip for sharing direct-message identity keys
+  ///
+  /// In en, this message translates to:
+  /// **'Share keys'**
+  String get dmShareKeysTooltip;
+
+  /// Empty state in a public group's message feed
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Be the first!'**
+  String get groupFeedNoMessages;
+
+  /// Expands hidden parent references in a thread
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 more reference} other{Show {count} more references}}'**
+  String threadShowMoreReferences(int count);
 }
 
 class _AppLocalizationsDelegate
@@ -6002,7 +6076,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'hi'].contains(locale.languageCode);
+      <String>['en', 'gu', 'hi'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -6013,6 +6087,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'gu':
+      return AppLocalizationsGu();
     case 'hi':
       return AppLocalizationsHi();
   }

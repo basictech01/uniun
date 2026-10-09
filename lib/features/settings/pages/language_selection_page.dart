@@ -26,7 +26,12 @@ class LanguageSelectionPage extends StatelessWidget {
         children: [
           SettingsGroup(
             children: [
-              for (final lang in AppLanguage.values)
+              for (final lang in [
+                AppLanguage.gujarati,
+                ...AppLanguage.values.where(
+                  (language) => language != AppLanguage.gujarati,
+                ),
+              ])
                 _LanguageTile(
                   language: lang,
                   isActive: lang == active,
@@ -79,7 +84,9 @@ class _LanguageTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? Theme.of(context).colorScheme.primary : titleColor,
+                    color: isActive
+                        ? Theme.of(context).colorScheme.primary
+                        : titleColor,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -96,7 +103,11 @@ class _LanguageTile extends StatelessWidget {
           if (!language.supported)
             _ComingSoonBadge(label: comingSoonLabel)
           else if (isActive)
-            Icon(Icons.check_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.check_rounded,
+              size: 20,
+              color: Theme.of(context).colorScheme.primary,
+            ),
         ],
       ),
     );
@@ -119,7 +130,9 @@ class _ComingSoonBadge extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(99),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Text(

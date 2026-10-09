@@ -181,8 +181,8 @@ class _UniunComposerState extends State<UniunComposer> {
     final bottom = !widget.applyBottomInset
         ? 0.0
         : media.viewInsets.bottom > 0
-            ? media.viewInsets.bottom
-            : media.viewPadding.bottom;
+        ? media.viewInsets.bottom
+        : media.viewPadding.bottom;
 
     return Container(
       padding: EdgeInsets.fromLTRB(14, 10, 10, 10 + bottom),
@@ -194,138 +194,148 @@ class _UniunComposerState extends State<UniunComposer> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            if (widget.replyingToName != null) ...[
-              _ReplyBanner(
-                name: widget.replyingToName!,
-                preview: widget.replyingToPreview,
-                onClear: widget.onClearReply,
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.references.isNotEmpty) ...[
-              _ReferenceRow(
-                references: widget.references,
-                onRemove: widget.onRemoveReference,
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.attachments.isNotEmpty || widget.isAttachingMedia) ...[
-              _AttachmentRow(
-                attachments: widget.attachments,
-                onRemove: widget.onRemoveAttachment,
-                isAttaching: widget.isAttachingMedia,
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.chatPanel != null) widget.chatPanel!,
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: TextField(
-                controller: widget.controller,
-                focusNode: widget.focusNode,
-                autofocus: widget.autofocus,
-                onChanged: widget.onTextChanged,
-                minLines: widget.minLines,
-                maxLines: widget.maxLines,
-                style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: widget.hintText,
-                  hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  focusedErrorBorder: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                ),
-              ),
+          if (widget.replyingToName != null) ...[
+            _ReplyBanner(
+              name: widget.replyingToName!,
+              preview: widget.replyingToPreview,
+              onClear: widget.onClearReply,
             ),
             const SizedBox(height: 8),
-            // When the markdown toolbar is expanded it takes the place of the
-            // control row, and the close button sits where the send button was.
-            if (widget.markdownEnabled && _markdownExpanded)
-              Row(
-                children: [
-                  Expanded(
-                    child: MarkdownFormattingToolbar(
-                        controller: widget.controller),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => setState(() => _markdownExpanded = false),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.close_rounded,
-                          size: 20, color: Colors.white),
-                    ),
-                  ),
-                ],
-              )
-            else
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: widget.onAvatarTap,
-                    child: widget.avatarOverride ??
-                        UserAvatar(
-                          seed: widget.avatarSeed,
-                          photoUrl: widget.avatarUrl,
-                          size: 34,
-                          borderRadius: 17,
-                        ),
-                  ),
-                  if (widget.onPickModel != null) ...[
-                    const SizedBox(width: 8),
-                    _CircleButton(
-                      icon: Icons.smart_toy_rounded,
-                      onTap: widget.onPickModel!,
-                    ),
-                  ],
-                  if (widget.onAddReference != null) ...[
-                    const SizedBox(width: 8),
-                    _CircleButton(
-                      icon: Icons.add_link_rounded,
-                      onTap: widget.onAddReference!,
-                      active: widget.references.isNotEmpty,
-                    ),
-                  ],
-                  if (widget.onAttachMedia != null) ...[
-                    const SizedBox(width: 8),
-                    _CircleButton(
-                      icon: Icons.add_photo_alternate_rounded,
-                      onTap: widget.isAttachingMedia
-                          ? () {}
-                          : widget.onAttachMedia!,
-                      active: widget.attachments.isNotEmpty,
-                      busy: widget.isAttachingMedia,
-                    ),
-                  ],
-                  if (widget.markdownEnabled) ...[
-                    const SizedBox(width: 8),
-                    _CircleButton(
-                      icon: Icons.text_format_rounded,
-                      onTap: () => setState(() => _markdownExpanded = true),
-                    ),
-                  ],
-                  const Spacer(),
-                  // Order follows emphasis: the primary action takes the
-                  // rightmost slot. Colours alone would leave send sitting in
-                  // the primary position while Draft carried the accent.
-                  ...(widget.draftIsPrimary
-                      ? [_sendButton(context), _draftButton(context)]
-                      : [_draftButton(context), _sendButton(context)]),
-                ],
-              ),
           ],
-        ),
+          if (widget.references.isNotEmpty) ...[
+            _ReferenceRow(
+              references: widget.references,
+              onRemove: widget.onRemoveReference,
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (widget.attachments.isNotEmpty || widget.isAttachingMedia) ...[
+            _AttachmentRow(
+              attachments: widget.attachments,
+              onRemove: widget.onRemoveAttachment,
+              isAttaching: widget.isAttachingMedia,
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (widget.chatPanel != null) widget.chatPanel!,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              autofocus: widget.autofocus,
+              onChanged: widget.onTextChanged,
+              minLines: widget.minLines,
+              maxLines: widget.maxLines,
+              style: TextStyle(
+                fontSize: 15,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 15,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // When the markdown toolbar is expanded it takes the place of the
+          // control row, and the close button sits where the send button was.
+          if (widget.markdownEnabled && _markdownExpanded)
+            Row(
+              children: [
+                Expanded(
+                  child: MarkdownFormattingToolbar(
+                    controller: widget.controller,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => setState(() => _markdownExpanded = false),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: widget.onAvatarTap,
+                  child:
+                      widget.avatarOverride ??
+                      UserAvatar(
+                        seed: widget.avatarSeed,
+                        photoUrl: widget.avatarUrl,
+                        size: 34,
+                        borderRadius: 17,
+                      ),
+                ),
+                if (widget.onPickModel != null) ...[
+                  const SizedBox(width: 8),
+                  _CircleButton(
+                    icon: Icons.smart_toy_rounded,
+                    onTap: widget.onPickModel!,
+                  ),
+                ],
+                if (widget.onAddReference != null) ...[
+                  const SizedBox(width: 8),
+                  _CircleButton(
+                    icon: Icons.add_link_rounded,
+                    onTap: widget.onAddReference!,
+                    active: widget.references.isNotEmpty,
+                  ),
+                ],
+                if (widget.onAttachMedia != null) ...[
+                  const SizedBox(width: 8),
+                  _CircleButton(
+                    icon: Icons.add_photo_alternate_rounded,
+                    onTap: widget.isAttachingMedia
+                        ? () {}
+                        : widget.onAttachMedia!,
+                    active: widget.attachments.isNotEmpty,
+                    busy: widget.isAttachingMedia,
+                  ),
+                ],
+                if (widget.markdownEnabled) ...[
+                  const SizedBox(width: 8),
+                  _CircleButton(
+                    icon: Icons.text_format_rounded,
+                    onTap: () => setState(() => _markdownExpanded = true),
+                  ),
+                ],
+                const Spacer(),
+                // Order follows emphasis: the primary action takes the
+                // rightmost slot. Colours alone would leave send sitting in
+                // the primary position while Draft carried the accent.
+                ...(widget.draftIsPrimary
+                    ? [_sendButton(context), _draftButton(context)]
+                    : [_draftButton(context), _sendButton(context)]),
+              ],
+            ),
+        ],
+      ),
     );
   }
 
@@ -334,13 +344,14 @@ class _UniunComposerState extends State<UniunComposer> {
   Widget _draftButton(BuildContext context) {
     if (widget.onDraft == null) return const SizedBox.shrink();
     return Padding(
-      padding: EdgeInsets.only(left: widget.draftIsPrimary ? 8 : 0,
-          right: widget.draftIsPrimary ? 0 : 8),
+      padding: EdgeInsets.only(
+        left: widget.draftIsPrimary ? 8 : 0,
+        right: widget.draftIsPrimary ? 0 : 8,
+      ),
       child: GestureDetector(
         onTap: widget.isSending ? null : widget.onDraft,
         child: Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 16, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
           decoration: BoxDecoration(
             color: widget.draftIsPrimary
                 ? Theme.of(context).colorScheme.primary
@@ -365,42 +376,38 @@ class _UniunComposerState extends State<UniunComposer> {
   Widget _sendButton(BuildContext context) {
     if (widget.onSend == null) return const SizedBox.shrink();
     return GestureDetector(
-        onTap: widget.canSend && !widget.isSending
-            ? widget.onSend
-            : null,
-        child: AnimatedOpacity(
-          opacity: widget.canSend ? 1.0 : 0.4,
-          duration: const Duration(milliseconds: 150),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: widget.draftIsPrimary
-                  ? Theme.of(context).colorScheme.surfaceContainerHigh
-                  : Theme.of(context).colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: widget.isSending
-                ? Padding(
-                    padding: const EdgeInsets.all(11),
-                    child: DropLoadingIndicator(
-                      color: widget.draftIsPrimary
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                          : Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  )
-                : Icon(Icons.arrow_upward_rounded,
-                    size: 20,
-                    color: widget.draftIsPrimary
-                        ? Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant
-                        : Colors.white),
+      onTap: widget.canSend && !widget.isSending ? widget.onSend : null,
+      child: AnimatedOpacity(
+        opacity: widget.canSend ? 1.0 : 0.4,
+        duration: const Duration(milliseconds: 150),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: widget.draftIsPrimary
+                ? Theme.of(context).colorScheme.surfaceContainerHigh
+                : Theme.of(context).colorScheme.primary,
+            shape: BoxShape.circle,
           ),
+          child: widget.isSending
+              ? Padding(
+                  padding: const EdgeInsets.all(11),
+                  child: DropLoadingIndicator(
+                    color: widget.draftIsPrimary
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Theme.of(context).colorScheme.onPrimary,
+                  ),
+                )
+              : Icon(
+                  Icons.arrow_upward_rounded,
+                  size: 20,
+                  color: widget.draftIsPrimary
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : Colors.white,
+                ),
         ),
-      );
+      ),
+    );
   }
 }
 
@@ -440,7 +447,9 @@ class _CircleButton extends StatelessWidget {
             : Icon(
                 icon,
                 size: 18,
-                color: active ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                color: active
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
       ),
     );
@@ -512,8 +521,11 @@ class _ReplyBanner extends StatelessWidget {
           const SizedBox(width: 6),
           GestureDetector(
             onTap: onClear,
-            child: Icon(Icons.close_rounded,
-                size: 16, color: Theme.of(context).colorScheme.primary),
+            child: Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -592,17 +604,16 @@ class _AttachmentTile extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: SizedBox(
-            width: 72,
-            height: 72,
-            child: _preview(context),
-          ),
+          child: SizedBox(width: 72, height: 72, child: _preview(context)),
         ),
         if (media.isVideo)
           const Positioned.fill(
             child: Center(
-              child: Icon(Icons.play_circle_outline,
-                  size: 26, color: Colors.white),
+              child: Icon(
+                Icons.play_circle_outline,
+                size: 26,
+                color: Colors.white,
+              ),
             ),
           ),
         if (onRemove != null)
@@ -617,8 +628,11 @@ class _AttachmentTile extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded,
-                    size: 14, color: Colors.white),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -647,10 +661,10 @@ class _AttachmentTile extends StatelessWidget {
     final IconData icon = media.isVideo
         ? Icons.movie_outlined
         : media.mime.startsWith('audio/')
-            ? Icons.audiotrack_outlined
-            : media.isImage
-                ? Icons.image_outlined
-                : Icons.insert_drive_file_outlined;
+        ? Icons.audiotrack_outlined
+        : media.isImage
+        ? Icons.image_outlined
+        : Icons.insert_drive_file_outlined;
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       color: colorScheme.surfaceContainerHigh,
@@ -676,15 +690,20 @@ class _ReferenceRow extends StatelessWidget {
         final label = preview.length > 30
             ? '${preview.substring(0, 30)}…'
             : preview.isEmpty
-                ? r.id.substring(0, r.id.length < 8 ? r.id.length : 8)
-                : preview;
+            ? r.id.substring(0, r.id.length < 8 ? r.id.length : 8)
+            : preview;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(999),
-            border:
-                Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)),
+            border: Border.all(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.2),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -708,14 +727,18 @@ class _ReferenceRow extends StatelessWidget {
               if (r.kind == ComposerReferenceKind.draft) ...[
                 const SizedBox(width: 5),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'DRAFT',
+                    AppLocalizations.of(context)!.brahmaDraft.toUpperCase(),
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
@@ -729,8 +752,11 @@ class _ReferenceRow extends StatelessWidget {
                 const SizedBox(width: 5),
                 GestureDetector(
                   onTap: () => onRemove!(r.id),
-                  child: Icon(Icons.close_rounded,
-                      size: 13, color: Theme.of(context).colorScheme.primary),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 13,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ],
             ],

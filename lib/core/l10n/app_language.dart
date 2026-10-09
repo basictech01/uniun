@@ -1,16 +1,16 @@
 /// The set of languages UNIUN knows about, and which ones currently ship
 /// translations. This is the single source of truth for every language-picking
-/// surface: the welcome-screen toggle, the full [LanguageSelectionPage], and the
-/// Settings language row.
+/// surface: the full [LanguageSelectionPage] and the Settings language row.
+/// The welcome screen intentionally offers only English and Hindi quick buttons.
 ///
 /// `supported == true` means there is an `app_<code>.arb` wired into
 /// `MaterialApp.supportedLocales` — the row is selectable. `supported == false`
 /// is a roadmap entry rendered as "Coming soon" (greyed, non-tappable).
 ///
-/// Adding a real translation later is two steps: ship `app_<code>.arb`, flip the
-/// matching entry's `supported` to `true` (and add `Locale('<code>')` to
-/// `supportedLocales`). Language names are shown in-script (`nativeName`) and are
-/// intentionally NOT localized.
+/// Adding a real translation later is two steps: ship `app_<code>.arb`, then
+/// flip the matching entry's `supported` to `true`. The generated localization
+/// class supplies `MaterialApp.supportedLocales`. Language names are shown in
+/// their own scripts (`nativeName`) and are intentionally not localized.
 ///
 /// Pure Dart — no Flutter import — so it can be used from the cubit, pages, and
 /// tests alike.
@@ -55,7 +55,7 @@ enum AppLanguage {
     code: 'gu',
     englishName: 'Gujarati',
     nativeName: 'ગુજરાતી',
-    supported: false,
+    supported: true,
   ),
   kannada(
     code: 'kn',

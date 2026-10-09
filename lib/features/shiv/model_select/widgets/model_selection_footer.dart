@@ -19,7 +19,9 @@ class ModelSelectionFooter extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.4),
           ),
         ),
       ),
@@ -38,10 +40,12 @@ class ModelSelectionFooter extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: state.downloadProgress,
                     minHeight: 6,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                    valueColor:
-                        AlwaysStoppedAnimation(Theme.of(context).colorScheme.primary),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.15),
+                    valueColor: AlwaysStoppedAnimation(
+                      Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -50,7 +54,8 @@ class ModelSelectionFooter extends StatelessWidget {
                   children: [
                     Text(
                       l10n.aiModelDownloadingProgress(
-                          (state.downloadProgress * 100).round()),
+                        (state.downloadProgress * 100).round(),
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -61,7 +66,7 @@ class ModelSelectionFooter extends StatelessWidget {
                       onPressed: () =>
                           context.read<SelectAIModelCubit>().cancelDownload(),
                       child: Text(
-                        'Cancel',
+                        l10n.actionCancel,
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.primary,
@@ -80,12 +85,12 @@ class ModelSelectionFooter extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     minHeight: 6,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.12),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation(
-                        Theme.of(context).colorScheme.primary),
+                      Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -101,9 +106,10 @@ class ModelSelectionFooter extends StatelessWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => context.read<SelectAIModelCubit>().close(),
+                      onPressed: () =>
+                          context.read<SelectAIModelCubit>().close(),
                       child: Text(
-                        'Cancel',
+                        l10n.actionCancel,
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).colorScheme.primary,
@@ -114,56 +120,65 @@ class ModelSelectionFooter extends StatelessWidget {
                 ),
               ],
             )
-          : Builder(builder: (context) {
-              final selectedId = state.selectedModelId;
-              final isAlreadyDownloaded = selectedId != null &&
-                  state.downloadedModelIds.contains(selectedId);
-              // A downloaded local model is only "already active" when the
-              // local backend is actually serving — not while cloud is in
-              // use, even if this model was the last one downloaded.
-              final isAlreadyActive = selectedId == state.activeModelId &&
-                  state.activeBackend == LlmBackendType.localGemma;
-              final label = isAlreadyActive
-                  ? l10n.aiModelAlreadyActive
-                  : isAlreadyDownloaded
-                      ? l10n.aiModelSetActive
-                      : l10n.aiModelUseThisButton;
-              final icon = isAlreadyDownloaded
-                  ? Icons.check_circle_outline_rounded
-                  : Icons.download_rounded;
+          : Builder(
+              builder: (context) {
+                final selectedId = state.selectedModelId;
+                final isAlreadyDownloaded =
+                    selectedId != null &&
+                    state.downloadedModelIds.contains(selectedId);
+                // A downloaded local model is only "already active" when the
+                // local backend is actually serving — not while cloud is in
+                // use, even if this model was the last one downloaded.
+                final isAlreadyActive =
+                    selectedId == state.activeModelId &&
+                    state.activeBackend == LlmBackendType.localGemma;
+                final label = isAlreadyActive
+                    ? l10n.aiModelAlreadyActive
+                    : isAlreadyDownloaded
+                    ? l10n.aiModelSetActive
+                    : l10n.aiModelUseThisButton;
+                final icon = isAlreadyDownloaded
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.download_rounded;
 
-              return FilledButton(
-                onPressed: selectedId == null
-                    ? null
-                    : () => context
-                        .read<SelectAIModelCubit>()
-                        .downloadAndActivate(),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                  backgroundColor:
-                      isAlreadyActive ? Theme.of(context).colorScheme.outline : Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                return FilledButton(
+                  onPressed: selectedId == null
+                      ? null
+                      : () => context
+                            .read<SelectAIModelCubit>()
+                            .downloadAndActivate(),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    backgroundColor: isAlreadyActive
+                        ? Theme.of(context).colorScheme.outline
+                        : Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
                   ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        icon,
+                        size: 18,
                         color: Theme.of(context).colorScheme.onPrimary,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(icon, size: 18, color: Theme.of(context).colorScheme.onPrimary),
-                  ],
-                ),
-              );
-            }),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }

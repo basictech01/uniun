@@ -24,11 +24,8 @@ class _PrimaryTintedIcon extends StatelessWidget {
   const _PrimaryTintedIcon({required this.icon});
   final IconData icon;
   @override
-  Widget build(BuildContext context) => Icon(
-        icon,
-        size: 26,
-        color: Theme.of(context).colorScheme.primary,
-      );
+  Widget build(BuildContext context) =>
+      Icon(icon, size: 26, color: Theme.of(context).colorScheme.primary);
 }
 
 /// Shared QR display sheet used for all four sharing kinds. Present via
@@ -223,7 +220,9 @@ class _UniunQrCardState extends State<UniunQrCard> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -314,7 +313,9 @@ class _UniunQrCardState extends State<UniunQrCard> {
     Clipboard.setData(ClipboardData(text: entry.copyValue));
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
-        content: Text('${entry.copyLabel} • copied to clipboard'),
+        content: Text(
+          AppLocalizations.of(context)!.qrCopiedToClipboard(entry.copyLabel),
+        ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -386,8 +387,9 @@ class _UniunQrCardState extends State<UniunQrCard> {
     // The app only ever decodes a loginSession QR (rendered by the web
     // login page) — it never generates one to share, so this card is
     // never built for that kind.
-    UniunQrKind.loginSession =>
-      throw UnsupportedError('loginSession QR codes are not shareable'),
+    UniunQrKind.loginSession => throw UnsupportedError(
+      'loginSession QR codes are not shareable',
+    ),
   };
 }
 

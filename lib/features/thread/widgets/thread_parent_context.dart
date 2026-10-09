@@ -44,7 +44,8 @@ class _ThreadParentContextState extends State<ThreadParentContext> {
     final notes = widget.notes;
     if (notes.isEmpty) return const SizedBox.shrink();
 
-    final collapse = widget.isSiblingGroup &&
+    final collapse =
+        widget.isSiblingGroup &&
         !_expanded &&
         notes.length > ThreadParentContext._collapseThreshold;
     final visible = collapse
@@ -76,8 +77,7 @@ class _ThreadParentContextState extends State<ThreadParentContext> {
                   child: Container(
                     width: 2,
                     decoration: BoxDecoration(
-                      color:
-                          colorScheme.outlineVariant.withValues(alpha: 0.30),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.30),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -100,8 +100,7 @@ class _ThreadParentContextState extends State<ThreadParentContext> {
             child: Row(
               children: [
                 Text(
-                  'Show $hiddenCount more '
-                  '${hiddenCount == 1 ? 'reference' : 'references'}',
+                  l10n.threadShowMoreReferences(hiddenCount),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -109,8 +108,11 @@ class _ThreadParentContextState extends State<ThreadParentContext> {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(Icons.expand_more_rounded,
-                    size: 16, color: colorScheme.primary),
+                Icon(
+                  Icons.expand_more_rounded,
+                  size: 16,
+                  color: colorScheme.primary,
+                ),
               ],
             ),
           ),
@@ -139,4 +141,3 @@ class _ThreadParentContextState extends State<ThreadParentContext> {
     );
   }
 }
-

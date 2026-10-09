@@ -35,8 +35,7 @@ class GroupFeedPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) =>
-              GroupFeedBloc()..add(LoadGroupFeedEvent(groupId)),
+          create: (_) => GroupFeedBloc()..add(LoadGroupFeedEvent(groupId)),
         ),
       ],
       child: _GroupFeedView(groupId: groupId),
@@ -52,8 +51,7 @@ class _GroupFeedView extends StatefulWidget {
   State<_GroupFeedView> createState() => _GroupFeedViewState();
 }
 
-class _GroupFeedViewState extends State<_GroupFeedView>
-    with BottomReadMixin {
+class _GroupFeedViewState extends State<_GroupFeedView> with BottomReadMixin {
   final _scrollController = ScrollController();
 
   late final UnreadCountCubit _unread;
@@ -72,9 +70,8 @@ class _GroupFeedViewState extends State<_GroupFeedView>
   bool get canMarkRead => !context.read<GroupFeedBloc>().state.hasMoreUnread;
 
   @override
-  void markContainerRead() => context
-      .read<GroupFeedBloc>()
-      .add(MarkAllGroupSeenEvent(widget.groupId));
+  void markContainerRead() =>
+      context.read<GroupFeedBloc>().add(MarkAllGroupSeenEvent(widget.groupId));
 
   /// Distance from an edge at which the next page is requested.
   static const double _loadTrigger = 240;
@@ -134,8 +131,7 @@ class _GroupFeedViewState extends State<_GroupFeedView>
     }
     onReadScroll();
 
-    final showJump =
-        pos.maxScrollExtent - pos.pixels > kJumpToBottomTolerance;
+    final showJump = pos.maxScrollExtent - pos.pixels > kJumpToBottomTolerance;
     if (showJump != _showJumpButton) {
       setState(() => _showJumpButton = showJump);
     }
@@ -157,9 +153,7 @@ class _GroupFeedViewState extends State<_GroupFeedView>
     if (n is OverscrollNotification && n.overscroll > 0) {
       final bloc = context.read<GroupFeedBloc>();
       if (!bloc.state.isLoadingUnread) {
-        bloc.add(
-          LoadNewerGroupMessagesEvent(widget.groupId, isRefresh: true),
-        );
+        bloc.add(LoadNewerGroupMessagesEvent(widget.groupId, isRefresh: true));
       }
     }
     return false;
@@ -170,7 +164,8 @@ class _GroupFeedViewState extends State<_GroupFeedView>
       markIfOnScreen(
         eventId,
         info.visibleFraction,
-        (id) => context.read<GroupFeedBloc>().add(MarkGroupMessageSeenEvent(id)),
+        (id) =>
+            context.read<GroupFeedBloc>().add(MarkGroupMessageSeenEvent(id)),
       );
 
   void _scrollToBottom() {
@@ -185,13 +180,13 @@ class _GroupFeedViewState extends State<_GroupFeedView>
 
   void _openThread(BuildContext ctx, NoteEntity msg, String groupName) {
     final bloc = ctx.read<GroupFeedBloc>();
-    ctx.pushNamed(AppRoutes.thread, pathParameters: {'noteId': msg.id}).then((_) {
+    ctx.pushNamed(AppRoutes.thread, pathParameters: {'noteId': msg.id}).then((
+      _,
+    ) {
       // Pull any replies posted in the thread back in as newer messages,
       // without resetting the boundary anchor or scroll position.
       if (mounted) {
-        bloc.add(
-          LoadNewerGroupMessagesEvent(widget.groupId, isRefresh: true),
-        );
+        bloc.add(LoadNewerGroupMessagesEvent(widget.groupId, isRefresh: true));
         scheduleBottomCheck();
       }
     });
@@ -234,9 +229,7 @@ class _GroupFeedViewState extends State<_GroupFeedView>
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
             titleSpacing: 4,
-            leading: UniunBackButton(
-              onPressed: () => context.popOrHome(),
-            ),
+            leading: UniunBackButton(onPressed: () => context.popOrHome()),
             // # glyph + name (no "#" prefix — the icon conveys it). About rides
             // below as a subtitle. No member count (DESIGN.md §3.5).
             title: Row(
@@ -291,7 +284,11 @@ class _GroupFeedViewState extends State<_GroupFeedView>
             ],
             bottom: PreferredSize(
               preferredSize: Size.fromHeight(1),
-              child: Divider(height: 1, thickness: 1, color: context.custom.borderSubtle),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: context.custom.borderSubtle,
+              ),
             ),
           ),
           body: Column(
@@ -302,12 +299,14 @@ class _GroupFeedViewState extends State<_GroupFeedView>
                 isSending: state.isSending,
                 entityContext: entityContextLines(state.messages),
                 onSend: (text, refs, attachments) =>
-                    context.read<GroupFeedBloc>().add(SendGroupMessageEvent(
-                          groupId: widget.groupId,
-                          content: text,
-                          mentionRefs: refs,
-                          attachments: attachments,
-                        )),
+                    context.read<GroupFeedBloc>().add(
+                      SendGroupMessageEvent(
+                        groupId: widget.groupId,
+                        content: text,
+                        mentionRefs: refs,
+                        attachments: attachments,
+                      ),
+                    ),
               ),
             ],
           ),
@@ -321,17 +320,22 @@ class _GroupFeedViewState extends State<_GroupFeedView>
     GroupFeedState state,
     String groupName,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.isLoading) {
       return Center(
-        child: DropLoadingIndicator(color: Theme.of(context).colorScheme.primary),
+        child: DropLoadingIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
       );
     }
 
     if (state.status == GroupFeedStatus.error) {
       return Center(
         child: Text(
-          state.errorMessage ?? 'Something went wrong.',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          state.errorMessage ?? l10n.errorUnexpected,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -339,8 +343,11 @@ class _GroupFeedViewState extends State<_GroupFeedView>
     if (state.messages.isEmpty) {
       return Center(
         child: Text(
-          'No messages yet. Be the first!',
-          style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          l10n.groupFeedNoMessages,
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }

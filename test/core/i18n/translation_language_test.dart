@@ -51,7 +51,7 @@ void main() {
     test('every app-supported UI locale has a translation target', () {
       // The picker seeds from the app locale; a UI language with no matching
       // entry would silently seed to English instead.
-      for (final uiLocale in ['en', 'hi']) {
+      for (final uiLocale in ['en', 'hi', 'gu']) {
         expect(TranslationLanguage.fromCode(uiLocale).code, uiLocale);
       }
     });

@@ -209,12 +209,12 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
   }
 
   void _openThread(BuildContext context, String messageId) {
-    context.pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId}).then(
-      (_) {
-        // Notes that arrived while the thread covered the chat.
-        if (mounted) scheduleBottomCheck();
-      },
-    );
+    context
+        .pushNamed(AppRoutes.thread, pathParameters: {'noteId': messageId})
+        .then((_) {
+          // Notes that arrived while the thread covered the chat.
+          if (mounted) scheduleBottomCheck();
+        });
   }
 
   /// Truncates a full npub to the `npub1q9x…k4ze` form shown under the name.
@@ -258,8 +258,9 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
         final displayName = otherProfile?.name?.trim().isNotEmpty == true
             ? otherProfile!.name!.trim()
             : shortKey;
-        final otherNpub =
-            otherPubkey == null ? null : _shortNpub(Nip19.encodePubkey(otherPubkey));
+        final otherNpub = otherPubkey == null
+            ? null
+            : _shortNpub(Nip19.encodePubkey(otherPubkey));
 
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
@@ -268,9 +269,7 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
-            leading: UniunBackButton(
-              onPressed: () => Navigator.pop(context),
-            ),
+            leading: UniunBackButton(onPressed: () => Navigator.pop(context)),
             titleSpacing: 0,
             title: Row(
               children: [
@@ -316,7 +315,7 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
               if (state.otherPubkey != null && _myNpub != null)
                 UniunQrButton(
                   onTap: () => _showQr(state),
-                  tooltip: 'Share keys',
+                  tooltip: l10n.dmShareKeysTooltip,
                 ),
             ],
             bottom: PreferredSize(
@@ -343,11 +342,11 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
                       child: BlocBuilder<UnreadCountCubit, int>(
                         bloc: _unread,
                         builder: (context, unread) => JumpToBottomButton(
-                        visible: _showJumpButton,
-                        unreadCount: unread,
-                        onPressed: _jumpToLatest,
-                        tooltip: AppLocalizations.of(context)!.jumpToLatest,
-                      ),
+                          visible: _showJumpButton,
+                          unreadCount: unread,
+                          onPressed: _jumpToLatest,
+                          tooltip: AppLocalizations.of(context)!.jumpToLatest,
+                        ),
                       ),
                     ),
                   ],
@@ -359,12 +358,12 @@ class _DmChatViewState extends State<_DmChatView> with BottomReadMixin {
                 entityContext: entityContextLines(state.messages),
                 onSend: (text, refs, attachments) =>
                     context.read<DmChatBloc>().add(
-                          DmChatSendEvent(
-                            content: text,
-                            mentionRefs: refs,
-                            attachments: attachments,
-                          ),
-                        ),
+                      DmChatSendEvent(
+                        content: text,
+                        mentionRefs: refs,
+                        attachments: attachments,
+                      ),
+                    ),
               ),
             ],
           ),
