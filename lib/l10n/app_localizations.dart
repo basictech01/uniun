@@ -1079,8 +1079,20 @@ abstract class AppLocalizations {
   /// Log out confirmation dialog body
   ///
   /// In en, this message translates to:
-  /// **'You\'ll need your private key (nsec) to sign back in. Make sure it\'s backed up before logging out.'**
+  /// **'Your notes, chats, and account data on this device will be removed. You\'ll need your private key (nsec) to sign back in. Make sure it\'s backed up.'**
   String get settingsLogoutBody;
+
+  /// Log out option to preserve reusable on-device model files
+  ///
+  /// In en, this message translates to:
+  /// **'Keep downloaded AI models for another login'**
+  String get settingsKeepDownloadedModels;
+
+  /// Progress label while clearing account data during logout
+  ///
+  /// In en, this message translates to:
+  /// **'Logging out…'**
+  String get settingsLoggingOut;
 
   /// Log out confirmation dialog confirm action
   ///

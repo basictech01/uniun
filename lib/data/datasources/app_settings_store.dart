@@ -44,6 +44,12 @@ class AppSettingsStore {
     }
   }
 
+  /// Identity-specific choices; locale, theme and device policy remain shared.
+  Future<void> clearAccountChoices() async {
+    await setActiveModelId(null);
+    await setTranslationLanguage(null);
+  }
+
   /// Days after which short-lived public notes (Kind 1 / Kind 42) get
   /// evicted by `CleanupManager`. `null` = disabled (the default — nothing
   /// auto-deletes). Saved / own / followed / DM / private-group notes

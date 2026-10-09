@@ -571,7 +571,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settingsLogoutBody =>
-      'वापस साइन इन करने के लिए आपको अपनी प्राइवेट की (nsec) की आवश्यकता होगी। लॉग आउट करने से पहले सुनिश्चित करें कि इसका बैकअप ले लिया गया है।';
+      'इस डिवाइस से आपके नोट्स, चैट और अकाउंट का डेटा हटा दिया जाएगा। दोबारा साइन इन करने के लिए आपको अपनी प्राइवेट की (nsec) चाहिए होगी। उसका बैकअप सुनिश्चित करें।';
+
+  @override
+  String get settingsKeepDownloadedModels =>
+      'अगले लॉगिन के लिए डाउनलोड किए गए AI मॉडल रखें';
+
+  @override
+  String get settingsLoggingOut => 'लॉग आउट हो रहा है…';
 
   @override
   String get settingsLogoutConfirm => 'लॉग आउट';

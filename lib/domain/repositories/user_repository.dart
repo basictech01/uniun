@@ -12,7 +12,7 @@ abstract class UserRepository {
   /// Get the currently active user's keypair. Returns notFoundFailure if no user.
   Future<Either<Failure, UserKeyEntity>> getActiveUser();
 
-  /// Clear the stored keypair (logout).
+  /// Remove the stored keypair. Use LogoutUseCase for full account logout.
   Future<Either<Failure, Unit>> logout();
 
   /// Returns the active user's keys in raw hex form, ready for use in

@@ -24,6 +24,8 @@ class _MockVector extends Mock implements VectorRepository {}
 
 class _MockExtract extends Mock implements ExtractKnowledgeUseCase {}
 
+class _MockPending extends Mock implements PendingEmbeddingRepository {}
+
 /// Covers: NoteEmbeddingWorker draining the pending table — newest first, a row
 /// kept until its vector is stored, retries, and standing down for a chat reply.
 void main() {
@@ -80,6 +82,59 @@ void main() {
 
     verifyZeroInteractions(embedding);
     verifyZeroInteractions(vector);
+  });
+
+  test('logout stop waits for the active embedding pass', () async {
+    await pending.enqueue('old-note', 'old account text');
+    final entered = Completer<void>();
+    final release = Completer<void>();
+    when(
+      () => embedding.embed('old account text', isDocument: true),
+    ).thenAnswer((_) async {
+      entered.complete();
+      await release.future;
+      return [0.1, 0.2];
+    });
+
+    worker.nudge();
+    await entered.future.timeout(const Duration(seconds: 5));
+    var stopped = false;
+    final stopping = worker.stop().then((_) => stopped = true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(stopped, isFalse);
+
+    release.complete();
+    await stopping;
+    expect(stopped, isTrue);
+    expect(worker.isRunning, isFalse);
+  });
+
+  test('logout stop also settles a failing queue read', () async {
+    final failing = _MockPending();
+    final entered = Completer<void>();
+    final release = Completer<void>();
+    var reads = 0;
+    when(() => failing.next()).thenAnswer((_) {
+      reads++;
+      entered.complete();
+      return release.future.then((_) => throw StateError('database closed'));
+    });
+    final active = aNoteEmbeddingWorker(
+      pending: failing,
+      embedding: embedding,
+      vector: vector,
+      extract: extract,
+      scheduler: scheduler,
+    );
+
+    active.nudge();
+    await entered.future.timeout(const Duration(seconds: 5));
+    final stopping = active.stop();
+    release.complete();
+    await stopping;
+
+    expect(active.isRunning, isFalse);
+    expect(reads, 1);
   });
 
   test(

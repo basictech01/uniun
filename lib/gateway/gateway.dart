@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
@@ -70,12 +71,22 @@ Future<void> gatewayEntryPoint(GatewayInitMessage init) async {
 
 /// Bootstrap the Gateway isolate.
 class GatewayBootstrap {
-  static bool _started = false;
+  static Isolate? _isolate;
+  static Future<void>? _starting;
 
   static Future<void> start() async {
-    if (_started) return;
-    _started = true;
+    if (_isolate != null) return;
+    if (_starting != null) return _starting;
+    final starting = _spawn();
+    _starting = starting;
+    try {
+      await starting;
+    } finally {
+      _starting = null;
+    }
+  }
 
+  static Future<void> _spawn() async {
     final dir = await getApplicationDocumentsDirectory();
 
     // Resolve the active user's keys in the main isolate. FlutterSecureStorage
@@ -86,7 +97,7 @@ class GatewayBootstrap {
     final autoDeleteDays = getIt<AppSettingsStore>().autoDeleteOldNotesDays;
     final recentSyncWindowDays = getIt<AppSettingsStore>().recentSyncWindowDays;
 
-    Isolate.spawn(
+    _isolate = await Isolate.spawn(
       gatewayEntryPoint,
       GatewayInitMessage(
         isarDirectory: dir.path,
@@ -96,5 +107,24 @@ class GatewayBootstrap {
         recentSyncWindowDays: recentSyncWindowDays,
       ),
     );
+  }
+
+  /// Stop the old account's relay and DM subscriptions before clearing Isar.
+  static Future<void> stop() async {
+    await _starting;
+    final isolate = _isolate;
+    if (isolate != null) {
+      final exited = ReceivePort();
+      isolate.addOnExitListener(exited.sendPort);
+      isolate.kill(priority: Isolate.immediate);
+      try {
+        await exited.first.timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        // The isolate may have already exited before the listener was added.
+      } finally {
+        exited.close();
+      }
+    }
+    _isolate = null;
   }
 }

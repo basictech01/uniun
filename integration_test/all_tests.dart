@@ -37,6 +37,7 @@ import 'document_rag_e2e_test.dart' as document_rag_e2e_test;
 import 'document_viewer_e2e_test.dart' as document_viewer_e2e_test;
 import 'scheduler_model_switch_test.dart' as scheduler_model_switch_test;
 import 'scheduler_preemption_test.dart' as scheduler_preemption_test;
+import 'logout_account_switch_e2e_test.dart' as logout_account_switch_e2e_test;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -59,4 +60,5 @@ void main() {
   note_save_timing_e2e_test.main();
   knowledge_extraction_cost_e2e_test.main();
   unread_dots_e2e_test.main();
+  logout_account_switch_e2e_test.main();
 }

@@ -61,6 +61,8 @@ class DocumentIndexer {
   Timer? _settle;
   bool _running = false;
   bool _dirty = false;
+  bool _stopping = false;
+  Completer<void>? _idle;
 
   /// Collapses bursts — inbound feed sync writes many notes at once, and one
   /// pass after they land does the work of all of them.
@@ -71,6 +73,7 @@ class DocumentIndexer {
   /// its attachment was cached). Reconciles once straight away.
   void start() {
     if (_subs.isNotEmpty) return;
+    _stopping = false;
     _subs.addAll([
       _isar.mediaCacheModels.watchLazy(fireImmediately: true).listen(_schedule),
       _isar.savedNoteModels.watchLazy().listen(_schedule),
@@ -84,34 +87,40 @@ class DocumentIndexer {
   }
 
   Future<void> dispose() async {
+    _stopping = true;
     _settle?.cancel();
     for (final s in _subs) {
       await s.cancel();
     }
     _subs.clear();
+    await _idle?.future;
   }
 
   /// One full pass. Overlapping calls coalesce: a call made while a pass is
   /// running marks it dirty, and the running pass repeats before returning.
   Future<void> reconcile() async {
+    if (_stopping) return;
     if (_running) {
       _dirty = true;
       return;
     }
     _running = true;
+    _idle = Completer<void>();
     try {
       do {
         _dirty = false;
         final citable = await _citableShas();
         await _purgeOrphans(citable);
         await _indexPending(citable);
-      } while (_dirty);
+      } while (_dirty && !_stopping);
     } catch (e) {
       // Indexing runs off the chat path; a failure here must never surface
       // there. The next reconcile retries whatever did not finish.
       debugPrint('📄 DocumentIndexer: reconcile failed — $e');
     } finally {
       _running = false;
+      _idle?.complete();
+      _idle = null;
     }
   }
 

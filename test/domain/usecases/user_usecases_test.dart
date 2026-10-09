@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/repositories/profile_repository.dart';
+import 'package:uniun/domain/repositories/logout_session_repository.dart';
 import 'package:uniun/domain/repositories/user_repository.dart';
 import 'package:uniun/domain/usecases/user_usecases.dart';
 
@@ -12,6 +13,9 @@ import '../../_helpers/fixtures.dart';
 class _MockUserRepository extends Mock implements UserRepository {}
 
 class _MockProfileRepository extends Mock implements ProfileRepository {}
+
+class _MockLogoutSessionRepository extends Mock
+    implements LogoutSessionRepository {}
 
 void main() {
   late _MockUserRepository userRepo;
@@ -135,11 +139,57 @@ void main() {
     verify(() => userRepo.importKey('nsec1...')).called(1);
   });
 
-  test('LogoutUseCase delegates to logout', () async {
-    when(() => userRepo.logout()).thenAnswer((_) async => const Right(unit));
+  group('LogoutUseCase', () {
+    late _MockLogoutSessionRepository session;
 
-    final result = await LogoutUseCase(userRepo).call();
+    setUp(() {
+      session = _MockLogoutSessionRepository();
+      when(() => userRepo.logout()).thenAnswer((_) async => const Right(unit));
+    });
 
-    expect(result, const Right<Failure, Unit>(unit));
+    test('clears session and model files before removing identity', () async {
+      when(
+        () => session.clear(keepModelFiles: false),
+      ).thenAnswer((_) async => const Right(unit));
+
+      final result = await LogoutUseCase(
+        userRepo,
+        session,
+      ).call(const LogoutParams());
+
+      expect(result, const Right<Failure, Unit>(unit));
+      verifyInOrder([
+        () => session.clear(keepModelFiles: false),
+        () => userRepo.logout(),
+      ]);
+    });
+
+    test('keeps model files when selected', () async {
+      when(
+        () => session.clear(keepModelFiles: true),
+      ).thenAnswer((_) async => const Right(unit));
+
+      await LogoutUseCase(
+        userRepo,
+        session,
+      ).call(const LogoutParams(keepModelFiles: true));
+
+      verify(() => session.clear(keepModelFiles: true)).called(1);
+      verify(() => userRepo.logout()).called(1);
+    });
+
+    test('keeps identity if session cleanup fails', () async {
+      when(
+        () => session.clear(keepModelFiles: false),
+      ).thenThrow(StateError('cleanup failed'));
+
+      final result = await LogoutUseCase(
+        userRepo,
+        session,
+      ).call(const LogoutParams());
+
+      expect(result.isLeft(), isTrue);
+      verifyNever(() => userRepo.logout());
+    });
   });
 }

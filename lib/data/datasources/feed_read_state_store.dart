@@ -18,4 +18,6 @@ class FeedReadStateStore {
 
   Future<void> setLoadedAt(DateTime ts) =>
       _prefs.setInt(_kLoadedAtMs, ts.millisecondsSinceEpoch);
+
+  Future<void> clear() => _prefs.remove(_kLoadedAtMs);
 }

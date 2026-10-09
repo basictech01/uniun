@@ -76,6 +76,8 @@ import 'package:uniun/data/repositories/group_repository_impl.dart' as _i632;
 import 'package:uniun/data/repositories/isar_document_vector_repository_impl.dart'
     as _i362;
 import 'package:uniun/data/repositories/llm_repository_impl.dart' as _i19;
+import 'package:uniun/data/repositories/logout_session_repository_impl.dart'
+    as _i561;
 import 'package:uniun/data/repositories/manas_repository_impl.dart' as _i395;
 import 'package:uniun/data/repositories/media_repository_impl.dart' as _i980;
 import 'package:uniun/data/repositories/memory_repository_impl.dart' as _i849;
@@ -143,6 +145,8 @@ import 'package:uniun/domain/repositories/group_message_repository.dart'
     as _i546;
 import 'package:uniun/domain/repositories/group_repository.dart' as _i582;
 import 'package:uniun/domain/repositories/llm_repository.dart' as _i205;
+import 'package:uniun/domain/repositories/logout_session_repository.dart'
+    as _i241;
 import 'package:uniun/domain/repositories/manas_repository.dart' as _i699;
 import 'package:uniun/domain/repositories/media_repository.dart' as _i683;
 import 'package:uniun/domain/repositories/memory_repository.dart' as _i331;
@@ -174,6 +178,7 @@ import 'package:uniun/domain/repositories/user_repository.dart' as _i103;
 import 'package:uniun/domain/repositories/user_server_list_repository.dart'
     as _i930;
 import 'package:uniun/domain/repositories/vector_repository.dart' as _i739;
+import 'package:uniun/domain/services/logout_runtime.dart' as _i11;
 import 'package:uniun/domain/services/marmot_mls_service.dart' as _i168;
 import 'package:uniun/domain/services/marmot_transport_service.dart' as _i761;
 import 'package:uniun/domain/services/note_embedding_trigger.dart' as _i491;
@@ -241,6 +246,8 @@ import 'package:uniun/features/receive_share/bloc/receive_share_bloc.dart'
 import 'package:uniun/features/settings/cubit/edit_profile_cubit.dart' as _i859;
 import 'package:uniun/features/settings/cubit/settings_cubit.dart' as _i331;
 import 'package:uniun/features/settings/cubit/storage_cubit.dart' as _i13;
+import 'package:uniun/features/settings/services/logout_runtime_impl.dart'
+    as _i1023;
 import 'package:uniun/features/share/bloc/share_sheet_bloc.dart' as _i574;
 import 'package:uniun/features/shiv/chat/bloc/shiv_ai_bloc.dart' as _i190;
 import 'package:uniun/features/shiv/chat/cubit/chat_image_support_cubit.dart'
@@ -530,9 +537,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i799.ImportKeyUseCase>(
       () => _i799.ImportKeyUseCase(gh<_i103.UserRepository>()),
-    );
-    gh.lazySingleton<_i799.LogoutUseCase>(
-      () => _i799.LogoutUseCase(gh<_i103.UserRepository>()),
     );
     gh.lazySingleton<_i179.DeleteKnowledgeForNoteUseCase>(
       () => _i179.DeleteKnowledgeForNoteUseCase(
@@ -1748,6 +1752,39 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i858.GetSavedReferencesUseCase>(),
         gh<_i719.MarkUnreadSeenUseCase>(),
         gh<_i561.WatchThreadUnreadMarkersUseCase>(),
+      ),
+    );
+    gh.factory<_i11.LogoutRuntime>(
+      () => _i1023.LogoutRuntimeImpl(
+        gh<_i761.MarmotTransportService>(),
+        gh<_i421.MeshService>(),
+        gh<_i426.GanaEngine>(),
+        gh<_i1026.DocumentIndexer>(),
+        gh<_i491.NoteEmbeddingTrigger>(),
+        gh<_i918.PreemptBackgroundWorkUseCase>(),
+      ),
+    );
+    gh.factory<_i241.LogoutSessionRepository>(
+      () => _i561.LogoutSessionRepositoryImpl(
+        gh<_i214.Isar>(),
+        gh<_i646.AIModelRepository>(),
+        gh<_i880.UniunRepository>(),
+        gh<_i981.LlmCredentialsDataSource>(),
+        gh<_i634.LlmPreferencesDataSource>(),
+        gh<_i107.AppSettingsStore>(),
+        gh<_i107.UserServerListStore>(),
+        gh<_i752.FeedReadStateStore>(),
+        gh<_i156.SurroundingReadStateStore>(),
+        gh<_i366.MediaCacheDataSource>(),
+        gh<_i796.NoteVectorStore>(),
+        gh<_i168.MarmotMlsService>(),
+        gh<_i11.LogoutRuntime>(),
+      ),
+    );
+    gh.lazySingleton<_i799.LogoutUseCase>(
+      () => _i799.LogoutUseCase(
+        gh<_i103.UserRepository>(),
+        gh<_i241.LogoutSessionRepository>(),
       ),
     );
     return this;

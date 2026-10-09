@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -71,6 +72,23 @@ class MarmotMlsService {
       _engine = null;
       _initialized = false;
     }
+  }
+
+  /// Remove private-group state and signer material from the previous account.
+  Future<void> resetForLogout() async {
+    await close();
+    final dir = await getApplicationDocumentsDirectory();
+    await for (final entry in dir.list()) {
+      if (entry is File &&
+          entry.uri.pathSegments.last.startsWith('mls_data.db')) {
+        await entry.delete();
+      }
+    }
+    await _storage.delete(key: _mlsKeyKey);
+    await _storage.delete(key: _mlsSignerPrivateKey);
+    await _storage.delete(key: _mlsSignerPublicKey);
+    _sessionPrivateKey = null;
+    _sessionPublicKey = null;
   }
 
   /// Generates a new MLS Signature KeyPair for the user (internal, no init guard needed).
