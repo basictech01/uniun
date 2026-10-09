@@ -380,6 +380,12 @@ test/features, test/integration, test/common
 - Adding a NEW top-level test dir requires updating both the matrix and
   `shard-coverage`. Prefer adding under an existing shard.
 
+**Isar inside `testWidgets`.** Isar needs real async, not the widget test's fake
+clock: run every Isar call under `tester.runAsync` (or start it with
+`Zone.root.run` from widget code), and close Isar inside the test body before
+`tearDown`, or the test hangs. `test/integration/unread_flow_test.dart` shows
+the pattern (`io`, `chatTest`).
+
 The root `integration_test/` directory is **not** part of this and never runs in
 CI — it is device-bound (`IntegrationTestWidgetsFlutterBinding`). Tests that need
 real flutter_gemma (the chat models, or the bundled Gecko embedder) live there

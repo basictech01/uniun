@@ -197,6 +197,7 @@ void main() {
 
     final state = bloc.state as DrawerLoaded;
     expect(state.groups.single.id, 'g1');
+    expect(state.groups.single.unreadCount, 1);
     expect(state.groups.single.hasUnread, isTrue);
     await bloc.close();
   });
@@ -214,7 +215,41 @@ void main() {
 
     final state = bloc.state as DrawerLoaded;
     expect(state.privateGroups.single.id, 'pg1');
+    expect(state.privateGroups.single.unreadCount, 1);
     expect(state.privateGroups.single.hasUnread, isTrue);
+    await bloc.close();
+  });
+
+  test('a group counts every unread row, not just whether there is one',
+      () async {
+    when(() => getGroups.call()).thenAnswer((_) async => Right([aGroup(groupId: 'g1', name: 'G1')]));
+    when(() => getPrivateGroups.execute()).thenAnswer((_) => Stream.value([aPrivateGroup(groupId: 'pg1', name: 'PG1')]));
+    when(() => drawerData.unreadRows()).thenAnswer((_) async => [
+          for (var i = 0; i < 5; i++) _anUnreadRow(eventId: 'g$i', kind: 42, groupId: 'g1'),
+          for (var i = 0; i < 3; i++) _anUnreadRow(eventId: 'p$i', kind: 9023, privateGroupId: 'pg1'),
+        ]);
+
+    final bloc = build();
+    bloc.add(DrawerLoadEvent());
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    final state = bloc.state as DrawerLoaded;
+    expect(state.groups.single.unreadCount, 5);
+    expect(state.privateGroups.single.unreadCount, 3);
+    await bloc.close();
+  });
+
+  test('a group with nothing unread has a zero count and no flag', () async {
+    when(() => getGroups.call()).thenAnswer((_) async => Right([aGroup(groupId: 'g1', name: 'G1')]));
+    when(() => drawerData.unreadRows()).thenAnswer((_) async => []);
+
+    final bloc = build();
+    bloc.add(DrawerLoadEvent());
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    final state = bloc.state as DrawerLoaded;
+    expect(state.groups.single.unreadCount, 0);
+    expect(state.groups.single.hasUnread, isFalse);
     await bloc.close();
   });
 

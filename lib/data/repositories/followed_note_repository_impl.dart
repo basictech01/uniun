@@ -6,6 +6,7 @@ import 'package:uniun/data/models/followed_note_model.dart';
 import 'package:uniun/data/models/note_relation_model.dart';
 import 'package:uniun/data/models/notes/unread_note_model.dart';
 import 'package:uniun/domain/entities/followed_note/followed_note_entity.dart';
+import 'package:uniun/domain/entities/followed_note/thread_unread_marker.dart';
 import 'package:uniun/domain/repositories/followed_note_repository.dart';
 import 'package:uniun/features/mesh/sync/bodies/followed_note_body.dart';
 import 'package:uniun/features/mesh/sync/mesh_event_codec.dart';
@@ -20,23 +21,14 @@ class FollowedNoteRepositoryImpl extends FollowedNoteRepository {
     required MeshEventSigner signer,
   }) : _signer = signer;
 
-  /// Child event IDs of [rootEventId] recorded in the reference edge table.
-  Future<List<String>> _childIdsOf(String rootEventId) async {
-    final edges = await isar.noteRelationModels
-        .filter()
-        .parentIdEqualTo(rootEventId)
-        .findAll();
-    return edges.map((e) => e.childId).toList(growable: false);
-  }
-
-  /// Badge count = number of children that STILL have a live unread row.
-  /// Reading a child deletes its unread row → count drops naturally.
+  /// Badge count = unread notes anywhere below the followed note (replies of
+  /// replies included). Reading one deletes its unread row → count drops.
   Future<int> _deriveUnreadRefCount(String rootEventId) async {
-    final childIds = await _childIdsOf(rootEventId);
-    if (childIds.isEmpty) return 0;
+    final below = await descendantIdsOf(isar, rootEventId);
+    if (below.isEmpty) return 0;
     return isar.unreadNoteModels
         .filter()
-        .anyOf(childIds, (q, id) => q.eventIdEqualTo(id))
+        .anyOf(below, (q, id) => q.eventIdEqualTo(id))
         .count();
   }
 
@@ -130,26 +122,6 @@ class FollowedNoteRepositoryImpl extends FollowedNoteRepository {
     }
   }
 
-  /// "Mark all references as read" — deletes the unread rows for every child
-  /// of [eventId]. Same UX as before (one-tap badge clear) but rebuilt on top
-  /// of the same unread table the rest of the app uses.
-  @override
-  Future<Either<Failure, Unit>> clearNewReferences(String eventId) async {
-    try {
-      final childIds = await _childIdsOf(eventId);
-      if (childIds.isEmpty) return const Right(unit);
-      await isar.writeTxn(() async {
-        await isar.unreadNoteModels
-            .filter()
-            .anyOf(childIds, (q, id) => q.eventIdEqualTo(id))
-            .deleteAll();
-      });
-      return const Right(unit);
-    } catch (e) {
-      return Left(Failure.errorFailure(e.toString()));
-    }
-  }
-
   @override
   Future<Either<Failure, bool>> isFollowed(String eventId) async {
     try {
@@ -172,5 +144,47 @@ class FollowedNoteRepositoryImpl extends FollowedNoteRepository {
         .removedAtIsNull()
         .watch(fireImmediately: true)
         .map((rows) => rows.isNotEmpty);
+  }
+
+  @override
+  Stream<Map<String, ThreadUnreadMarker>> watchThreadUnreadMarkers(
+    List<String> noteIds,
+  ) => isar.unreadNoteModels
+      .watchLazy(fireImmediately: true)
+      .asyncMap((_) => _threadMarkers(noteIds));
+
+  Future<Map<String, ThreadUnreadMarker>> _threadMarkers(
+    List<String> noteIds,
+  ) async {
+    final followed = await isar.followedNoteModels
+        .filter()
+        .removedAtIsNull()
+        .eventIdProperty()
+        .findAll();
+    if (followed.isEmpty || noteIds.isEmpty) return const {};
+
+    final tracked = <String>{...followed};
+    for (final f in followed) {
+      tracked.addAll(await descendantIdsOf(isar, f));
+    }
+    final unread = (await isar.unreadNoteModels
+            .where()
+            .eventIdProperty()
+            .findAll())
+        .where(tracked.contains)
+        .toSet();
+    if (unread.isEmpty) return const {};
+
+    final out = <String, ThreadUnreadMarker>{};
+    for (final id in noteIds) {
+      if (!tracked.contains(id)) continue;
+      final below = await descendantIdsOf(isar, id);
+      final marker = ThreadUnreadMarker(
+        unread: unread.contains(id),
+        unreadInside: below.any(unread.contains),
+      );
+      if (marker.unread || marker.unreadInside) out[id] = marker;
+    }
+    return out;
   }
 }

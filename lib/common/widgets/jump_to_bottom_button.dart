@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uniun/core/theme/app_custom_colors.dart';
+import 'package:uniun/l10n/app_localizations.dart';
 
 /// Distance (in pixels) from the bottom edge within which a chat list counts as
 /// "at the bottom". Past this, the [JumpToBottomButton] shows; within it, the
@@ -21,6 +22,7 @@ class JumpToBottomButton extends StatelessWidget {
     required this.visible,
     required this.onPressed,
     this.tooltip,
+    this.unreadCount = 0,
   });
 
   /// Whether the button is shown. Driven by the parent's scroll position.
@@ -32,7 +34,13 @@ class JumpToBottomButton extends StatelessWidget {
   /// Tooltip / semantics label (from l10n).
   final String? tooltip;
 
+  /// Unread notes below the viewport; shown as a badge when above zero.
+  final int unreadCount;
+
   static const Duration _anim = Duration(milliseconds: 150);
+
+  /// Above this the badge shows the localized overflow text.
+  static const int _badgeCap = 99;
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +95,23 @@ class JumpToBottomButton extends StatelessWidget {
     );
 
     final tooltip = this.tooltip;
+    final badged = Badge(
+      isLabelVisible: unreadCount > 0,
+      backgroundColor: colorScheme.primary,
+      textColor: colorScheme.onPrimary,
+      label: Text(
+        unreadCount > _badgeCap
+            ? AppLocalizations.of(context)!.unreadBadgeOverflow
+            : '$unreadCount',
+      ),
+      child: button,
+    );
     return Semantics(
       button: true,
       label: tooltip,
       child: tooltip == null
-          ? button
-          : Tooltip(message: tooltip, child: button),
+          ? badged
+          : Tooltip(message: tooltip, child: badged),
     );
   }
 }

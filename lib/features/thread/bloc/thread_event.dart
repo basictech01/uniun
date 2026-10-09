@@ -23,3 +23,8 @@ final class PostReplyEvent extends ThreadEvent {
   final List<String> mentionRefs;
   final List<MediaBlobEntity> attachments;
 }
+
+final class _ThreadMarkersUpdated extends ThreadEvent {
+  const _ThreadMarkersUpdated(this.markers);
+  final Map<String, ThreadUnreadMarker> markers;
+}

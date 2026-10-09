@@ -19,7 +19,23 @@ abstract class UnreadRepository {
   /// `created` timestamp of the oldest unread message in a public group, or
   /// null when the group has no unread messages. Marks the read→unread
   /// boundary the group feed anchors on.
-  Future<Either<Failure, DateTime?>> oldestUnreadTimeForGroup(
+  Future<Either<Failure, DateTime?>> oldestUnreadTimeForGroup(String groupId);
+
+  /// Like [oldestUnreadTimeForGroup], for a private group.
+  Future<Either<Failure, DateTime?>> oldestUnreadTimeForPrivateGroup(
     String groupId,
   );
+
+  /// Like [oldestUnreadTimeForGroup], for the DM with [otherPubkey].
+  Future<Either<Failure, DateTime?>> oldestUnreadTimeForDm(String otherPubkey);
+
+  /// Live number of unread notes in a public group (0 when none).
+  Stream<int> watchGroupUnreadCount(String groupId);
+
+  /// Live number of unread notes in a private group.
+  Stream<int> watchPrivateGroupUnreadCount(String groupId);
+
+  /// Live number of unread notes in the DM with [otherPubkey] (0 while no
+  /// conversation exists yet).
+  Stream<int> watchDmUnreadCount(String otherPubkey);
 }

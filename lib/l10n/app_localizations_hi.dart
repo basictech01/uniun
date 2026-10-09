@@ -3147,6 +3147,18 @@ class AppLocalizationsHi extends AppLocalizations {
   String get receiveShareNothingToShare => 'पहले टेक्स्ट या मीडिया जोड़ें';
 
   @override
+  String get threadNewNote => 'नया';
+
+  @override
+  String get threadNewReplyInside => 'अंदर नया जवाब';
+
+  @override
+  String get unreadBadgeOverflow => '99+';
+
+  @override
+  String get newNotesDivider => 'नए नोट';
+
+  @override
   String get jumpToLatest => 'नवीनतम पर जाएं';
 
   @override

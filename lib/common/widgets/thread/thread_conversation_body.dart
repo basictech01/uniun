@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/widgets/thread/unread_trail_mark.dart';
+import 'package:uniun/domain/entities/followed_note/thread_unread_marker.dart';
 import 'package:uniun/common/widgets/note_card/large_note_card.dart';
 import 'package:uniun/common/widgets/note_card/note_card.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
@@ -22,6 +24,7 @@ class ThreadConversationBody extends StatelessWidget {
     this.parentNotes = const [],
     this.mentionedNotes = const [],
     this.replyCount,
+    this.unreadMarkers = const {},
   });
 
   final NoteEntity root;
@@ -34,6 +37,9 @@ class ThreadConversationBody extends StatelessWidget {
   final int? replyCount;
 
   final void Function(String noteId) onOpenThread;
+
+  /// Unread dots for notes inside a followed note's tree, by note id.
+  final Map<String, ThreadUnreadMarker> unreadMarkers;
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +116,17 @@ class ThreadConversationBody extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (ctx, i) {
                   final reply = replies[i];
-                  return NoteCard(
-                    key: ValueKey(reply.id),
-                    note: reply,
-                    onTap: () => onOpenThread(reply.id),
+                  return Column(
+                    key: ValueKey('reply-${reply.id}'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      UnreadTrailMark(marker: unreadMarkers[reply.id]),
+                      NoteCard(
+                        key: ValueKey(reply.id),
+                        note: reply,
+                        onTap: () => onOpenThread(reply.id),
+                      ),
+                    ],
                   );
                 },
                 childCount: replies.length,

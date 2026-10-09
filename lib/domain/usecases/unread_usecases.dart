@@ -43,9 +43,10 @@ class MarkConversationSeenUseCase extends UseCase<Either<Failure, Unit>, int> {
   const MarkConversationSeenUseCase(this._repository);
 
   @override
-  Future<Either<Failure, Unit>> call(int conversationId,
-          {bool cached = false}) =>
-      _repository.markConversationSeen(conversationId);
+  Future<Either<Failure, Unit>> call(
+    int conversationId, {
+    bool cached = false,
+  }) => _repository.markConversationSeen(conversationId);
 }
 
 // ── Read→unread boundary ──────────────────────────────────────────────────────
@@ -57,7 +58,66 @@ class GetGroupOldestUnreadTimeUseCase
   const GetGroupOldestUnreadTimeUseCase(this._repository);
 
   @override
-  Future<Either<Failure, DateTime?>> call(String groupId,
-          {bool cached = false}) =>
-      _repository.oldestUnreadTimeForGroup(groupId);
+  Future<Either<Failure, DateTime?>> call(
+    String groupId, {
+    bool cached = false,
+  }) => _repository.oldestUnreadTimeForGroup(groupId);
+}
+
+@lazySingleton
+class GetPrivateGroupOldestUnreadTimeUseCase
+    extends UseCase<Either<Failure, DateTime?>, String> {
+  final UnreadRepository _repository;
+  const GetPrivateGroupOldestUnreadTimeUseCase(this._repository);
+
+  @override
+  Future<Either<Failure, DateTime?>> call(
+    String groupId, {
+    bool cached = false,
+  }) => _repository.oldestUnreadTimeForPrivateGroup(groupId);
+}
+
+@lazySingleton
+class GetDmOldestUnreadTimeUseCase
+    extends UseCase<Either<Failure, DateTime?>, String> {
+  final UnreadRepository _repository;
+  const GetDmOldestUnreadTimeUseCase(this._repository);
+
+  @override
+  Future<Either<Failure, DateTime?>> call(
+    String otherPubkey, {
+    bool cached = false,
+  }) => _repository.oldestUnreadTimeForDm(otherPubkey);
+}
+
+// ── Live unread counts ────────────────────────────────────────────────────────
+
+@lazySingleton
+class WatchGroupUnreadCountUseCase extends StreamUseCase<int, String> {
+  final UnreadRepository _repository;
+  const WatchGroupUnreadCountUseCase(this._repository);
+
+  @override
+  Stream<int> call(String groupId) =>
+      _repository.watchGroupUnreadCount(groupId);
+}
+
+@lazySingleton
+class WatchPrivateGroupUnreadCountUseCase extends StreamUseCase<int, String> {
+  final UnreadRepository _repository;
+  const WatchPrivateGroupUnreadCountUseCase(this._repository);
+
+  @override
+  Stream<int> call(String groupId) =>
+      _repository.watchPrivateGroupUnreadCount(groupId);
+}
+
+@lazySingleton
+class WatchDmUnreadCountUseCase extends StreamUseCase<int, String> {
+  final UnreadRepository _repository;
+  const WatchDmUnreadCountUseCase(this._repository);
+
+  @override
+  Stream<int> call(String otherPubkey) =>
+      _repository.watchDmUnreadCount(otherPubkey);
 }

@@ -16,6 +16,7 @@ class ThreadState {
     this.errorMessage,
     this.savedOnly = false,
     this.savedOnlyIds = const {},
+    this.unreadMarkers = const {},
   });
 
   final ThreadStatus status;
@@ -34,6 +35,10 @@ class ThreadState {
   /// universe in savedOnly mode, and the bookmark-marking set in normal mode.
   final Set<String> savedOnlyIds;
 
+  /// Dots and "new reply inside" hints, only for notes inside a followed
+  /// note's tree.
+  final Map<String, ThreadUnreadMarker> unreadMarkers;
+
   NoteEntity? get rootNote => root;
 
   ThreadState copyWith({
@@ -47,6 +52,7 @@ class ThreadState {
     String? errorMessage,
     bool? savedOnly,
     Set<String>? savedOnlyIds,
+    Map<String, ThreadUnreadMarker>? unreadMarkers,
   }) {
     return ThreadState(
       status: status ?? this.status,
@@ -59,6 +65,7 @@ class ThreadState {
       errorMessage: errorMessage,
       savedOnly: savedOnly ?? this.savedOnly,
       savedOnlyIds: savedOnlyIds ?? this.savedOnlyIds,
+      unreadMarkers: unreadMarkers ?? this.unreadMarkers,
     );
   }
 }
