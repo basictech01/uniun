@@ -57,6 +57,12 @@ enum AppLanguage {
     nativeName: 'ગુજરાતી',
     supported: true,
   ),
+  japanese(
+    code: 'ja',
+    englishName: 'Japanese',
+    nativeName: '日本語',
+    supported: true,
+  ),
   kannada(
     code: 'kn',
     englishName: 'Kannada',

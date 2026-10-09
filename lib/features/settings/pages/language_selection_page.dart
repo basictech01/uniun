@@ -28,8 +28,11 @@ class LanguageSelectionPage extends StatelessWidget {
             children: [
               for (final lang in [
                 AppLanguage.gujarati,
+                AppLanguage.japanese,
                 ...AppLanguage.values.where(
-                  (language) => language != AppLanguage.gujarati,
+                  (language) =>
+                      language != AppLanguage.gujarati &&
+                      language != AppLanguage.japanese,
                 ),
               ])
                 _LanguageTile(

@@ -1,0 +1,4249 @@
+{
+  "@@locale": "ja",
+  "appVersion": "UNIUN v1.0.0-beta",
+  "@appVersion": {
+    "description": "App version string shown in settings / footer"
+  },
+  "appTagline": "あなたのノート、あなたの\nネットワーク、あなたのアイデンティティ。",
+  "@appTagline": {
+    "description": "Hero tagline on the welcome screen"
+  },
+  "navVishnu": "VISHNU",
+  "@navVishnu": {
+    "description": "Floating nav label for the feed tab"
+  },
+  "navBrahma": "BRAHMA",
+  "@navBrahma": {
+    "description": "Floating nav label for the create-note tab"
+  },
+  "navShiv": "SHIV",
+  "@navShiv": {
+    "description": "Floating nav label for the AI assistant tab"
+  },
+  "actionCopy": "コピー",
+  "@actionCopy": {
+    "description": "Copy button label"
+  },
+  "actionCopied": "コピーされました",
+  "@actionCopied": {
+    "description": "Feedback after copying"
+  },
+  "actionRetry": "再試行",
+  "@actionRetry": {
+    "description": "Retry button"
+  },
+  "actionContinue": "続ける",
+  "@actionContinue": {
+    "description": "Continue button in onboarding"
+  },
+  "actionDelete": "削除",
+  "@actionDelete": {
+    "description": "Delete button"
+  },
+  "actionSave": "保存",
+  "@actionSave": {
+    "description": "Save / bookmark action"
+  },
+  "actionCancel": "キャンセル",
+  "@actionCancel": {
+    "description": "Cancel button"
+  },
+  "actionBack": "戻る",
+  "@actionBack": {
+    "description": "Tooltip for the shared back-arrow atom"
+  },
+  "actionDone": "完了",
+  "@actionDone": {
+    "description": "Done button"
+  },
+  "actionSaved": "保存されました",
+  "@actionSaved": {
+    "description": "State when note is bookmarked"
+  },
+  "actionFollow": "フォローする",
+  "@actionFollow": {
+    "description": "Follow a note"
+  },
+  "actionFollowing": "フォロー中",
+  "@actionFollowing": {
+    "description": "State when following a note"
+  },
+  "drawerHome": "ホーム",
+  "@drawerHome": {
+    "description": "Drawer nav item — home"
+  },
+  "drawerSavedNotes": "保存されたノート",
+  "@drawerSavedNotes": {
+    "description": "Drawer nav item — saved notes"
+  },
+  "drawerGroups": "グループ",
+  "@drawerGroups": {
+    "description": "Drawer section header — groups"
+  },
+  "drawerDirectMessages": "ダイレクトメッセージ",
+  "@drawerDirectMessages": {
+    "description": "Drawer section header — DMs"
+  },
+  "drawerApps": "アプリ",
+  "@drawerApps": {
+    "description": "Drawer section header — apps"
+  },
+  "drawerAiAssistant": "AIアシスタント",
+  "@drawerAiAssistant": {
+    "description": "Drawer apps item — AI"
+  },
+  "drawerSettings": "設定",
+  "@drawerSettings": {
+    "description": "Drawer footer — settings"
+  },
+  "drawerFollowingNotes": "ウォッチ中のノート",
+  "@drawerFollowingNotes": {
+    "description": "Drawer section header — watched notes (uppercase)"
+  },
+  "drawerNoFollowedNotes": "ウォッチ中のノートはありません",
+  "@drawerNoFollowedNotes": {
+    "description": "Empty state for watched notes in drawer"
+  },
+  "drawerNoGroups": "まだグループがありません",
+  "@drawerNoGroups": {
+    "description": "Empty state for groups in drawer"
+  },
+  "drawerMyQrCode": "私のQRコード",
+  "@drawerMyQrCode": {
+    "description": "Drawer header button — open my QR code"
+  },
+  "drawerScanCode": "コードをスキャン",
+  "@drawerScanCode": {
+    "description": "Drawer header button — open QR scanner"
+  },
+  "drawerPrivateLabel": "プライベート",
+  "@drawerPrivateLabel": {
+    "description": "Drawer private-group row subtitle"
+  },
+  "drawerSearchKindDm": "ダイレクトメッセージ",
+  "@drawerSearchKindDm": {
+    "description": "Drawer search result subtitle — DM"
+  },
+  "drawerSearchKindUser": "フォロー中",
+  "@drawerSearchKindUser": {
+    "description": "Drawer search result subtitle — followed user"
+  },
+  "joinGroupTitle": "グループに参加する",
+  "@joinGroupTitle": {
+    "description": "App bar title for the join group page"
+  },
+  "joinGroupHeading": "既存のグループに参加する",
+  "@joinGroupHeading": {
+    "description": "Heading on the join group page"
+  },
+  "joinGroupAction": "グループに参加する",
+  "@joinGroupAction": {
+    "description": "Primary join group button label"
+  },
+  "joinGroupIdLabel": "グループID (16進数)",
+  "@joinGroupIdLabel": {
+    "description": "Field label for group id input"
+  },
+  "joinGroupRelaysTitle": "グループリレー",
+  "@joinGroupRelaysTitle": {
+    "description": "Section title for relay selection on join group page"
+  },
+  "joinGroupRelaysBody": "このグループが動作するリレーを選択して、同期を開始します。",
+  "@joinGroupRelaysBody": {
+    "description": "Helper text under the relay selector on join group page"
+  },
+  "joinGroupSelectRelays": "リレーの選択",
+  "@joinGroupSelectRelays": {
+    "description": "Placeholder / dialog title for relay selection"
+  },
+  "joinGroupSelectedRelays": "選択したリレー: {count}件",
+  "@joinGroupSelectedRelays": {
+    "description": "Label showing how many relays are selected on join group page",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "joinGroupAddRelay": "リレーの追加",
+  "@joinGroupAddRelay": {
+    "description": "Title and tooltip for adding a relay from the join group flow"
+  },
+  "joinGroupAddRelayAction": "追加",
+  "@joinGroupAddRelayAction": {
+    "description": "Confirm button for adding a relay"
+  },
+  "joinGroupRelayHint": "wss://relay.example.com",
+  "@joinGroupRelayHint": {
+    "description": "Hint text when adding a relay URL"
+  },
+  "joinGroupByQr": "QRで参加",
+  "@joinGroupByQr": {
+    "description": "Secondary CTA to scan a QR code and join a group"
+  },
+  "joinGroupScanCardTitle": "グループのQRコードをスキャン",
+  "@joinGroupScanCardTitle": {
+    "description": "Title on the scan-QR card at the top of the join group page"
+  },
+  "joinGroupScanCardSubtitle": "UNIUNグループコードにカメラを向けてください",
+  "@joinGroupScanCardSubtitle": {
+    "description": "Subtitle on the scan-QR card on the join group page"
+  },
+  "joinGroupOr": "または",
+  "@joinGroupOr": {
+    "description": "Divider label between scan-QR and paste-id on the join group page"
+  },
+  "joinGroupIdHint": "グループIDを貼り付け",
+  "@joinGroupIdHint": {
+    "description": "Placeholder for the group id input on the join group page"
+  },
+  "joinGroupQrTitle": "グループのQRコードをスキャン",
+  "@joinGroupQrTitle": {
+    "description": "App bar title for the QR scanner page"
+  },
+  "joinGroupQrHint": "グループIDとリレーリストを含むQRコードをスキャンします。",
+  "@joinGroupQrHint": {
+    "description": "Hint text on the join group QR scanner page"
+  },
+  "joinGroupQrFromGallery": "ギャラリーからQRを選択",
+  "@joinGroupQrFromGallery": {
+    "description": "Tooltip for choosing a QR image from the gallery on the join group scanner page"
+  },
+  "joinGroupQrGalleryError": "選択した画像に有効な QR コードが見つかりません。",
+  "@joinGroupQrGalleryError": {
+    "description": "Snackbar shown when the chosen gallery image does not contain a decodable QR code"
+  },
+  "joinGroupSuccess": "グループに参加しました。",
+  "@joinGroupSuccess": {
+    "description": "Snackbar after successfully joining a group"
+  },
+  "joinGroupErrorInvalidId": "これは有効なグループ ID ではないようです。確認してもう一度試してください。",
+  "@joinGroupErrorInvalidId": {
+    "description": "Validation error when the group id is not 64 hex characters"
+  },
+  "joinGroupErrorNoRelay": "少なくとも 1 つのリレーを選択してください。",
+  "@joinGroupErrorNoRelay": {
+    "description": "Validation error when no relay is selected"
+  },
+  "joinGroupErrorRelaySaveFailed": "リレーをローカルに保存できませんでした。",
+  "@joinGroupErrorRelaySaveFailed": {
+    "description": "Error when a relay could not be saved to the local database"
+  },
+  "joinGroupErrorSaveFailed": "グループに参加できませんでした。もう一度試してください。",
+  "@joinGroupErrorSaveFailed": {
+    "description": "Error when saving the joined group fails"
+  },
+  "groupMessageHint": "グループにメッセージを送信…",
+  "@groupMessageHint": {
+    "description": "Placeholder text in the group message composer input"
+  },
+  "chatMessageHint": "メッセージ…",
+  "@chatMessageHint": {
+    "description": "Placeholder text in the DM and private group composer input"
+  },
+  "dmEncryptedNotice": "メッセージはエンドツーエンドで暗号化されます",
+  "@dmEncryptedNotice": {
+    "description": "Pill shown at the top of a DM conversation reassuring that messages are E2E encrypted (NIP-17)"
+  },
+  "groupShareQrTitle": "グループQRを共有する",
+  "@groupShareQrTitle": {
+    "description": "Title for the share-group QR bottom sheet and tooltip"
+  },
+  "groupShareQrBody": "このQRコードをスキャンすると、必要なリレー情報を使ってグループに参加できます。",
+  "@groupShareQrBody": {
+    "description": "Helper text under the share-group QR title"
+  },
+  "drawerNoMessages": "まだメッセージはありません",
+  "@drawerNoMessages": {
+    "description": "Empty state for DMs in drawer"
+  },
+  "drawerSearchHint": "検索",
+  "@drawerSearchHint": {
+    "description": "Placeholder for the drawer search field"
+  },
+  "drawerSearchNoResults": "一致しません",
+  "@drawerSearchNoResults": {
+    "description": "Shown in the drawer when a search query has no matching items"
+  },
+  "drawerCopyNpub": "npubをコピーする",
+  "@drawerCopyNpub": {
+    "description": "QR sheet action button"
+  },
+  "drawerNpubCopied": "npub がコピーされました",
+  "@drawerNpubCopied": {
+    "description": "Snackbar after copying npub"
+  },
+  "drawerComingSoon": "{feature} — 近日公開予定",
+  "@drawerComingSoon": {
+    "description": "Snackbar for unimplemented features",
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "brahmaTitle": "Brahma",
+  "@brahmaTitle": {
+    "description": "Title of the create-note screen"
+  },
+  "brahmaTagline": "Nostr に書いて公開する",
+  "@brahmaTagline": {
+    "description": "Brahma header tagline shown below the title"
+  },
+  "brahmaHintText": "新しいノートを書く…",
+  "@brahmaHintText": {
+    "description": "Placeholder in the note compose field"
+  },
+  "brahmaSubjectHintText": "件名 (オプション)",
+  "@brahmaSubjectHintText": {
+    "description": "Placeholder in the note subject field"
+  },
+  "brahmaAddImage": "画像を追加",
+  "@brahmaAddImage": {
+    "description": "Tooltip for attach-image button"
+  },
+  "brahmaTagPeople": "人物にタグを付ける",
+  "@brahmaTagPeople": {
+    "description": "Tooltip for tag-people button"
+  },
+  "brahmaReferenceNote": "ノートを参照",
+  "@brahmaReferenceNote": {
+    "description": "Tooltip for the mention icon in the compose bar"
+  },
+  "brahmaMentionSheetTitle": "ノートを参照",
+  "@brahmaMentionSheetTitle": {
+    "description": "Title of the mention-search bottom sheet"
+  },
+  "brahmaMentionSearchHint": "ノートを検索…",
+  "@brahmaMentionSearchHint": {
+    "description": "Hint text in the mention search field"
+  },
+  "brahmaMentionEmpty": "ノートが見つかりませんでした",
+  "@brahmaMentionEmpty": {
+    "description": "Empty state in mention search results"
+  },
+  "brahmaMentionSelected": "言及済み",
+  "@brahmaMentionSelected": {
+    "description": "Badge shown on an already-selected note in the search sheet"
+  },
+  "composerReferenceTitle": "参照の追加",
+  "@composerReferenceTitle": {
+    "description": "Title of the full-screen reference picker"
+  },
+  "composerReferenceSearchHint": "検索…",
+  "@composerReferenceSearchHint": {
+    "description": "Hint text in the reference picker search field"
+  },
+  "composerReferenceEmpty": "結果はありません",
+  "@composerReferenceEmpty": {
+    "description": "Empty state in the reference picker"
+  },
+  "composerReferenceTabAll": "すべて",
+  "@composerReferenceTabAll": {
+    "description": "Reference picker tab showing all candidate notes"
+  },
+  "composerReferenceTabSaved": "保存されました",
+  "@composerReferenceTabSaved": {
+    "description": "Reference picker tab showing only saved notes"
+  },
+  "composerReferenceTabOwn": "私のノート",
+  "@composerReferenceTabOwn": {
+    "description": "Reference picker tab showing only the user's own notes"
+  },
+  "composerReferenceTabDrafts": "下書き",
+  "@composerReferenceTabDrafts": {
+    "description": "Reference picker tab showing only local drafts"
+  },
+  "composerReferenceAdd": "追加",
+  "@composerReferenceAdd": {
+    "description": "Reference picker confirm button; shows the selected count when non-zero"
+  },
+  "composerChatPickerTitle": "ノートを使ってチャットする",
+  "@composerChatPickerTitle": {
+    "description": "Title of the Manas picker bottom sheet that grounds the inline Shiv chat"
+  },
+  "composerChatPickerSubtitle": "対象のManasを選択",
+  "@composerChatPickerSubtitle": {
+    "description": "Subtitle under the Manas picker title"
+  },
+  "composerChatBrand": "Shiv",
+  "@composerChatBrand": {
+    "description": "Brand title shown in the in-composer AI chat header"
+  },
+  "composerChatAllNotes": "すべてのノート",
+  "@composerChatAllNotes": {
+    "description": "Manas picker row that scopes Shiv to the user's whole library"
+  },
+  "composerChatAllNotesSubtitle": "Brahmaに質問",
+  "@composerChatAllNotesSubtitle": {
+    "description": "Subtitle of the All notes row in the Manas picker"
+  },
+  "composerChatManasNotes": "{count, plural, =1{ノート1件} other{ノート{count}件}}",
+  "@composerChatManasNotes": {
+    "description": "Note count shown under each Manas row in the picker",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "composerChatScopeEyebrow": "{scope} · デバイス上",
+  "@composerChatScopeEyebrow": {
+    "description": "Eyebrow under the 'Shiv' title in the inline composer-chat header; shows the grounding scope (a Manas name or 'All notes'). Rendered uppercase.",
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "composerChatGroundedHint": "{scope}に基づいて回答",
+  "@composerChatGroundedHint": {
+    "description": "Empty-state hint pill in the inline composer-chat, shown before the first question. {scope} is a Manas name or 'All notes'.",
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "composerChatThinking": "考え中…",
+  "@composerChatThinking": {
+    "description": "Placeholder shown in the AI answer bubble while the first tokens are still streaming"
+  },
+  "composerChatStop": "停止",
+  "@composerChatStop": {
+    "description": "Button that stops the in-flight inline composer-chat answer"
+  },
+  "composerChatNoModel": "有効なAIモデルがありません。Shivタブからダウンロードしてください。",
+  "@composerChatNoModel": {
+    "description": "Shown in the inline composer-chat when no on-device model is installed"
+  },
+  "composerChatError": "何か問題が発生しました。",
+  "@composerChatError": {
+    "description": "Fallback error text in the inline composer-chat"
+  },
+  "composerChatUseAsReply": "返信として使用",
+  "@composerChatUseAsReply": {
+    "description": "Action under an AI answer that moves its text into the composer as an editable reply draft"
+  },
+  "threadReferencesLabel": "参照",
+  "@threadReferencesLabel": {
+    "description": "Header above the notes a thread note references (mentions)"
+  },
+  "threadReplyingToLabel": "返信先",
+  "@threadReplyingToLabel": {
+    "description": "Header above the parent note a thread note is replying to"
+  },
+  "brahmaCreateNote": "ノートの作成",
+  "@brahmaCreateNote": {
+    "description": "Submit button in the compose card"
+  },
+  "brahmaFailedToPublish": "公開できませんでした",
+  "@brahmaFailedToPublish": {
+    "description": "Fallback error message when publishing fails"
+  },
+  "brahmaGraphPreviewLabel": "リファレンスグラフのプレビュー",
+  "@brahmaGraphPreviewLabel": {
+    "description": "Section header above the graph preview canvas"
+  },
+  "brahmaInteractivePreview": "インタラクティブなプレビュー",
+  "@brahmaInteractivePreview": {
+    "description": "Badge on the graph preview canvas"
+  },
+  "brahmaDraft": "下書き",
+  "@brahmaDraft": {
+    "description": "Save as draft button label"
+  },
+  "markdownToolbarHeading": "見出し",
+  "@markdownToolbarHeading": {
+    "description": "Tooltip for the heading button (cycles H1/H2/H3)"
+  },
+  "markdownToolbarBold": "太字",
+  "@markdownToolbarBold": {
+    "description": "Tooltip for the bold formatting button in the composer"
+  },
+  "markdownToolbarItalic": "イタリック体",
+  "@markdownToolbarItalic": {
+    "description": "Tooltip for the italic formatting button"
+  },
+  "markdownToolbarCode": "インラインコード",
+  "@markdownToolbarCode": {
+    "description": "Tooltip for the inline-code formatting button"
+  },
+  "markdownToolbarBulletList": "箇条書きリスト",
+  "@markdownToolbarBulletList": {
+    "description": "Tooltip for the bullet-list formatting button"
+  },
+  "markdownToolbarNumberList": "番号付きリスト",
+  "@markdownToolbarNumberList": {
+    "description": "Tooltip for the numbered-list formatting button"
+  },
+  "markdownToolbarQuote": "引用",
+  "@markdownToolbarQuote": {
+    "description": "Tooltip for the blockquote formatting button"
+  },
+  "markdownToolbarLink": "リンク",
+  "@markdownToolbarLink": {
+    "description": "Tooltip for the link formatting button"
+  },
+  "brahmaDraftSaved": "下書きが保存されました",
+  "@brahmaDraftSaved": {
+    "description": "Feedback after saving a draft"
+  },
+  "brahmaDrafts": "下書き",
+  "@brahmaDrafts": {
+    "description": "Section header for drafts list"
+  },
+  "brahmaPublish": "公開",
+  "@brahmaPublish": {
+    "description": "Publish draft button in draft list"
+  },
+  "brahmaDraftPublished": "ノートとして公開しました",
+  "@brahmaDraftPublished": {
+    "description": "Snackbar confirmation after a draft is published from the graph"
+  },
+  "brahmaTags": "タグ",
+  "@brahmaTags": {
+    "description": "Tag count display in draft item"
+  },
+  "brahmaPublishChainTitle": "このノートは他の下書きを参照しています",
+  "@brahmaPublishChainTitle": {
+    "description": "Title of the bottom sheet asking how to handle draft → draft references at publish time"
+  },
+  "brahmaPublishChainSubtitle": "Nostrのノートは公開後に変更できません。{count, plural, =1{未公開の下書き1件} other{未公開の下書き{count}件}}への参照を追加できるのは今だけです。",
+  "@brahmaPublishChainSubtitle": {
+    "description": "Sub-line on the publish-chain sheet — explains the Nostr immutability constraint",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brahmaPublishChain": "チェーン全体を公開する",
+  "@brahmaPublishChain": {
+    "description": "Sheet option: publish dependencies first, then this draft, with links restored"
+  },
+  "brahmaPublishChainBody": "最初に{count, plural, =1{リンク先の下書き1件} other{リンク先の下書き{count}件}}を公開し、そのリンクをタグに含めてこのノートを公開します。",
+  "@brahmaPublishChainBody": {
+    "description": "Body for the 'publish chain' sheet option",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brahmaPublishOnlyThis": "これだけ公開",
+  "@brahmaPublishOnlyThis": {
+    "description": "Sheet option: publish just this draft, dropping the unpublished draft references"
+  },
+  "brahmaPublishOnlyThisSubtitle": "このノートからドラフト参照を削除します。他のドラフトはそのまま残ります。",
+  "@brahmaPublishOnlyThisSubtitle": {
+    "description": "Body for the 'publish only this' sheet option"
+  },
+  "vishnuNoNotes": "まだノートはありません",
+  "@vishnuNoNotes": {
+    "description": "Empty-feed heading"
+  },
+  "vishnuCreateFirst": "Brahmaで最初のノートを作成するか、リレーの同期をお待ちください。",
+  "@vishnuCreateFirst": {
+    "description": "Empty-feed body text"
+  },
+  "vishnuThread": "スレッド",
+  "@vishnuThread": {
+    "description": "Thread indicator badge on note cards"
+  },
+  "vishnuReferences": "{count, plural, one{参照1件} other{参照{count}件}}",
+  "@vishnuReferences": {
+    "description": "Reference count badge on note cards",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "vishnuReferenceUnavailable": "参照されたノートは利用できません",
+  "@vishnuReferenceUnavailable": {
+    "description": "Shown when a referenced note is not in local Isar"
+  },
+  "vishnuNewNotesBanner": "{count, plural, one{新しいノート1件} other{新しいノート{count}件}}",
+  "@vishnuNewNotesBanner": {
+    "description": "Sticky banner shown when new feed items arrived since the page was loaded",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeShivTitle": "Shiv — AI アシスタント",
+  "@homeShivTitle": {
+    "description": "Placeholder title for the Shiv tab"
+  },
+  "homeShivComingSoon": "オンデバイス AI も近日登場予定。",
+  "@homeShivComingSoon": {
+    "description": "Placeholder body for the Shiv tab"
+  },
+  "threadTitle": "スレッド",
+  "@threadTitle": {
+    "description": "Thread screen app-bar title"
+  },
+  "threadReplies": "返信",
+  "@threadReplies": {
+    "description": "Segmented toggle tab — replies"
+  },
+  "threadReferences": "参照",
+  "@threadReferences": {
+    "description": "Segmented toggle tab — references"
+  },
+  "threadNoReplies": "まだ返信はありません",
+  "@threadNoReplies": {
+    "description": "Empty state heading for replies tab"
+  },
+  "threadBeFirstToReply": "最初に返信しましょう。",
+  "@threadBeFirstToReply": {
+    "description": "Empty state body for replies tab"
+  },
+  "threadNoReferences": "参照はありません",
+  "@threadNoReferences": {
+    "description": "Empty state heading for references tab"
+  },
+  "threadNoReferencesDetail": "これを参照するノートはまだありません。",
+  "@threadNoReferencesDetail": {
+    "description": "Empty state body for references tab"
+  },
+  "threadPost": "ポスト",
+  "@threadPost": {
+    "description": "Send button in the reply composer"
+  },
+  "threadReplyToThis": "このノートに返信…",
+  "@threadReplyToThis": {
+    "description": "Reply composer hint when no specific target"
+  },
+  "threadReplyTo": "@{name}に返信…",
+  "@threadReplyTo": {
+    "description": "Reply composer hint when replying to a specific user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "threadReplyingTo": "@{name}に返信中",
+  "@threadReplyingTo": {
+    "description": "Pill label showing who the reply targets",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "threadContinuation": "スレッドの継続",
+  "@threadContinuation": {
+    "description": "Section header in followed-note detail"
+  },
+  "threadNReplies": "{count} 返信",
+  "@threadNReplies": {
+    "description": "Reply count label in thread continuation card",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "threadUpdated": "更新: {time}",
+  "@threadUpdated": {
+    "description": "Last-updated label in thread continuation card",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "followedNoteViewThread": "スレッドを見る",
+  "@followedNoteViewThread": {
+    "description": "Primary CTA on followed-note detail"
+  },
+  "followedNoteFailedToLoad": "ノートのロードに失敗しました",
+  "@followedNoteFailedToLoad": {
+    "description": "Error state on followed-note detail"
+  },
+  "followedNoteResearchNode": "リサーチノード",
+  "@followedNoteResearchNode": {
+    "description": "Node-type label on note header card"
+  },
+  "followedNoteFollowing": "フォロー中",
+  "@followedNoteFollowing": {
+    "description": "Following badge on note header card"
+  },
+  "followedNoteReferencedBy": "返信",
+  "@followedNoteReferencedBy": {
+    "description": "Section header for the replies list on followed-note detail"
+  },
+  "followedNoteReferences": "参照",
+  "@followedNoteReferences": {
+    "description": "Section header for the references list"
+  },
+  "settingsTitle": "設定",
+  "@settingsTitle": {
+    "description": "Settings screen app-bar title"
+  },
+  "settingsAccount": "アカウント",
+  "@settingsAccount": {
+    "description": "Settings section label — account"
+  },
+  "settingsIdentity": "アイデンティティ",
+  "@settingsIdentity": {
+    "description": "Settings section label — identity"
+  },
+  "settingsAiShiv": "AI・Shiv",
+  "@settingsAiShiv": {
+    "description": "Settings section label — AI"
+  },
+  "settingsStorage": "ストレージ",
+  "@settingsStorage": {
+    "description": "Settings section label — storage"
+  },
+  "settingsAbout": "アプリについて",
+  "@settingsAbout": {
+    "description": "Settings section label — about"
+  },
+  "settingsVersion": "バージョン",
+  "@settingsVersion": {
+    "description": "Settings About row label — app version"
+  },
+  "settingsLogout": "ログアウト",
+  "@settingsLogout": {
+    "description": "Settings log out button label"
+  },
+  "settingsLogoutTitle": "ログアウトしますか？",
+  "@settingsLogoutTitle": {
+    "description": "Log out confirmation dialog title"
+  },
+  "settingsLogoutBody": "この端末のノート、チャット、アカウントデータは削除されます。再度ログインするには秘密鍵（nsec）が必要です。秘密鍵をバックアップしていることを確認してください。",
+  "@settingsLogoutBody": {
+    "description": "Log out confirmation dialog body"
+  },
+  "settingsKeepDownloadedModels": "ダウンロード済みのAIモデルを次のログイン用に保持する",
+  "@settingsKeepDownloadedModels": {
+    "description": "Log out option to preserve reusable on-device model files"
+  },
+  "settingsLoggingOut": "ログアウト中…",
+  "@settingsLoggingOut": {
+    "description": "Progress label while clearing account data during logout"
+  },
+  "settingsLogoutConfirm": "ログアウト",
+  "@settingsLogoutConfirm": {
+    "description": "Log out confirmation dialog confirm action"
+  },
+  "settingsAlerts": "アラート",
+  "@settingsAlerts": {
+    "description": "Settings section label — alerts"
+  },
+  "settingsStyle": "スタイル",
+  "@settingsStyle": {
+    "description": "Settings section label — style"
+  },
+  "profileAnonymous": "匿名",
+  "@profileAnonymous": {
+    "description": "Fallback display name when profile has no name"
+  },
+  "profileEditProfile": "プロフィールの編集",
+  "@profileEditProfile": {
+    "description": "Edit profile button on settings"
+  },
+  "identityLoginRecovery": "これがログインと回復方法です。",
+  "@identityLoginRecovery": {
+    "description": "Subtitle on the identity card"
+  },
+  "identityKeys": "キー",
+  "@identityKeys": {
+    "description": "Identity card row — keys"
+  },
+  "identityRelays": "リレー",
+  "@identityRelays": {
+    "description": "Identity card row — relays"
+  },
+  "identityPrivacyPolicy": "プライバシーとポリシー",
+  "@identityPrivacyPolicy": {
+    "description": "Identity card row — privacy policy"
+  },
+  "identityYourKeys": "あなたの鍵",
+  "@identityYourKeys": {
+    "description": "Keys sheet title"
+  },
+  "identityNeverShare": "秘密キーを誰とも共有しないでください。",
+  "@identityNeverShare": {
+    "description": "Warning subtitle in the keys sheet"
+  },
+  "identityPublicKey": "公開鍵 (npub)",
+  "@identityPublicKey": {
+    "description": "Section label for public key in keys sheet"
+  },
+  "identityPublicKeyCopied": "公開鍵がコピーされました",
+  "@identityPublicKeyCopied": {
+    "description": "Snackbar after copying public key from keys sheet"
+  },
+  "identityPrivateKey": "秘密鍵 (nsec)",
+  "@identityPrivateKey": {
+    "description": "Section label for private key in keys sheet"
+  },
+  "identityRevealPrivateKey": "秘密鍵を表示",
+  "@identityRevealPrivateKey": {
+    "description": "Button to reveal nsec in keys sheet"
+  },
+  "identityNeverShareKey": "この秘密鍵を共有しないでください",
+  "@identityNeverShareKey": {
+    "description": "Warning label inside revealed nsec box"
+  },
+  "identityTapToCopy": "タップしてコピー",
+  "@identityTapToCopy": {
+    "description": "Inline copy prompt for nsec"
+  },
+  "identityHide": "非表示",
+  "@identityHide": {
+    "description": "Hide nsec inline button"
+  },
+  "identityPrivateKeyCopied": "秘密鍵をコピーしました。安全に保管してください。",
+  "@identityPrivateKeyCopied": {
+    "description": "Snackbar after copying nsec from keys sheet"
+  },
+  "identityRelaysSheetTitle": "リレー",
+  "@identityRelaysSheetTitle": {
+    "description": "Relays bottom sheet title"
+  },
+  "identityRelaysSubtitle": "Nostrクライアントはリレーに接続して通信します。",
+  "@identityRelaysSubtitle": {
+    "description": "Relays sheet subtitle"
+  },
+  "identityRelaysComingSoon": "カスタムリレー管理は近日公開予定です。",
+  "@identityRelaysComingSoon": {
+    "description": "Info note in relays sheet"
+  },
+  "alertsDmAlerts": "DMアラート",
+  "@alertsDmAlerts": {
+    "description": "Toggle label for DM notifications"
+  },
+  "alertsGroupAlerts": "グループアラート",
+  "@alertsGroupAlerts": {
+    "description": "Toggle label for group notifications"
+  },
+  "storageUsage": "ストレージの使用量",
+  "@storageUsage": {
+    "description": "Storage card section heading"
+  },
+  "storageNoteData": "ノートデータ",
+  "@storageNoteData": {
+    "description": "Storage bar chart row — notes stored in local DB"
+  },
+  "storageAiModels": "AIモデル",
+  "@storageAiModels": {
+    "description": "Storage bar chart row — downloaded AI model files"
+  },
+  "storageAiModelsSubtitle": "ダウンロードしたモデルファイル",
+  "@storageAiModelsSubtitle": {
+    "description": "Subtitle for AI models storage row"
+  },
+  "storageTotal": "合計",
+  "@storageTotal": {
+    "description": "Storage total row label"
+  },
+  "storageNotes": "{count} のノート",
+  "@storageNotes": {
+    "description": "Note count label",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageRemoveData": "データの削除",
+  "@storageRemoveData": {
+    "description": "Storage card button — opens removal dialog"
+  },
+  "storageShowMetrics": "メトリクスを表示する",
+  "@storageShowMetrics": {
+    "description": "Settings → Storage row that opens the storage-breakdown bottom sheet."
+  },
+  "storageUsed": "使用済み",
+  "@storageUsed": {
+    "description": "Header label above the total used figure in the storage metrics sheet."
+  },
+  "storageFree": "空き容量: {size}",
+  "@storageFree": {
+    "description": "Free-disk label in the storage metrics sheet.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "storageDeleteDialogTitle": "フィードノートの削除",
+  "@storageDeleteDialogTitle": {
+    "description": "Title of the delete feed notes confirmation dialog"
+  },
+  "storageDeleteDialogBody": "これにより、ローカル ストレージから {count} フィード ノートが削除されます。\n\n自分のノート、保存したノート、フォローしたノートには影響しません。",
+  "@storageDeleteDialogBody": {
+    "description": "Body of the delete feed notes dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageDeleteConfirm": "削除",
+  "@storageDeleteConfirm": {
+    "description": "Confirm button in delete dialog"
+  },
+  "storageDeleteSuccess": "{count} のノートを削除しました",
+  "@storageDeleteSuccess": {
+    "description": "Snackbar shown after successful deletion",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageNothingToDelete": "削除するフィードノートはありません",
+  "@storageNothingToDelete": {
+    "description": "Shown when there are 0 deletable notes"
+  },
+  "storageChatHistory": "チャット履歴",
+  "@storageChatHistory": {
+    "description": "Legend label for chat history storage"
+  },
+  "storageOther": "その他",
+  "@storageOther": {
+    "description": "Legend label for miscellaneous app files (caches, config, assets)"
+  },
+  "storageDeleteFeedNotes": "フィードノートの削除",
+  "@storageDeleteFeedNotes": {
+    "description": "Bottom sheet option to delete feed notes"
+  },
+  "storageDeleteFeedNotesSubtitle": "{count} フィード ノート · 自分のノート、保存したノート、フォローしているノートは影響を受けません",
+  "@storageDeleteFeedNotesSubtitle": {
+    "description": "Subtitle for delete feed notes option",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageDeleteChatHistory": "チャット履歴を削除する",
+  "@storageDeleteChatHistory": {
+    "description": "Bottom sheet option to delete chat history"
+  },
+  "storageDeleteChatHistorySubtitle": "Shiv のすべての会話とメッセージ",
+  "@storageDeleteChatHistorySubtitle": {
+    "description": "Subtitle for delete chat history option"
+  },
+  "storageDeleteChatHistorySuccess": "チャット履歴が削除されました",
+  "@storageDeleteChatHistorySuccess": {
+    "description": "Snackbar shown after deleting chat history"
+  },
+  "storageDeleteChatHistoryDialogBody": "これにより、Shiv のすべての会話とメッセージが完全に削除されます。これを元に戻すことはできません。",
+  "@storageDeleteChatHistoryDialogBody": {
+    "description": "Confirmation dialog body for chat history deletion"
+  },
+  "styleTheme": "テーマ",
+  "@styleTheme": {
+    "description": "Style card row — theme"
+  },
+  "styleThemeLight": "ライト",
+  "@styleThemeLight": {
+    "description": "Light theme option label"
+  },
+  "styleThemeDark": "ダーク",
+  "@styleThemeDark": {
+    "description": "Dark theme option label"
+  },
+  "styleThemeSystem": "システム",
+  "@styleThemeSystem": {
+    "description": "System default theme option label"
+  },
+  "styleAccent": "アクセント",
+  "@styleAccent": {
+    "description": "Style card row — accent color"
+  },
+  "aiSelectModel": "モデルの選択",
+  "@aiSelectModel": {
+    "description": "AI card row — model selector"
+  },
+  "settingsDeviceAiModel": "デバイスAIモデル",
+  "@settingsDeviceAiModel": {
+    "description": "Settings → AI · Shiv row label for the on-device (local) model selector."
+  },
+  "aiModelNoneSelected": "モデルがダウンロードされていません",
+  "@aiModelNoneSelected": {
+    "description": "Subtitle in AI card when no model is active"
+  },
+  "aiClearCache": "AI キャッシュのクリア",
+  "@aiClearCache": {
+    "description": "AI card destructive action"
+  },
+  "aiModelSelectionTitle": "AIモデルの選択",
+  "@aiModelSelectionTitle": {
+    "description": "App bar title on the model selection screen"
+  },
+  "aiModelSelectionSubtitle": "端末の性能に合ったAIモデルを選んでください。",
+  "@aiModelSelectionSubtitle": {
+    "description": "Subtitle under available models header"
+  },
+  "aiModelAvailableHeader": "利用可能なモデル",
+  "@aiModelAvailableHeader": {
+    "description": "Section header on model selection screen"
+  },
+  "aiModelCloudTitle": "UNIUNクラウド",
+  "@aiModelCloudTitle": {
+    "description": "Cloud option card title on model selection screen"
+  },
+  "aiModelCloudSubtitle": "ダウンロードは必要ありません。Shiv はあなたの ID を使用して UNIUN のサーバー上で実行されます。",
+  "@aiModelCloudSubtitle": {
+    "description": "Cloud option card subtitle on model selection screen"
+  },
+  "aiModelCloudBadge": "ダウンロードなし",
+  "@aiModelCloudBadge": {
+    "description": "Badge chip on the cloud option card"
+  },
+  "aiModelRecommendedBadge": "おすすめ",
+  "@aiModelRecommendedBadge": {
+    "description": "Badge shown on the recommended model card"
+  },
+  "aiModelUseThisButton": "このモデルを使用する",
+  "@aiModelUseThisButton": {
+    "description": "Primary CTA button on model selection screen"
+  },
+  "aiModelDownloadInfoText": "モデルの切り替えには一度だけダウンロードが必要です。通信料を抑えるため、Wi-Fiへの接続をおすすめします。チャット履歴は保持されます。",
+  "@aiModelDownloadInfoText": {
+    "description": "Info banner text on model selection screen"
+  },
+  "aiModelOrphanedFilesText": "残ったモデル ファイルの {size} をクリーンアップできます。",
+  "@aiModelOrphanedFilesText": {
+    "description": "Banner shown when flutter_gemma reports leftover/orphaned model files on disk",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "aiModelCleanUpAction": "クリーンアップ",
+  "@aiModelCleanUpAction": {
+    "description": "Button to delete leftover/orphaned model files"
+  },
+  "aiModelCleanUpSuccess": "{count, plural, =1{ファイル1件を削除しました} other{ファイル{count}件を削除しました}}。",
+  "@aiModelCleanUpSuccess": {
+    "description": "Snackbar shown after successfully cleaning up leftover model files",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiModelCleanUpFailed": "残ったファイルをクリーンアップできませんでした。",
+  "@aiModelCleanUpFailed": {
+    "description": "Snackbar shown when cleaning up leftover model files fails"
+  },
+  "aiModelOptimizedCpu": "CPUに最適化",
+  "@aiModelOptimizedCpu": {
+    "description": "Capability chip — CPU optimized model"
+  },
+  "aiModelOptimizedGpuCpu": "GPU/CPU向けに最適化",
+  "@aiModelOptimizedGpuCpu": {
+    "description": "Capability chip — GPU+CPU model"
+  },
+  "aiModelOptimizedGpu": "GPU用に最適化",
+  "@aiModelOptimizedGpu": {
+    "description": "Capability chip — GPU-only model"
+  },
+  "aiModelDownloadingProgress": "ダウンロード中…{percent}%",
+  "@aiModelDownloadingProgress": {
+    "description": "Download progress label shown in footer while downloading",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "aiModelAlreadyActive": "アクティブ",
+  "@aiModelAlreadyActive": {
+    "description": "Badge shown on already-downloaded active model card"
+  },
+  "aiModelDownloaded": "ダウンロード済み",
+  "@aiModelDownloaded": {
+    "description": "Badge shown on downloaded but inactive model card"
+  },
+  "aiModelSetActive": "アクティブとして設定",
+  "@aiModelSetActive": {
+    "description": "Footer button when selected model is downloaded but not active"
+  },
+  "aiModelDownloadError": "ダウンロードに失敗しました。もう一度試してください。",
+  "@aiModelDownloadError": {
+    "description": "Snackbar when model download fails"
+  },
+  "aiModelQwen25Name": "Qwen3 0.6B",
+  "@aiModelQwen25Name": {
+    "description": "Display name for Qwen3 0.6B model"
+  },
+  "aiModelQwen25Desc": "関数呼び出しを備えたコンパクトな多言語チャット。 3 GB 以上の RAM を搭載したデバイスで動作します。",
+  "@aiModelQwen25Desc": {
+    "description": "Description for Qwen3 0.6B model"
+  },
+  "aiModelDeepSeekR1Name": "DeepSeek R1",
+  "@aiModelDeepSeekR1Name": {
+    "description": "Display name for DeepSeek R1 model"
+  },
+  "aiModelDeepSeekR1Desc": "高性能の推論とコード生成。 4 GB 以上の RAM が必要です。",
+  "@aiModelDeepSeekR1Desc": {
+    "description": "Description for DeepSeek R1 model"
+  },
+  "aiModelGemma4E2bName": "Gemma 4 E2B",
+  "@aiModelGemma4E2bName": {
+    "description": "Display name for Gemma 4 E2B model"
+  },
+  "aiModelGemma4E2bDesc": "次世代のマルチモーダル チャット - テキスト、画像、音声。 6 GB 以上の RAM が必要です。",
+  "@aiModelGemma4E2bDesc": {
+    "description": "Description for Gemma 4 E2B model"
+  },
+  "aiModelGemma4E4bName": "Gemma 4 E4B",
+  "@aiModelGemma4E4bName": {
+    "description": "Display name for Gemma 4 E4B model"
+  },
+  "aiModelGemma4E4bDesc": "次世代のマルチモーダル チャット - テキスト、画像、音声。 8 GB 以上の RAM を搭載したフラッグシップ デバイスで最適です。",
+  "@aiModelGemma4E4bDesc": {
+    "description": "Description for Gemma 4 E4B model"
+  },
+  "aiEmbeddingSetupInProgress": "AI 機能をセットアップしています…",
+  "@aiEmbeddingSetupInProgress": {
+    "description": "Progress label shown while the embedding model is downloading after first LLM install"
+  },
+  "editProfileTitle": "プロフィールの編集",
+  "@editProfileTitle": {
+    "description": "Edit profile screen app-bar title"
+  },
+  "editProfileSaved": "プロフィールを保存しました",
+  "@editProfileSaved": {
+    "description": "Snackbar after saving profile"
+  },
+  "editProfileDisplayName": "表示名",
+  "@editProfileDisplayName": {
+    "description": "Field label — display name"
+  },
+  "editProfileUsername": "ユーザー名",
+  "@editProfileUsername": {
+    "description": "Field label — username"
+  },
+  "editProfileAbout": "自己紹介",
+  "@editProfileAbout": {
+    "description": "Field label — about / bio"
+  },
+  "editProfileAvatarUrl": "アバターURL",
+  "@editProfileAvatarUrl": {
+    "description": "Field label — avatar URL"
+  },
+  "editProfileNip05": "NIP-05 識別子",
+  "@editProfileNip05": {
+    "description": "Field label — NIP-05"
+  },
+  "editProfileDisplayNameHint": "例：サトシ",
+  "@editProfileDisplayNameHint": {
+    "description": "Hint for display name field"
+  },
+  "editProfileUsernameHint": "例：サトシ",
+  "@editProfileUsernameHint": {
+    "description": "Hint for username field"
+  },
+  "editProfileAboutHint": "あなたが誰であるかを世界に伝えてください…",
+  "@editProfileAboutHint": {
+    "description": "Hint for about field"
+  },
+  "editProfileAvatarUrlHint": "https://…",
+  "@editProfileAvatarUrlHint": {
+    "description": "Hint for avatar URL field"
+  },
+  "editProfileNip05Hint": "you@yourdomain.com",
+  "@editProfileNip05Hint": {
+    "description": "Hint for NIP-05 field"
+  },
+  "editProfileSaveButton": "プロフィールを保存",
+  "@editProfileSaveButton": {
+    "description": "Save profile button"
+  },
+  "editProfileEyebrow": "公開プロフィール",
+  "@editProfileEyebrow": {
+    "description": "Uppercase eyebrow label above the edit-profile headline"
+  },
+  "editProfileSubtitle": "UNIUN 全体で他の人があなたをどのように見ているかを更新します。",
+  "@editProfileSubtitle": {
+    "description": "Body subtitle on the edit-profile screen"
+  },
+  "editProfileEncrypted": "あなたの公開情報のみが共有されます。",
+  "@editProfileEncrypted": {
+    "description": "Privacy reassurance chip on the edit-profile screen"
+  },
+  "welcomeTagline": "*創る* · *共有する*\n*振り返る* · *変える*",
+  "@welcomeTagline": {
+    "description": "Hero tagline on welcome screen. Words wrapped in *asterisks* are rendered in the brand accent color; everything else is muted."
+  },
+  "welcomeCreateIdentity": "アバターを作成する",
+  "@welcomeCreateIdentity": {
+    "description": "Primary CTA on welcome screen — generate a new Nostr keypair (a new avatar/incarnation in the network)"
+  },
+  "welcomeImportKey": "アバターを復元する",
+  "@welcomeImportKey": {
+    "description": "Secondary CTA on welcome screen — import an existing nsec key (restore the same avatar onto this device)"
+  },
+  "welcomeLearnHow": "UNIUN の仕組みを学ぶ",
+  "@welcomeLearnHow": {
+    "description": "Learn more link on welcome screen"
+  },
+  "welcomeSubtitleLead": "あなたの分散型",
+  "@welcomeSubtitleLead": {
+    "description": "Muted lead-in of the welcome subtitle, immediately followed by welcomeSubtitleEmphasis. Trailing space is intentional."
+  },
+  "welcomeSubtitleEmphasis": "第二の脳",
+  "@welcomeSubtitleEmphasis": {
+    "description": "Emphasized (bold, brand-blue) tail of the welcome subtitle, follows welcomeSubtitleLead."
+  },
+  "welcomePillarBrahma": "Brahma",
+  "@welcomePillarBrahma": {
+    "description": "First Trimurti pillar name on the welcome screen (the create surface)."
+  },
+  "welcomePillarVishnu": "Vishnu",
+  "@welcomePillarVishnu": {
+    "description": "Second Trimurti pillar name on the welcome screen (the reflect/feed surface)."
+  },
+  "welcomePillarShiv": "Shiv",
+  "@welcomePillarShiv": {
+    "description": "Third Trimurti pillar name on the welcome screen (the transform/AI surface)."
+  },
+  "welcomeRoleCreate": "作成",
+  "@welcomeRoleCreate": {
+    "description": "Role label under the Brahma pillar on the welcome screen."
+  },
+  "welcomeRoleReflect": "振り返る",
+  "@welcomeRoleReflect": {
+    "description": "Role label under the Vishnu pillar on the welcome screen."
+  },
+  "welcomeRoleTransform": "変える",
+  "@welcomeRoleTransform": {
+    "description": "Role label under the Shiv pillar on the welcome screen."
+  },
+  "howItWorksSkip": "スキップ",
+  "@howItWorksSkip": {
+    "description": "Top-right control that closes the 'how it works' intro carousel and returns to the welcome screen."
+  },
+  "howItWorksNext": "次へ",
+  "@howItWorksNext": {
+    "description": "Bottom button on the intro carousel that advances to the next slide."
+  },
+  "howItWorksGetStarted": "始めましょう",
+  "@howItWorksGetStarted": {
+    "description": "Bottom button on the final intro carousel slide; closes the carousel and returns to the welcome screen."
+  },
+  "howItWorksIntroTitle": "第二の脳をポケットに",
+  "@howItWorksIntroTitle": {
+    "description": "Title of the first intro carousel slide introducing UNIUN."
+  },
+  "howItWorksIntroBody": "UNIUNは、考えを記録し、アイデアをつなぎ、振り返るための落ち着いた場所です。すべてが一つのアプリにあり、あなた自身のものです。",
+  "@howItWorksIntroBody": {
+    "description": "Body of the first intro carousel slide introducing UNIUN."
+  },
+  "howItWorksBrahmaTitle": "Brahma — キャプチャして接続する",
+  "@howItWorksBrahmaTitle": {
+    "description": "Title of the Brahma (create) slide in the intro carousel."
+  },
+  "howItWorksBrahmaBody": "アイデアを捉え、それを形にして永続的なものにするためのスペース。",
+  "@howItWorksBrahmaBody": {
+    "description": "Short lead under the Brahma slide title, above the feature sections."
+  },
+  "howItWorksVishnuTitle": "Vishnu — 仲間とコミュニティ",
+  "@howItWorksVishnuTitle": {
+    "description": "Title of the Vishnu (feed/social) slide in the intro carousel."
+  },
+  "howItWorksVishnuBody": "自分のやり方で人々やコミュニティとつながりましょう。",
+  "@howItWorksVishnuBody": {
+    "description": "Short lead under the Vishnu slide title, above the feature sections."
+  },
+  "howItWorksShivTitle": "Shiv — デバイス上の AI",
+  "@howItWorksShivTitle": {
+    "description": "Title of the Shiv (AI) slide in the intro carousel."
+  },
+  "howItWorksShivBody": "ノートを使って一緒に考える、端末上のAIです。",
+  "@howItWorksShivBody": {
+    "description": "Short lead under the Shiv slide title, above the feature sections."
+  },
+  "howItWorksTileNote": "ノート",
+  "@howItWorksTileNote": {
+    "description": "Feature-section name on the Brahma slide: a single note you write."
+  },
+  "howItWorksDescNote": "テキスト、画像、リンクを書く",
+  "@howItWorksDescNote": {
+    "description": "Feature-section description on the Brahma slide for Note."
+  },
+  "howItWorksTileManas": "Manas",
+  "@howItWorksTileManas": {
+    "description": "Feature-section name on the Brahma slide: a Manas (personal note collection)."
+  },
+  "howItWorksDescManas": "ノートをグループ化して独自のコレクションにまとめる",
+  "@howItWorksDescManas": {
+    "description": "Feature-section description on the Brahma slide for Manas."
+  },
+  "howItWorksTileGraph": "グラフ",
+  "@howItWorksTileGraph": {
+    "description": "Feature-section name on the Brahma slide: the knowledge graph of linked notes."
+  },
+  "howItWorksDescGraph": "リンクされたノートがナレッジグラフになります",
+  "@howItWorksDescGraph": {
+    "description": "Feature-section description on the Brahma slide for Graph."
+  },
+  "howItWorksTilePeople": "人々",
+  "@howItWorksTilePeople": {
+    "description": "Feature-section name on the Vishnu slide: people you follow."
+  },
+  "howItWorksDescPeople": "人々をフォローしてフィードを形作る",
+  "@howItWorksDescPeople": {
+    "description": "Feature-section description on the Vishnu slide for People."
+  },
+  "howItWorksTileGroups": "グループ",
+  "@howItWorksTileGroups": {
+    "description": "Feature-section name on the Vishnu slide: public groups."
+  },
+  "howItWorksDescGroups": "トピックについて集まるための公開ルーム",
+  "@howItWorksDescGroups": {
+    "description": "Feature-section description on the Vishnu slide for Groups."
+  },
+  "howItWorksTilePrivate": "プライベート",
+  "@howItWorksTilePrivate": {
+    "description": "Feature-section name on the Vishnu slide: private encrypted groups."
+  },
+  "howItWorksDescPrivate": "暗号化された招待専用グループ",
+  "@howItWorksDescPrivate": {
+    "description": "Feature-section description on the Vishnu slide for Private groups."
+  },
+  "howItWorksTileDms": "ダイレクトメッセージ",
+  "@howItWorksTileDms": {
+    "description": "Feature-section name on the Vishnu slide: direct messages."
+  },
+  "howItWorksDescDms": "1対1のプライベートチャット",
+  "@howItWorksDescDms": {
+    "description": "Feature-section description on the Vishnu slide for Direct messages."
+  },
+  "howItWorksTileAdiyogi": "Adiyogi",
+  "@howItWorksTileAdiyogi": {
+    "description": "Feature-section name on the Shiv slide: Adiyogi, the chat assistant."
+  },
+  "howItWorksDescAdiyogi": "ノートについて何でも質問してください",
+  "@howItWorksDescAdiyogi": {
+    "description": "Feature-section description on the Shiv slide for Adiyogi."
+  },
+  "howItWorksTileNataraj": "Nataraj",
+  "@howItWorksTileNataraj": {
+    "description": "Feature-section name on the Shiv slide: Nataraj, the idea-synthesis deck."
+  },
+  "howItWorksDescNataraj": "スワイプしてノートを新鮮なアイデアに変える",
+  "@howItWorksDescNataraj": {
+    "description": "Feature-section description on the Shiv slide for Nataraj."
+  },
+  "howItWorksTileGana": "Gana",
+  "@howItWorksTileGana": {
+    "description": "Feature-section name on the Shiv slide: Gana, the autonomous agents."
+  },
+  "howItWorksDescGana": "バックグラウンドで動作するエージェント",
+  "@howItWorksDescGana": {
+    "description": "Feature-section description on the Shiv slide for Gana."
+  },
+  "howItWorksKeysTitle": "あなたは自分のアイデンティティを所有しています",
+  "@howItWorksKeysTitle": {
+    "description": "Title of the intro carousel slide about owning your identity via a private key."
+  },
+  "howItWorksKeysBody": "メールアドレスもパスワードも不要です。UNIUNが作成する秘密鍵はあなたの端末だけに保存されます。それがあなたのIDであり、管理できるのはあなただけです。",
+  "@howItWorksKeysBody": {
+    "description": "Body of the intro carousel slide about owning your identity via a private key."
+  },
+  "howItWorksPrivateTitle": "プライベートでいつでもあなたのもの",
+  "@howItWorksPrivateTitle": {
+    "description": "Title of the intro carousel slide about offline-first, on-device privacy."
+  },
+  "howItWorksPrivateBody": "UNIUN はオフラインで動作し、その AI はデバイス上で直接実行されます。クラウドには何も行きません。ノートは常に手元に残り、自分のものとして保管しておくことができます。",
+  "@howItWorksPrivateBody": {
+    "description": "Body of the intro carousel slide about offline-first, on-device privacy."
+  },
+  "howItWorksReadyTitle": "始める準備はできていますか?",
+  "@howItWorksReadyTitle": {
+    "description": "Title of the final intro carousel slide inviting the user to start."
+  },
+  "howItWorksReadyBody": "アバターを作成して、第二の脳を育てましょう。すぐに始められます。",
+  "@howItWorksReadyBody": {
+    "description": "Body of the final intro carousel slide inviting the user to start."
+  },
+  "aboutYouEyebrow": "アバターを作成する",
+  "@aboutYouEyebrow": {
+    "description": "Uppercase eyebrow label above the headline on the about-you onboarding page"
+  },
+  "aboutYouTitle": "あなたについて",
+  "@aboutYouTitle": {
+    "description": "Heading on the about-you onboarding page"
+  },
+  "aboutYouSubtitle": "アバターを設定します。表示名とユーザー名は必須です。",
+  "@aboutYouSubtitle": {
+    "description": "Body subtitle on about-you page"
+  },
+  "aboutYouAvatarCaption": "自動生成",
+  "@aboutYouAvatarCaption": {
+    "description": "Caption under the avatar on about-you page"
+  },
+  "aboutYouDisplayNameLabel": "表示名 *",
+  "@aboutYouDisplayNameLabel": {
+    "description": "Field label for display name on about-you page"
+  },
+  "aboutYouDisplayNameHint": "あなたを何と呼べばいいでしょうか？",
+  "@aboutYouDisplayNameHint": {
+    "description": "Hint for display name on about-you page"
+  },
+  "aboutYouUsernameLabel": "ユーザー名 *",
+  "@aboutYouUsernameLabel": {
+    "description": "Field label for username on about-you page"
+  },
+  "aboutYouUsernameHint": "ユーザー名",
+  "@aboutYouUsernameHint": {
+    "description": "Hint for username on about-you page"
+  },
+  "aboutYouUsernameHelper": "メンションや検索に使う固有のユーザー名です。",
+  "@aboutYouUsernameHelper": {
+    "description": "Helper text under username on about-you page"
+  },
+  "aboutYouBioLabel": "略歴 (オプション)",
+  "@aboutYouBioLabel": {
+    "description": "Field label for bio on about-you page"
+  },
+  "aboutYouBioHint": "あなた自身について少し世界に伝えてください…",
+  "@aboutYouBioHint": {
+    "description": "Hint for bio on about-you page"
+  },
+  "aboutYouEncrypted": "あなたのデータは暗号化されており、プライベートです。",
+  "@aboutYouEncrypted": {
+    "description": "Privacy reassurance chip on about-you page"
+  },
+  "aboutYouDisplayNameRequired": "表示名は必須です",
+  "@aboutYouDisplayNameRequired": {
+    "description": "Validation error for display name"
+  },
+  "aboutYouUsernameRequired": "ユーザー名は必須です",
+  "@aboutYouUsernameRequired": {
+    "description": "Validation error for username"
+  },
+  "importTitle": "おかえりなさい",
+  "@importTitle": {
+    "description": "Heading on the import-identity page"
+  },
+  "importSubtitle": "秘密キーを貼り付けて、既存のアバターを復元します。",
+  "@importSubtitle": {
+    "description": "Body subtitle on the import-identity page"
+  },
+  "importPrivateKeyLabel": "秘密鍵",
+  "@importPrivateKeyLabel": {
+    "description": "Field section label on import page"
+  },
+  "importPasteFromClipboard": "クリップボードから貼り付け",
+  "@importPasteFromClipboard": {
+    "description": "Paste action on import page"
+  },
+  "importKeyHint": "nsec1... または 64 文字の 16 進数キー",
+  "@importKeyHint": {
+    "description": "Hint for key input on import page"
+  },
+  "importSecurityNote": "秘密キーはローカルで処理され、サーバーに送信されることはありません。",
+  "@importSecurityNote": {
+    "description": "Security reassurance note on import page"
+  },
+  "importContinue": "インポートして続行",
+  "@importContinue": {
+    "description": "Submit button on import page"
+  },
+  "importPasteFirst": "最初に秘密キーを貼り付けてください。",
+  "@importPasteFirst": {
+    "description": "Validation error when field is empty on import page"
+  },
+  "importFailed": "キーのインポートに失敗しました。もう一度試してください。",
+  "@importFailed": {
+    "description": "Error snackbar on import page"
+  },
+  "importInvalidKey": "無効なキーです。確認してもう一度お試しください。",
+  "@importInvalidKey": {
+    "description": "Error snackbar for unrecognised key format"
+  },
+  "importEyebrow": "アバターを復元する",
+  "@importEyebrow": {
+    "description": "Uppercase eyebrow above the import-page title"
+  },
+  "importScanQrButton": "代わりに QR をスキャンしてください",
+  "@importScanQrButton": {
+    "description": "Secondary action on import page to scan a key QR"
+  },
+  "importScanTitle": "キーの QR をスキャンします",
+  "@importScanTitle": {
+    "description": "App bar title on the key QR scanner page"
+  },
+  "importScanHint": "秘密キーを含む QR にカメラを向けます",
+  "@importScanHint": {
+    "description": "Helper text on the key QR scanner page"
+  },
+  "keysTitle": "あなたのアバターキー",
+  "@keysTitle": {
+    "description": "Heading on the identity-keys onboarding page"
+  },
+  "keysSubtitle": "一つは共有用。もう一つは、あなた以外には見せないでください。",
+  "@keysSubtitle": {
+    "description": "Subtitle on the identity-keys onboarding page"
+  },
+  "keysEyebrow": "あなたのアバターキー",
+  "@keysEyebrow": {
+    "description": "Uppercase eyebrow label above the headline on the identity-keys onboarding page"
+  },
+  "keysHeadline": "あなたのキーはあなたのアバターです。",
+  "@keysHeadline": {
+    "description": "Serif display headline on the identity-keys onboarding page"
+  },
+  "keysPublicKeyTitle": "公開鍵",
+  "@keysPublicKeyTitle": {
+    "description": "KeyCard title for npub"
+  },
+  "keysPublicKeySubtitle": "他の人と共有してメッセージを受け取ります。",
+  "@keysPublicKeySubtitle": {
+    "description": "KeyCard subtitle for npub"
+  },
+  "keysPrivateKeyTitle": "秘密鍵",
+  "@keysPrivateKeyTitle": {
+    "description": "KeyCard title for nsec"
+  },
+  "keysPrivateKeySubtitle": "絶対に共有しないでください。この鍵であなたのIDに完全にアクセスできます。",
+  "@keysPrivateKeySubtitle": {
+    "description": "KeyCard subtitle for nsec"
+  },
+  "keysPrivateKeyWarning": "この鍵を失うと、アカウントに二度とアクセスできません。",
+  "@keysPrivateKeyWarning": {
+    "description": "KeyCard warning for nsec"
+  },
+  "keysSaveAndContinue": "保存して続行",
+  "@keysSaveAndContinue": {
+    "description": "CTA button on identity-keys page"
+  },
+  "keysE2eEncrypted": "E2E暗号化",
+  "@keysE2eEncrypted": {
+    "description": "Badge on identity-keys page footer"
+  },
+  "keysAgreePrefix": "以下に同意します: ",
+  "@keysAgreePrefix": {
+    "description": "Leading text of the terms-acceptance checkbox on identity-keys page"
+  },
+  "keysAgreeTerms": "利用規約",
+  "@keysAgreeTerms": {
+    "description": "Tappable Terms & Conditions link in the acceptance checkbox"
+  },
+  "keysAgreeConjunction": " および ",
+  "@keysAgreeConjunction": {
+    "description": "Conjunction between the two links in the acceptance checkbox"
+  },
+  "keysAgreePrivacy": "プライバシーポリシー",
+  "@keysAgreePrivacy": {
+    "description": "Tappable Privacy Policy link in the acceptance checkbox"
+  },
+  "keysPublicCopied": "公開鍵をコピーしました。続けて秘密鍵を表示できます。",
+  "@keysPublicCopied": {
+    "description": "Snackbar after copying npub on identity-keys page"
+  },
+  "keysPrivateCopied": "秘密鍵をコピーしました。安全な場所に保管してください。",
+  "@keysPrivateCopied": {
+    "description": "Snackbar after copying nsec on identity-keys page"
+  },
+  "keysFailedToSave": "キーの保存に失敗しました: {error}",
+  "@keysFailedToSave": {
+    "description": "Error snackbar when key save fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "keysCopyPublicAbove": "上記の公開キーをコピーして、秘密キーを表示します。",
+  "@keysCopyPublicAbove": {
+    "description": "Hint shown in place of private key card until npub is copied"
+  },
+  "privacyPageTitle": "プライバシーとポリシー",
+  "@privacyPageTitle": {
+    "description": "App-bar title for privacy policy page"
+  },
+  "privacyIntroTitle": "プライバシーとポリシー",
+  "@privacyIntroTitle": {
+    "description": "Section heading inside privacy policy page"
+  },
+  "privacyIntroBody": "UNIUNは透明性を大切にしています。データは端末に保存されます。知っておきたいことを、わかりやすく説明します。",
+  "@privacyIntroBody": {
+    "description": "Intro paragraph on privacy policy page"
+  },
+  "privacyExpandPrivacy": "プライバシーポリシー",
+  "@privacyExpandPrivacy": {
+    "description": "Expandable section title — privacy policy"
+  },
+  "privacyExpandTerms": "利用規約",
+  "@privacyExpandTerms": {
+    "description": "Expandable section title — terms of use"
+  },
+  "privacyLastUpdated": "最終更新日: 2026 年 6 月",
+  "@privacyLastUpdated": {
+    "description": "Footer date on privacy policy page"
+  },
+  "privacyContactEmail": "info@uniun.in",
+  "@privacyContactEmail": {
+    "description": "Contact email shown on privacy policy page"
+  },
+  "privacyStoredLocallyTitle": "ローカルで保管するもの",
+  "@privacyStoredLocallyTitle": {},
+  "privacyStoredLocallyBody": "UNIUN は、ノート、プロフィール、保存済みアイテム、グループ メッセージ、設定をデバイスに直接保存します。このデータは、UNIUN によって管理されるサーバーには送信されません。",
+  "@privacyStoredLocallyBody": {},
+  "privacySharedPubliclyTitle": "パブリックに共有されるもの",
+  "@privacySharedPubliclyTitle": {},
+  "privacySharedPubliclyBody": "ノートを公開したり、公開グループでメッセージを送信したりすると、そのコンテンツは Nostr リレーにブロードキャストされます。 Nostr はオープンなパブリック プロトコルです。公開されると、ノートはリレーに接続しているすべての人に表示される可能性があります。 UNIUN はサードパーティのリレーを管理しません。",
+  "@privacySharedPubliclyBody": {},
+  "privacyIdentityKeysTitle": "あなたのアイデンティティと鍵",
+  "@privacyIdentityKeysTitle": {},
+  "privacyIdentityKeysBody": "あなたの ID は暗号化キーのペアです。あなたの公開キーは、Nostr ネットワーク上の他のユーザーに表示されます。秘密キー (nsec) は、デバイスの安全なシステム キーチェーン (iOS キーチェーン / Android キーストア) にのみ保存されます。 UNIUN が秘密キーをサーバーに送信することはありません。",
+  "@privacyIdentityKeysBody": {},
+  "privacyLocalAiTitle": "ローカルAI（Shiv）",
+  "@privacyLocalAiTitle": {},
+  "privacyLocalAiBody": "Shiv AI アシスタントは完全にデバイス上で実行されます。ローカルに保存されたノートのみにアクセスします。ノートのコンテンツは外部の AI サービスや API に送信されません。",
+  "@privacyLocalAiBody": {},
+  "privacyMediaTitle": "メディアおよびブロッサムサーバー",
+  "@privacyMediaTitle": {},
+  "privacyMediaBody": "画像やメディアを添付すると、選択した Blossom コンテンツ サーバーにアップロードされる場合があります。 UNIUN は Blossom サーバーを運営していません。そこにアップロードされたコンテンツは、プロトコルの設計により公的にアクセスできる場合があります。",
+  "@privacyMediaBody": {},
+  "privacyDmsTitle": "ダイレクトメッセージ",
+  "@privacyDmsTitle": {},
+  "privacyDmsBody": "DM は、Nostr NIP-17 標準を使用してエンドツーエンドで暗号化されます。意図された受信者のみがメッセージの内容を読むことができます。メッセージ ルーティング メタデータはリレーに表示される場合があります。",
+  "@privacyDmsBody": {},
+  "privacyControlTitle": "あなたのコントロール",
+  "@privacyControlTitle": {},
+  "privacyControlBody": "ローカル データは、[設定] からいつでも削除できます。 Nostr はパブリック プロトコルであるため、リレーに既に公開されたノートを撤回することはできません。これはネットワークの意図的な特性であり、アプリの制限ではありません。",
+  "@privacyControlBody": {},
+  "privacyContactTitle": "お問い合わせ",
+  "@privacyContactTitle": {},
+  "privacyContactBody": "プライバシーに関する質問: info@uniun.in",
+  "@privacyContactBody": {},
+  "termsResponsibilityTitle": "あなたの責任",
+  "@termsResponsibilityTitle": {},
+  "termsResponsibilityBody": "UNIUNで公開する内容は、あなた自身の責任です。違法な内容、虐待、嫌がらせ、性的に露骨な内容、他者の権利を侵害する内容を投稿しないでください。UNIUNは不快な内容や虐待行為を認めません。",
+  "@termsResponsibilityBody": {},
+  "termsNoAbuseTitle": "悪用やスパムの禁止",
+  "@termsNoAbuseTitle": {},
+  "termsNoAbuseBody": "UNIUN を使用して、スパム、嫌がらせ、他人になりすます、または Nostr ネットワークを混乱させる自動化されたアクティビティを実行しないでください。 UNIUN は分散型です。どのノート メニューにもレポート オプション (カテゴリ: ヌード、マルウェア、冒涜、違法、スパム、なりすまし、その他) が含まれており、任意のユーザーは [設定] → [ブロックされたユーザー] からブロックできます。報告されたノートはフィードからすぐに非表示になり、ブロックされたユーザーのコンテンツが届くことはありません。レポートは Nostr ネットワークにも公開されるため、他のクライアントやリレー オペレーターがレポートに基づいて操作できます。",
+  "@termsNoAbuseBody": {},
+  "termsPrivateKeyTitle": "秘密鍵を安全に保管する",
+  "@termsPrivateKeyTitle": {},
+  "termsPrivateKeyBody": "秘密キー (nsec) があなたの ID であり、ログインです。紛失した場合、アカウントを回復することはできません。UNIUN には秘密キーをリセットまたは回復する方法がありません。安全な場所にバックアップします。",
+  "@termsPrivateKeyBody": {},
+  "termsPublicContentTitle": "リレー上の公開コンテンツ",
+  "@termsPublicContentTitle": {},
+  "termsPublicContentBody": "公開したノートとグループ メッセージは Nostr リレーに送信され、ネットワーク上の誰でも閲覧できる可能性があります。機密の個人情報を公開ノートで共有しないでください。",
+  "@termsPublicContentBody": {},
+  "termsAppMayChangeTitle": "アプリは変更される可能性があります",
+  "@termsAppMayChangeTitle": {},
+  "termsAppMayChangeBody": "UNIUN は積極的に開発中です。機能、リレーの動作、ポリシーは時間の経過とともに変更される可能性があります。重要なアップデートはアプリ内でお知らせします。",
+  "@termsAppMayChangeBody": {},
+  "termsNoWarrantyTitle": "保証なし",
+  "@termsNoWarrantyTitle": {},
+  "termsNoWarrantyBody": "UNIUN は現状のまま提供されます。当社は、リレーの稼働時間、サードパーティのサーバーの可用性、または外部リレー上のコンテンツの永続性については保証しません。",
+  "@termsNoWarrantyBody": {},
+  "shivName": "Shiv",
+  "@shivName": {
+    "description": "Shiv AI assistant name label (uppercase)"
+  },
+  "shivTagline": "スレッドで考える",
+  "@shivTagline": {
+    "description": "Shiv landing header tagline"
+  },
+  "shivLandingBody": "端末上で動くAI。\nノートを使って一緒に考えます。",
+  "@shivLandingBody": {
+    "description": "Shiv landing screen body subtitle"
+  },
+  "shivNoModelBody": "AI モデルをダウンロードして、Shiv とのチャットを開始します。すべてがデバイス上で動作します。セットアップ後にインターネットは必要ありません。",
+  "@shivNoModelBody": {
+    "description": "Shiv no-model placeholder body text"
+  },
+  "shivSetUpAi": "AIをセットアップする",
+  "@shivSetUpAi": {
+    "description": "Button to open AI model selection"
+  },
+  "shivNewConversation": "新しい会話",
+  "@shivNewConversation": {
+    "description": "Button label to create a new Shiv conversation"
+  },
+  "shivViewConversations": "{count, plural, =1{会話1件を表示} other{会話{count}件を表示}}",
+  "@shivViewConversations": {
+    "description": "Link to view existing conversations on Shiv landing",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shivConversations": "会話",
+  "@shivConversations": {
+    "description": "Title of the conversations history sheet"
+  },
+  "shivNewConversationTooltip": "新しい会話",
+  "@shivNewConversationTooltip": {
+    "description": "Tooltip on new conversation icon button"
+  },
+  "shivConversationsTooltip": "会話",
+  "@shivConversationsTooltip": {
+    "description": "Tooltip on the history icon in chat header"
+  },
+  "shivBranchTreeTooltip": "分岐ツリー",
+  "@shivBranchTreeTooltip": {
+    "description": "Tooltip on the branch tree icon in chat header"
+  },
+  "shivBranchTreeComingSoon": "ブランチ ツリー — フェーズ 4 で登場",
+  "@shivBranchTreeComingSoon": {
+    "description": "Snackbar shown when tapping the branch tree button"
+  },
+  "shivConversationTree": "会話ツリー",
+  "@shivConversationTree": {
+    "description": "Title of the branch tree page"
+  },
+  "shivNodeOpenBranch": "分岐を開く",
+  "@shivNodeOpenBranch": {
+    "description": "Button to open the selected branch in chat"
+  },
+  "shivNodeContinueFromHere": "ここから続ける",
+  "@shivNodeContinueFromHere": {
+    "description": "Button to set selected node as active branch point"
+  },
+  "shivNodeNewBranch": "新しい分岐",
+  "@shivNodeNewBranch": {
+    "description": "Button to fork a new branch from selected node"
+  },
+  "shivActiveBranch": "アクティブなブランチ",
+  "@shivActiveBranch": {
+    "description": "Badge label on the active branch node panel"
+  },
+  "shivNodeMessages": "{count} メッセージ",
+  "@shivNodeMessages": {
+    "description": "Message count shown in node panel",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shivDefaultConversationTitle": "新しい会話",
+  "@shivDefaultConversationTitle": {
+    "description": "Default title for a newly created conversation"
+  },
+  "shivEmptyTitle": "会話を始める",
+  "@shivEmptyTitle": {
+    "description": "Empty chat state heading"
+  },
+  "shivEmptyBody": "Shivに何でも聞いてください。保存したノートを使って、あなたが知っていることを踏まえて答えます。",
+  "@shivEmptyBody": {
+    "description": "Empty chat state body text"
+  },
+  "shivEmptyTreeTitle": "まだメッセージはありません",
+  "@shivEmptyTreeTitle": {
+    "description": "Tree view empty state heading"
+  },
+  "shivEmptyTreeBody": "会話を始めると、ここに分岐ツリーが表示されます。",
+  "@shivEmptyTreeBody": {
+    "description": "Tree view empty state body text"
+  },
+  "shivThinking": "考え中…",
+  "@shivThinking": {
+    "description": "Label shown while the model is in a thinking/reasoning block"
+  },
+  "shivThinkingLabel": "推論",
+  "@shivThinkingLabel": {
+    "description": "Collapsed section header for the model's internal thinking"
+  },
+  "shivSourcesChip": "{count, plural, =1{出典 · 1件} other{出典 · {count}件}}",
+  "@shivSourcesChip": {
+    "description": "Chip below the last Shiv reply that opens the source-notes sheet",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shivSourcesSheetTitle": "情報源",
+  "@shivSourcesSheetTitle": {
+    "description": "Title of the Shiv RAG source-notes bottom sheet"
+  },
+  "shivSourcesDocumentPage": "ページ {label}",
+  "@shivSourcesDocumentPage": {
+    "description": "Page reference on a PDF source tile in Shiv's Sources sheet, e.g. 'Page 4'",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "shivSourcesDocumentUntitled": "PDFドキュメント",
+  "@shivSourcesDocumentUntitled": {
+    "description": "Title of a PDF source tile when the note that attached the file is no longer on this device"
+  },
+  "shivSourcesDocumentOpen": "PDFを開く",
+  "@shivSourcesDocumentOpen": {
+    "description": "Tooltip on a PDF source tile in Shiv's Sources sheet"
+  },
+  "shivSourcesDocumentSection": "セクション: {label}",
+  "@shivSourcesDocumentSection": {
+    "description": "Heading reference on a Word (.docx) source tile in Shiv's Sources sheet, e.g. 'Section: Annual Leave'. A Word file has no fixed pages, so it is located by the heading above the passage.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "shivSourcesDocxUntitled": "Word文書",
+  "@shivSourcesDocxUntitled": {
+    "description": "Title of a Word (.docx) source tile when the note that attached the file is no longer on this device"
+  },
+  "shivSourcesDocxOpen": "文書を開く",
+  "@shivSourcesDocxOpen": {
+    "description": "Tooltip on a Word (.docx) source tile in Shiv's Sources sheet"
+  },
+  "documentViewerOpenExternal": "別のアプリで開く",
+  "@documentViewerOpenExternal": {
+    "description": "Action in the in-app document viewer that hands the file to the OS viewer, for reading rather than checking a citation"
+  },
+  "documentViewerFileGone": "このドキュメントはこのデバイス上に存在しません",
+  "@documentViewerFileGone": {
+    "description": "Shown when a cited document's cached file has been removed since the answer"
+  },
+  "documentViewerReadError": "このドキュメントはここでは開けませんでした",
+  "@documentViewerReadError": {
+    "description": "Shown when the in-app viewer cannot read a cited Word or PDF file"
+  },
+  "documentViewerTextOnly": "テキスト、表、大きな画像 - 別のアプリで開いて完全なレイアウトを表示",
+  "@documentViewerTextOnly": {
+    "description": "Note above the in-app view of a Word document, which shows its text, tables and large pictures but not styling or page layout"
+  },
+  "shivSourcesImageFound": "画像で見つかりました",
+  "@shivSourcesImageFound": {
+    "description": "Location line on an image source tile in Shiv's Sources sheet: the answer drew on the picture — its text (read by OCR) or what it shows (on-device labels)"
+  },
+  "shivSourcesImageUntitled": "画像",
+  "@shivSourcesImageUntitled": {
+    "description": "Title of an image source tile when the attaching note gave the image no file name"
+  },
+  "shivSourcesImageOpen": "画像を開く",
+  "@shivSourcesImageOpen": {
+    "description": "Tooltip on an image source tile in Shiv's Sources sheet"
+  },
+  "shivSourcesImageGone": "この画像はこのデバイスにはもうありません",
+  "@shivSourcesImageGone": {
+    "description": "Shown when the user taps an image source whose cached file was removed since the answer was given"
+  },
+  "shivSourcesEmpty": "この返信には参照元がありません",
+  "@shivSourcesEmpty": {
+    "description": "Empty state when the source notes for a Shiv reply can't be resolved"
+  },
+  "shivInputHint": "Shivに何でも聞いてください…",
+  "@shivInputHint": {
+    "description": "Hint text inside the Shiv chat input field"
+  },
+  "shivHomeHeadline": "どうすればお手伝いできますか?",
+  "@shivHomeHeadline": {
+    "description": "Hero headline on the Shiv home landing screen"
+  },
+  "shivHomeHistoryTooltip": "履歴",
+  "@shivHomeHistoryTooltip": {
+    "description": "Tooltip for the history button on the Shiv home app bar"
+  },
+  "shivHomeGana": "Gana",
+  "@shivHomeGana": {
+    "description": "Label for the Gana action button on the Shiv home screen"
+  },
+  "shivHomeNataraj": "Nataraj",
+  "@shivHomeNataraj": {
+    "description": "Label for the Nataraj action button on the Shiv home screen"
+  },
+  "shivHomeSuggestSummarize": "私の一週間を要約する",
+  "@shivHomeSuggestSummarize": {
+    "description": "Suggested prompt chip on the Shiv home screen"
+  },
+  "shivHomeSuggestConnect": "2 つのアイデアを結び付ける",
+  "@shivHomeSuggestConnect": {
+    "description": "Suggested prompt chip on the Shiv home screen"
+  },
+  "shivHomeSuggestDraft": "ノートからの下書き",
+  "@shivHomeSuggestDraft": {
+    "description": "Suggested prompt chip on the Shiv home screen"
+  },
+  "composerAskScope": "{scope}に質問する",
+  "@composerAskScope": {
+    "description": "Composer-chat input hint reflecting the grounding scope, e.g. 'Ask Brahma' (all notes) or 'Ask <manas name>'",
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "shivNoConversations": "まだ会話はありません",
+  "@shivNoConversations": {
+    "description": "Empty state in the conversations history sheet"
+  },
+  "shivActiveLabel": "アクティブ",
+  "@shivActiveLabel": {
+    "description": "Badge on the currently active conversation in history"
+  },
+  "shivTimeJustNow": "たった今",
+  "@shivTimeJustNow": {
+    "description": "Relative time: less than 1 minute ago"
+  },
+  "shivTimeMinutesAgo": "{count}分前",
+  "@shivTimeMinutesAgo": {
+    "description": "Relative time in minutes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shivTimeHoursAgo": "{count}時間前",
+  "@shivTimeHoursAgo": {
+    "description": "Relative time in hours",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shivTimeDaysAgo": "{count}日前",
+  "@shivTimeDaysAgo": {
+    "description": "Relative time in days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "savedNotesTitle": "保存されたノート",
+  "@savedNotesTitle": {
+    "description": "Page title for the saved notes list"
+  },
+  "savedNotesSearch": "保存されたノートを検索…",
+  "@savedNotesSearch": {
+    "description": "Placeholder for saved notes search bar"
+  },
+  "savedNotesEmpty": "まだ何も保存されていません",
+  "@savedNotesEmpty": {
+    "description": "Empty state headline on saved notes page"
+  },
+  "savedNotesEmptySub": "フィードのノートをブックマークして、後で読むことができます。",
+  "@savedNotesEmptySub": {
+    "description": "Empty state sub-text on saved notes page"
+  },
+  "graphLegendSaved": "保存済み",
+  "@graphLegendSaved": {
+    "description": "Graph legend label for saved notes (blue nodes)"
+  },
+  "graphLegendOwn": "自分のノート",
+  "@graphLegendOwn": {
+    "description": "Graph legend label for own published notes (blue-300 nodes)"
+  },
+  "graphLegendDraft": "下書き",
+  "@graphLegendDraft": {
+    "description": "Graph legend label for draft notes (blue-800 nodes)"
+  },
+  "graphFabTextNote": "テキストノート",
+  "@graphFabTextNote": {
+    "description": "FAB option to create a plain text note from the graph"
+  },
+  "graphFabReferenceNote": "参照ノート",
+  "@graphFabReferenceNote": {
+    "description": "FAB option to create a reference/mention note from the graph"
+  },
+  "graphDraftEdit": "編集",
+  "@graphDraftEdit": {
+    "description": "Edit action on a draft node panel"
+  },
+  "graphDraftDelete": "削除",
+  "@graphDraftDelete": {
+    "description": "Delete action on a draft node panel"
+  },
+  "graphScopeAllNotes": "すべてのノート",
+  "@graphScopeAllNotes": {
+    "description": "Scope chip label when the graph shows the whole library (no Manas scope)"
+  },
+  "graphSearchHint": "グラフを検索…",
+  "@graphSearchHint": {
+    "description": "Placeholder in the graph search field"
+  },
+  "graphSearchTooltip": "グラフを検索",
+  "@graphSearchTooltip": {
+    "description": "Tooltip on the graph search icon button"
+  },
+  "graphMenuTooltip": "Manasメニューを開く",
+  "@graphMenuTooltip": {
+    "description": "Tooltip on the graph header menu button"
+  },
+  "graphSearchClear": "検索をクリア",
+  "@graphSearchClear": {
+    "description": "Tooltip on the button that closes/clears graph search"
+  },
+  "graphStepPosition": "{current}/{total}",
+  "@graphStepPosition": {
+    "description": "Position of the focused item in a graph stepper (search matches, node connections), e.g. 2/7. 0 means nothing is focused yet",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "graphSearchPrevMatch": "前の一致項目",
+  "@graphSearchPrevMatch": {
+    "description": "Tooltip on the button that moves the graph camera to the previous search match"
+  },
+  "graphSearchNextMatch": "次の一致項目",
+  "@graphSearchNextMatch": {
+    "description": "Tooltip on the button that moves the graph camera to the next search match"
+  },
+  "graphPrevConnection": "前の接続",
+  "@graphPrevConnection": {
+    "description": "Tooltip on the button that moves the graph camera to the selected node's previous connection"
+  },
+  "graphNextConnection": "次の接続",
+  "@graphNextConnection": {
+    "description": "Tooltip on the button that moves the graph camera to the selected node's next connection"
+  },
+  "groupEntryTitle": "グループ",
+  "@groupEntryTitle": {
+    "description": "Title of the public group entry/chooser screen"
+  },
+  "groupEntrySubtitle": "ID または QR を使用して既存のパブリック グループに参加するか、新しいパブリック グループを開始します。",
+  "@groupEntrySubtitle": {
+    "description": "Subtitle on the public group entry chooser"
+  },
+  "groupEntryJoin": "グループに参加する",
+  "@groupEntryJoin": {
+    "description": "Join option on the public group entry chooser"
+  },
+  "groupEntryCreate": "グループを作成する",
+  "@groupEntryCreate": {
+    "description": "Create option on the public group entry chooser"
+  },
+  "privateGroupEntryTitle": "プライベートグループ",
+  "@privateGroupEntryTitle": {
+    "description": "Title of the private group entry/chooser screen"
+  },
+  "privateGroupEntrySubtitle": "既存のプライベート グループへの参加をリクエストするか、独自のグループを作成します。",
+  "@privateGroupEntrySubtitle": {
+    "description": "Subtitle on the private group entry chooser"
+  },
+  "privateGroupEntryJoin": "プライベートグループに参加する",
+  "@privateGroupEntryJoin": {
+    "description": "Join option on the private group entry chooser"
+  },
+  "privateGroupEntryCreate": "プライベートグループを作成する",
+  "@privateGroupEntryCreate": {
+    "description": "Create option on the private group entry chooser"
+  },
+  "createGroupTitle": "グループ",
+  "@createGroupTitle": {
+    "description": "App bar title on the create group page"
+  },
+  "createGroupHeaderTitle": "グループの作成",
+  "@createGroupHeaderTitle": {
+    "description": "App bar title on the create group page (redesign)"
+  },
+  "createGroupDetailsHeading": "グループ詳細",
+  "@createGroupDetailsHeading": {
+    "description": "Section heading for group details on create group page"
+  },
+  "createGroupNameLabel": "グループ名",
+  "@createGroupNameLabel": {
+    "description": "Section label for group name field"
+  },
+  "createGroupNamePlaceholder": "例：デザイン",
+  "@createGroupNamePlaceholder": {
+    "description": "Placeholder in the group name field"
+  },
+  "createGroupAboutLabel": "概要（テーマ・ルール）",
+  "@createGroupAboutLabel": {
+    "description": "Text field label for group about/description"
+  },
+  "createGroupDescriptionLabel": "説明",
+  "@createGroupDescriptionLabel": {
+    "description": "Section label for the group description field"
+  },
+  "createGroupAboutPlaceholder": "このグループは何についてですか?",
+  "@createGroupAboutPlaceholder": {
+    "description": "Placeholder in the group description field"
+  },
+  "createGroupPictureLabel": "画像の URL (オプション)",
+  "@createGroupPictureLabel": {
+    "description": "Text field label for optional group picture url"
+  },
+  "createGroupPermanenceNote": "グループの最初のイベントは永続的な ID となり、削除することはできません。",
+  "@createGroupPermanenceNote": {
+    "description": "Info note explaining group permanence on create"
+  },
+  "createGroupAdvancedRelays": "詳細設定: リレー",
+  "@createGroupAdvancedRelays": {
+    "description": "Collapsible advanced relays section header on create group"
+  },
+  "createGroupPublishRelays": "公開先のリレー",
+  "@createGroupPublishRelays": {
+    "description": "Section heading for publish relays on create group page"
+  },
+  "createGroupPublishRelaysBody": "このグループをブロードキャストするリレーを選択します。",
+  "@createGroupPublishRelaysBody": {
+    "description": "Helper text under publish relays section on create group page"
+  },
+  "createGroupAction": "グループの作成",
+  "@createGroupAction": {
+    "description": "Primary create group button label"
+  },
+  "createGroupSuccess": "グループを作成しました",
+  "@createGroupSuccess": {
+    "description": "Snackbar shown after a group is created"
+  },
+  "createPrivateGroupTitle": "プライベートグループを作成する",
+  "@createPrivateGroupTitle": {
+    "description": "App bar title on the create private group page"
+  },
+  "createPrivateGroupEncrypted": "暗号化済み",
+  "@createPrivateGroupEncrypted": {
+    "description": "Eyebrow label above the encrypted private-group form"
+  },
+  "createPrivateGroupNameHint": "例：コアチーム",
+  "@createPrivateGroupNameHint": {
+    "description": "Placeholder for the private group name field"
+  },
+  "createPrivateGroupDescHint": "このグループは何についてですか?",
+  "@createPrivateGroupDescHint": {
+    "description": "Placeholder for the private group description field"
+  },
+  "createPrivateGroupAdminNote": "あなたは管理者であり、誰が参加するかを制御します。",
+  "@createPrivateGroupAdminNote": {
+    "description": "Muted footer note explaining the creator becomes the admin"
+  },
+  "createPrivateGroupHeading": "新しいプライベートグループを開始する",
+  "@createPrivateGroupHeading": {
+    "description": "Heading on the create private group page"
+  },
+  "createPrivateGroupDescription": "プライベート グループはエンドツーエンドで暗号化されます。メンバーは参加をリクエストする必要があり、管理者はそれを承認する必要があります。",
+  "@createPrivateGroupDescription": {
+    "description": "Explanation of how private groups work"
+  },
+  "createPrivateGroupNameLabel": "グループ名",
+  "@createPrivateGroupNameLabel": {
+    "description": "Text field label for private group name"
+  },
+  "createPrivateGroupDescLabel": "説明",
+  "@createPrivateGroupDescLabel": {
+    "description": "Text field label for private group description"
+  },
+  "createPrivateGroupAction": "グループの作成",
+  "@createPrivateGroupAction": {
+    "description": "Primary create private group button label"
+  },
+  "createPrivateGroupSuccess": "非公開グループを作成しました。",
+  "@createPrivateGroupSuccess": {
+    "description": "Snackbar shown after a private group is created"
+  },
+  "createDmTitle": "新しいメッセージ",
+  "@createDmTitle": {
+    "description": "App bar title on the new direct message page"
+  },
+  "createDmRecipientLabel": "送信先",
+  "@createDmRecipientLabel": {
+    "description": "Section label above the DM recipient field"
+  },
+  "createDmRecipientHint": "UNIUN コードを貼り付けるか、QR をスキャンしてください",
+  "@createDmRecipientHint": {
+    "description": "Placeholder for the DM recipient field"
+  },
+  "createDmRelaysNote": "このメッセージが送信されるリレーを選択します。",
+  "@createDmRelaysNote": {
+    "description": "Helper text under the DM relays section"
+  },
+  "createDmEncryptedNote": "ダイレクト メッセージはエンドツーエンドで暗号化されます。受信者のみがそれらを読むことができます。",
+  "@createDmEncryptedNote": {
+    "description": "Info card explaining DM encryption on the new message page"
+  },
+  "createDmScanQr": "QRコードをスキャン",
+  "@createDmScanQr": {
+    "description": "Secondary button to scan a user QR on the new message page"
+  },
+  "createDmAction": "チャットを開始する",
+  "@createDmAction": {
+    "description": "Primary button to start a direct message chat"
+  },
+  "joinPrivateGroupTitle": "プライベートグループに参加する",
+  "@joinPrivateGroupTitle": {
+    "description": "App bar title on the join private group page"
+  },
+  "joinPrivateGroupEncrypted": "暗号化済み",
+  "@joinPrivateGroupEncrypted": {
+    "description": "Eyebrow label signalling the group is end-to-end encrypted"
+  },
+  "joinPrivateGroupHeading": "参加リクエスト",
+  "@joinPrivateGroupHeading": {
+    "description": "Heading on the join private group page"
+  },
+  "joinPrivateGroupSubtitle": "グループ ID を入力してプライベート グループへのアクセスを要求します。",
+  "@joinPrivateGroupSubtitle": {
+    "description": "Helper text under heading on join private group page"
+  },
+  "joinPrivateGroupGroupIdLabel": "グループID",
+  "@joinPrivateGroupGroupIdLabel": {
+    "description": "Text field label for private group group id"
+  },
+  "joinPrivateGroupGroupIdHint": "グループIDを貼り付け…",
+  "@joinPrivateGroupGroupIdHint": {
+    "description": "Hint text in the group id input"
+  },
+  "joinPrivateGroupGroupIdHelper": "グループ管理者にグループ ID を問い合わせます。",
+  "@joinPrivateGroupGroupIdHelper": {
+    "description": "Helper text under the group id input"
+  },
+  "joinPrivateGroupScanQr": "QRをスキャン",
+  "@joinPrivateGroupScanQr": {
+    "description": "Secondary button to open the QR scanner"
+  },
+  "joinPrivateGroupScanCardTitle": "非公開グループのQRコードをスキャン",
+  "@joinPrivateGroupScanCardTitle": {
+    "description": "Title of the prominent scan-QR card"
+  },
+  "joinPrivateGroupScanCardSubtitle": "管理者が共有したコードにカメラを向けます",
+  "@joinPrivateGroupScanCardSubtitle": {
+    "description": "Subtitle of the prominent scan-QR card"
+  },
+  "joinPrivateGroupApprovalInfo": "メッセージを読む前に、リクエストは管理者に送信されて承認が求められます。",
+  "@joinPrivateGroupApprovalInfo": {
+    "description": "Info card explaining admin approval is required"
+  },
+  "joinPrivateGroupAction": "参加リクエストを送信する",
+  "@joinPrivateGroupAction": {
+    "description": "Primary submit button on join private group page"
+  },
+  "joinPrivateGroupSuccess": "参加リクエストを送信しました。管理者の承認をお待ちください。",
+  "@joinPrivateGroupSuccess": {
+    "description": "Snackbar after submitting a join request to a private group"
+  },
+  "commonOr": "または",
+  "@commonOr": {
+    "description": "Lowercase divider word between two alternative actions"
+  },
+  "commonAdvanced": "詳細設定",
+  "@commonAdvanced": {
+    "description": "Header for a collapsible section hiding advanced/optional settings (e.g. relays)"
+  },
+  "relaySelectorPlaceholder": "リレーの選択",
+  "@relaySelectorPlaceholder": {
+    "description": "Empty-state label inside the relay selector field"
+  },
+  "relaySelectorSelected": "選択したリレー: {count}件",
+  "@relaySelectorSelected": {
+    "description": "Label showing how many relays are currently selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relaySelectorPickerTitle": "リレーの選択",
+  "@relaySelectorPickerTitle": {
+    "description": "Title of the relay multi-select dialog"
+  },
+  "relaySelectorEmpty": "利用可能なリレーはありません。 + をタップして追加します。",
+  "@relaySelectorEmpty": {
+    "description": "Empty-state copy inside the relay picker dialog"
+  },
+  "relaySelectorAddTooltip": "リレーを追加する",
+  "@relaySelectorAddTooltip": {
+    "description": "Tooltip for the + icon that opens the add-relay dialog"
+  },
+  "relayAddDialogTitle": "リレーの追加",
+  "@relayAddDialogTitle": {
+    "description": "Title of the add-relay dialog"
+  },
+  "relayAddDialogHint": "wss://relay.example.com",
+  "@relayAddDialogHint": {
+    "description": "Hint text in the add-relay url input"
+  },
+  "relayAddDialogAction": "追加",
+  "@relayAddDialogAction": {
+    "description": "Confirm button label on the add-relay dialog"
+  },
+  "relayAddDialogError": "リレーを追加できませんでした: {error}",
+  "@relayAddDialogError": {
+    "description": "Error snackbar when a relay could not be added",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "relayRemoveDialogTitle": "リレーを削除",
+  "@relayRemoveDialogTitle": {
+    "description": "Title of the remove-relay confirmation dialog"
+  },
+  "relayRemoveDialogBody": "{url}の利用をやめますか？",
+  "@relayRemoveDialogBody": {
+    "description": "Body of the remove-relay confirmation dialog",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "relayRemoveDialogAction": "削除する",
+  "@relayRemoveDialogAction": {
+    "description": "Confirm button label on the remove-relay dialog"
+  },
+  "relayManageEmpty": "リレーが見つかりませんでした。",
+  "@relayManageEmpty": {
+    "description": "Empty state when the user has no relays in the settings sheet"
+  },
+  "relayManageRemoveTooltip": "削除する",
+  "@relayManageRemoveTooltip": {
+    "description": "Tooltip for the per-relay delete icon in the settings sheet"
+  },
+  "pendingRequestsTitle": "保留中の参加リクエスト",
+  "@pendingRequestsTitle": {
+    "description": "Title of the pending join requests bottom sheet"
+  },
+  "pendingRequestsSubtitle": "ユーザーを承認して、メッセージを読んだり送信したりできるようにします。",
+  "@pendingRequestsSubtitle": {
+    "description": "Subtitle of the pending join requests bottom sheet"
+  },
+  "pendingRequestsEmpty": "保留中のリクエストはありません。",
+  "@pendingRequestsEmpty": {
+    "description": "Empty state of the pending join requests bottom sheet"
+  },
+  "pendingRequestsNewMember": "新メンバー",
+  "@pendingRequestsNewMember": {
+    "description": "Fallback name shown for a join request with no profile name"
+  },
+  "pendingRequestsApprove": "承認する",
+  "@pendingRequestsApprove": {
+    "description": "Approve button label on a pending join request"
+  },
+  "settingsCloudProvider": "クラウドAI",
+  "@settingsCloudProvider": {
+    "description": "Section label for cloud LLM provider settings"
+  },
+  "cloudProviderTitle": "UNIUNクラウド",
+  "@cloudProviderTitle": {
+    "description": "Title of the cloud provider settings card"
+  },
+  "cloudProviderEmptyCta": "サインイン",
+  "@cloudProviderEmptyCta": {
+    "description": "CTA in cloud provider card when no API key is configured"
+  },
+  "cloudProviderEmptySubtitle": "ShivをClaudeで利用します。UNIUNのIDでサインインしてください。",
+  "@cloudProviderEmptySubtitle": {
+    "description": "Subtitle in cloud provider card when no API key is configured"
+  },
+  "cloudProviderConnectedSubtitle": "接続済み · タップして管理",
+  "@cloudProviderConnectedSubtitle": {
+    "description": "Subtitle in cloud provider card when an API key is configured"
+  },
+  "cloudProviderDisconnect": "切断する",
+  "@cloudProviderDisconnect": {
+    "description": "Action that removes the saved API key"
+  },
+  "cloudProviderLastKeyTitle": "これが唯一のアクティブなキーです",
+  "@cloudProviderLastKeyTitle": {
+    "description": "Dialog title warning that disconnecting revokes the account's last active gateway key"
+  },
+  "cloudProviderLastKeyMessage": "切断すると、UNIUN クラウド上の最後のアクティブなキーが取り消されます。後でいつでも再接続できます。これは、このデバイスをサインアウトするだけです。",
+  "@cloudProviderLastKeyMessage": {
+    "description": "Dialog body explaining the consequence of revoking the last active key"
+  },
+  "cloudProviderConnecting": "サインイン中…",
+  "@cloudProviderConnecting": {
+    "description": "Shown while the silent keypair login to the UNIUN gateway runs"
+  },
+  "cloudProviderConnectFailed": "UNIUNクラウドにサインインできませんでした。接続を確認して、もう一度試してください。",
+  "@cloudProviderConnectFailed": {
+    "description": "Error shown when the silent keypair login fails"
+  },
+  "qrLoginNotConnected": "まず設定で UNIUN クラウドにサインインし、このコードを再度スキャンします。",
+  "@qrLoginNotConnected": {
+    "description": "Snackbar shown when scanning a web QR-login code while not connected to UNIUN Cloud"
+  },
+  "qrLoginApproved": "このデバイスは現在 Web 上にサインインしています。",
+  "@qrLoginApproved": {
+    "description": "Snackbar shown after successfully approving a web QR-login session"
+  },
+  "qrLoginFailed": "サインインを承認できませんでした: {error}",
+  "@qrLoginFailed": {
+    "description": "Snackbar shown when approving a web QR-login session fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cloudProviderModelsHeader": "クラウドモデル",
+  "@cloudProviderModelsHeader": {
+    "description": "Section header above the cloud model rows in the manage sheet"
+  },
+  "cloudProviderOnDevice": "オンデバイス",
+  "@cloudProviderOnDevice": {
+    "description": "Label of the on-device model row in the manage sheet"
+  },
+  "cloudProviderOnDeviceNotSet": "ダウンロードされていない",
+  "@cloudProviderOnDeviceNotSet": {
+    "description": "Shown after On-device when no local model is installed"
+  },
+  "cloudProviderNoCloudModels": "プランにはまだクラウド モデルがありません。ロックを解除するには、uniun.in でプランをアップグレードしてください。",
+  "@cloudProviderNoCloudModels": {
+    "description": "Shown in the manage sheet when the plan allows no cloud-served models"
+  },
+  "cloudProviderPlanLabel": "プラン",
+  "@cloudProviderPlanLabel": {
+    "description": "Label for the account plan in the cloud manage sheet"
+  },
+  "cloudProviderCreditsLabel": "クレジット",
+  "@cloudProviderCreditsLabel": {
+    "description": "Label for the credit balance in the cloud manage sheet"
+  },
+  "cloudProviderUpgrade": "プランのアップグレード / クレジットの追加",
+  "@cloudProviderUpgrade": {
+    "description": "Button in the cloud manage sheet that opens the website pricing page for checkout"
+  },
+  "cloudProviderUpgradeHint": "支払いは uniun.in で行われます。同じ ID でサインインし、戻ってこのシートを再度開くと、新しいプランが表示されます。",
+  "@cloudProviderUpgradeHint": {
+    "description": "Explains why upgrading opens a browser instead of paying in-app"
+  },
+  "modelPickerTitle": "モデルを選択してください",
+  "@modelPickerTitle": {
+    "description": "Title of the chat input model picker bottom sheet"
+  },
+  "modelPickerSearchHint": "モデルを検索…",
+  "@modelPickerSearchHint": {
+    "description": "Placeholder of the search field in the model picker"
+  },
+  "modelPickerLocalSection": "オンデバイス",
+  "@modelPickerLocalSection": {
+    "description": "Section header in model picker for locally-downloaded models"
+  },
+  "modelPickerCloudSection": "クラウド",
+  "@modelPickerCloudSection": {
+    "description": "Section header in model picker for cloud OpenRouter models"
+  },
+  "modelPickerManageLocalCta": "オンデバイスモデルを管理する",
+  "@modelPickerManageLocalCta": {
+    "description": "Footer CTA in the model picker that opens the local model download page"
+  },
+  "modelPickerConnectCloudCta": "クラウドプロバイダーに接続する",
+  "@modelPickerConnectCloudCta": {
+    "description": "Footer CTA in the model picker shown when no API key is configured"
+  },
+  "modelPickerNoModels": "利用可能なモデルはありません。",
+  "@modelPickerNoModels": {
+    "description": "Empty state shown in the model picker"
+  },
+  "chatInputAttachImageTooltip": "画像を添付する",
+  "@chatInputAttachImageTooltip": {
+    "description": "Tooltip on the button in Shiv's chat input that attaches a photo to the message; shown only when the active AI model can read images"
+  },
+  "chatInputRemoveImageTooltip": "画像を削除",
+  "@chatInputRemoveImageTooltip": {
+    "description": "Tooltip on the button that removes the photo attached to the chat message being written"
+  },
+  "chatInputPickModelTooltip": "モデルを選択してください",
+  "@chatInputPickModelTooltip": {
+    "description": "Tooltip on the + icon in the chat input that opens the model picker"
+  },
+  "followActionSuccess": "フォローしました。",
+  "@followActionSuccess": {
+    "description": "Snackbar shown after a successful follow"
+  },
+  "drawerFollowingSectionTitle": "フォロー中",
+  "@drawerFollowingSectionTitle": {
+    "description": "Drawer section header listing users the active identity follows"
+  },
+  "drawerFollowingEmpty": "まだ誰もフォローしていません",
+  "@drawerFollowingEmpty": {
+    "description": "Empty hint shown in the drawer when the follow list is empty"
+  },
+  "vishnuFeedEmptyTitle": "あなたのフィードは静かです",
+  "@vishnuFeedEmptyTitle": {
+    "description": "Vishnu feed empty-state title shown when the user follows nobody and has no own notes"
+  },
+  "vishnuFeedEmptySubtitle": "誰かの UNIUN QR をスキャンしてフォローすると、ここでノートが表示されます。",
+  "@vishnuFeedEmptySubtitle": {
+    "description": "Vishnu feed empty-state subtitle below the title"
+  },
+  "vishnuFeedEmptyCta": "QR をスキャンする",
+  "@vishnuFeedEmptyCta": {
+    "description": "Vishnu feed empty-state CTA opening the QR scanner"
+  },
+  "vishnuFeedEmptyRefresh": "リフレッシュ",
+  "@vishnuFeedEmptyRefresh": {
+    "description": "Vishnu feed empty-state button that re-reads the feed (after the gateway syncs followed accounts' notes)"
+  },
+  "drawerPrivateGroups": "プライベートグループ",
+  "@drawerPrivateGroups": {
+    "description": "Drawer section header for private groups (uppercase)"
+  },
+  "drawerNoPrivateGroups": "プライベートグループは参加していません",
+  "@drawerNoPrivateGroups": {
+    "description": "Empty hint shown in the drawer when no private groups are joined"
+  },
+  "followActionInvalidKey": "無効な公開キー",
+  "@followActionInvalidKey": {
+    "description": "Error snackbar when the scanned user QR has an unparseable public key"
+  },
+  "userProfileFollow": "フォローする",
+  "@userProfileFollow": {
+    "description": "Follow button on the user profile page"
+  },
+  "userProfileFollowing": "フォロー中",
+  "@userProfileFollowing": {
+    "description": "Toggle label on the user profile page when already following the user"
+  },
+  "userProfileNoNotes": "まだノートはありません",
+  "@userProfileNoNotes": {
+    "description": "Empty state shown on the user profile page when the user has no notes locally"
+  },
+  "userProfileMessage": "メッセージ",
+  "@userProfileMessage": {
+    "description": "Message button on the user profile page that opens a direct message with the user"
+  },
+  "userProfileNotesLabel": "ノート",
+  "@userProfileNotesLabel": {
+    "description": "Section label above the user's recent notes on the user profile page"
+  },
+  "userProfileCopyNpub": "npubをコピーする",
+  "@userProfileCopyNpub": {
+    "description": "Tooltip on the copy button next to the npub on the user profile page"
+  },
+  "qrShareAction": "シェアする",
+  "@qrShareAction": {
+    "description": "Button in the QR card that opens the native share sheet with the QR image and deep link"
+  },
+  "qrShareFailed": "QRコードを共有できませんでした",
+  "@qrShareFailed": {
+    "description": "Snackbar shown when sharing the QR image fails"
+  },
+  "qrCaptionUser": "これをスキャンして UNIUN に追加してください。",
+  "@qrCaptionUser": {
+    "description": "Caption under the QR code on a user identity card"
+  },
+  "qrCaptionPublicGroup": "スキャンしてこのグループに参加してください。",
+  "@qrCaptionPublicGroup": {
+    "description": "Caption under the QR code on a public group card"
+  },
+  "qrCaptionPrivateGroup": "スキャンしてこのプライベート グループに参加します。",
+  "@qrCaptionPrivateGroup": {
+    "description": "Caption under the QR code on a private group card"
+  },
+  "qrCaptionDm": "スキャンしてUNIUNでチャットを開始します。",
+  "@qrCaptionDm": {
+    "description": "Caption under the QR code on a direct-message card"
+  },
+  "shareSheetTitle": "ノートを共有する",
+  "@shareSheetTitle": {
+    "description": "Title of the in-app share bottom sheet"
+  },
+  "shareQuotingLabel": "引用",
+  "@shareQuotingLabel": {
+    "description": "Eyebrow label above the quoted-note preview card at the top of the share sheet"
+  },
+  "shareToLabel": "共有先",
+  "@shareToLabel": {
+    "description": "Eyebrow label above the destination list in the share sheet"
+  },
+  "shareActionShare": "シェアする",
+  "@shareActionShare": {
+    "description": "Label of the primary button that publishes the share to the selected destination"
+  },
+  "shareSheetCommentHint": "コメントを追加します (オプション)",
+  "@shareSheetCommentHint": {
+    "description": "Placeholder for the optional caption above the embedded shared note"
+  },
+  "shareDestFeed": "自分のフィードに投稿する",
+  "@shareDestFeed": {
+    "description": "Share destination — re-post on the user's own Vishnu feed"
+  },
+  "shareDestFeedSubtitle": "Vishnuで公開されます",
+  "@shareDestFeedSubtitle": {
+    "description": "Subtitle under the 'Post to my feed' share destination"
+  },
+  "shareSectionPublicGroups": "パブリックグループ",
+  "@shareSectionPublicGroups": {
+    "description": "Section header in the share sheet listing public groups"
+  },
+  "shareSectionPrivateGroups": "プライベートグループ",
+  "@shareSectionPrivateGroups": {
+    "description": "Section header in the share sheet listing private groups"
+  },
+  "shareSectionDms": "ダイレクトメッセージ",
+  "@shareSectionDms": {
+    "description": "Section header in the share sheet listing DM conversations"
+  },
+  "shareSuccess": "共有",
+  "@shareSuccess": {
+    "description": "Snackbar confirmation after the note has been shared into the chosen destination"
+  },
+  "shareEmbedLoading": "ノートを読み込んでいます…",
+  "@shareEmbedLoading": {
+    "description": "Placeholder shown inside an embedded shared-note card while the original is being resolved"
+  },
+  "shareEmbedNotFound": "ノートは利用できません",
+  "@shareEmbedNotFound": {
+    "description": "Placeholder shown when an embedded shared-note cannot be resolved (e.g. private-group note shared to a public surface)"
+  },
+  "shareEmbedUnverified": "未検証",
+  "@shareEmbedUnverified": {
+    "description": "Badge shown over an embedded shared-note whose snapshot signature failed verification"
+  },
+  "shareComposeAddReference": "参照を追加",
+  "@shareComposeAddReference": {
+    "description": "Button in the share composer to attach a referenced note"
+  },
+  "shareComposeAddImage": "画像",
+  "@shareComposeAddImage": {
+    "description": "Button in the share composer to attach an image"
+  },
+  "shareNoDmConversations": "ここでノートを共有するには、まず DM を開始してください。",
+  "@shareNoDmConversations": {
+    "description": "Hint shown in the share sheet's DM section when the user has no DM conversations yet"
+  },
+  "noteCardBlockUser": "ユーザーをブロックする",
+  "@noteCardBlockUser": {
+    "description": "Action in the note card overflow menu that blocks the note's author"
+  },
+  "noteCardDeleteNote": "ノートを削除する",
+  "@noteCardDeleteNote": {
+    "description": "Action in the note card overflow menu that deletes the note locally"
+  },
+  "deleteNoteSnackbar": "ノートを削除しました。",
+  "@deleteNoteSnackbar": {
+    "description": "Confirmation snackbar shown after deleting a note from a note card"
+  },
+  "blockUserSnackbar": "{name} をブロックしました。彼らからの新しい投稿は表示されません。",
+  "@blockUserSnackbar": {
+    "description": "Confirmation snackbar shown after blocking a user from a note card",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBlockedUsers": "ブロックされたユーザー",
+  "@settingsBlockedUsers": {
+    "description": "Settings row that opens the blocked users management screen"
+  },
+  "blockedUsersTitle": "ブロックされたユーザー",
+  "@blockedUsersTitle": {
+    "description": "App bar title of the blocked users management screen"
+  },
+  "blockedUsersDescription": "ブロックされたユーザーはあなたにメッセージを送信できず、そのノートはフィードから非表示のままになります。ノートは削除されることはありません。ブロックを解除するとノートが元に戻ります。",
+  "@blockedUsersDescription": {
+    "description": "Explainer paragraph at the top of the blocked users screen"
+  },
+  "blockedUsersSectionCount": "ブロックされました · {count}",
+  "@blockedUsersSectionCount": {
+    "description": "Section label above the blocked users list, with the number of blocked users",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "blockedUsersBlockedAgo": "{time} 前にブロックされました",
+  "@blockedUsersBlockedAgo": {
+    "description": "Per-row meta line showing how long ago a user was blocked",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "blockedUsersBlockedJustNow": "たった今ブロックされました",
+  "@blockedUsersBlockedJustNow": {
+    "description": "Per-row meta line when a user was blocked less than a minute ago"
+  },
+  "blockedUsersEmpty": "あなたは誰もブロックしていません",
+  "@blockedUsersEmpty": {
+    "description": "Empty state on the blocked users screen when no users are blocked"
+  },
+  "blockedUsersEmptyHint": "ブロックした人はここに表示されるので、いつでもブロックを解除できます。",
+  "@blockedUsersEmptyHint": {
+    "description": "Helper subtitle below the empty-state title on the blocked users screen"
+  },
+  "actionUnblock": "ブロックを解除する",
+  "@actionUnblock": {
+    "description": "Button that unblocks a user on the blocked users screen"
+  },
+  "noteCardReport": "ノートを報告",
+  "@noteCardReport": {
+    "description": "Action in the note card overflow menu that opens the NIP-56 report sheet"
+  },
+  "reportSheetTitle": "この内容を報告する",
+  "@reportSheetTitle": {
+    "description": "Title shown at the top of the NIP-56 report bottom sheet"
+  },
+  "reportSheetReasonHint": "任意: 詳細を入力（最大280文字）",
+  "@reportSheetReasonHint": {
+    "description": "Placeholder for the optional reason text field in the report sheet"
+  },
+  "reportSheetSubmit": "報告を送信",
+  "@reportSheetSubmit": {
+    "description": "Primary button on the report sheet that publishes the Kind-1984 event"
+  },
+  "reportSheetOutcomeHint": "このノートはフィードから非表示になり、報告がネットワークに送信されます。",
+  "@reportSheetOutcomeHint": {
+    "description": "Inline explainer under the report form telling the user what the unconditional outcome of submitting will be"
+  },
+  "reportSheetAlsoBlock": "このユーザーもブロックします (投稿は表示されなくなります)",
+  "@reportSheetAlsoBlock": {
+    "description": "Optional checkbox on the report sheet that additionally adds the author to the blocked-users list"
+  },
+  "reportSentSnackbar": "報告を送信しました。UNIUNを安全に保つためのご協力ありがとうございます。",
+  "@reportSentSnackbar": {
+    "description": "Confirmation snackbar shown after a report is successfully published"
+  },
+  "reportTypeNudity": "ヌード",
+  "@reportTypeNudity": {
+    "description": "Label for the NIP-56 'nudity' report category"
+  },
+  "reportTypeNudityDescription": "性的に露骨な内容またはヌード",
+  "@reportTypeNudityDescription": {
+    "description": "One-line description shown under the 'nudity' report option"
+  },
+  "reportTypeMalware": "マルウェア",
+  "@reportTypeMalware": {
+    "description": "Label for the NIP-56 'malware' report category"
+  },
+  "reportTypeMalwareDescription": "デバイスに損害を与える可能性のあるリンクまたはファイル",
+  "@reportTypeMalwareDescription": {
+    "description": "One-line description shown under the 'malware' report option"
+  },
+  "reportTypeProfanity": "暴言",
+  "@reportTypeProfanity": {
+    "description": "Label for the NIP-56 'profanity' report category"
+  },
+  "reportTypeProfanityDescription": "憎しみに満ちた、または非常に下品な言葉遣い",
+  "@reportTypeProfanityDescription": {
+    "description": "One-line description shown under the 'profanity' report option"
+  },
+  "reportTypeIllegal": "違法",
+  "@reportTypeIllegal": {
+    "description": "Label for the NIP-56 'illegal' report category"
+  },
+  "reportTypeIllegalDescription": "報告者の居住地域で違法な内容",
+  "@reportTypeIllegalDescription": {
+    "description": "One-line description shown under the 'illegal' report option"
+  },
+  "reportTypeSpam": "スパム",
+  "@reportTypeSpam": {
+    "description": "Label for the NIP-56 'spam' report category"
+  },
+  "reportTypeSpamDescription": "望ましくない、または反復的なプロモーション",
+  "@reportTypeSpamDescription": {
+    "description": "One-line description shown under the 'spam' report option"
+  },
+  "reportTypeImpersonation": "なりすまし",
+  "@reportTypeImpersonation": {
+    "description": "Label for the NIP-56 'impersonation' report category"
+  },
+  "reportTypeImpersonationDescription": "自分ではない誰かのふりをする",
+  "@reportTypeImpersonationDescription": {
+    "description": "One-line description shown under the 'impersonation' report option"
+  },
+  "reportTypeOther": "その他",
+  "@reportTypeOther": {
+    "description": "Label for the NIP-56 'other' report category"
+  },
+  "reportTypeOtherDescription": "その他コミュニティの基準に違反するもの",
+  "@reportTypeOtherDescription": {
+    "description": "One-line description shown under the 'other' report option"
+  },
+  "actionReadMore": "続きを読む",
+  "@actionReadMore": {
+    "description": "Button that expands a note's text when it is longer than the collapsed line limit"
+  },
+  "actionReadLess": "閉じる",
+  "@actionReadLess": {
+    "description": "Button that collapses a previously expanded note's text"
+  },
+  "mediaGalleryTitle": "メディア",
+  "@mediaGalleryTitle": {
+    "description": "App bar title of the media gallery / file manager"
+  },
+  "mediaTabAll": "すべて",
+  "@mediaTabAll": {
+    "description": "Filter chip in the media gallery showing every blob"
+  },
+  "mediaTabImages": "画像",
+  "@mediaTabImages": {
+    "description": "Filter chip restricting the media gallery to image blobs"
+  },
+  "mediaTabVideos": "動画",
+  "@mediaTabVideos": {
+    "description": "Filter chip restricting the media gallery to video blobs"
+  },
+  "mediaTabAudio": "オーディオ",
+  "@mediaTabAudio": {
+    "description": "Filter chip restricting the media gallery to audio blobs"
+  },
+  "mediaTabFiles": "ファイル",
+  "@mediaTabFiles": {
+    "description": "Filter chip showing non-media file blobs (PDFs, etc.)"
+  },
+  "mediaTabPinned": "固定済み",
+  "@mediaTabPinned": {
+    "description": "Filter chip restricting the media gallery to blobs the user pinned"
+  },
+  "mediaActionDownload": "ダウンロード",
+  "@mediaActionDownload": {
+    "description": "Action in the media action sheet that downloads the blob bytes from the server"
+  },
+  "mediaActionOpen": "開く",
+  "@mediaActionOpen": {
+    "description": "Action in the media detail page that hands the cached file to the OS for viewing (PDF reader, video player, etc.)"
+  },
+  "mediaActionPin": "固定する",
+  "@mediaActionPin": {
+    "description": "Action that pins the blob so cleanup never evicts it"
+  },
+  "mediaActionUnpin": "固定を解除する",
+  "@mediaActionUnpin": {
+    "description": "Action that unpins the blob, restoring normal retention"
+  },
+  "mediaActionRemoveLocal": "デバイスから削除する",
+  "@mediaActionRemoveLocal": {
+    "description": "Action that deletes the local copy of the blob (server copy stays)"
+  },
+  "mediaActionCopySha": "SHA-256をコピー",
+  "@mediaActionCopySha": {
+    "description": "Action that copies the blob's sha256 hash to the clipboard"
+  },
+  "mediaActionSaveToDevice": "デバイスに保存",
+  "@mediaActionSaveToDevice": {
+    "description": "Action that saves the cached blob to the device's gallery (images / videos via `gal`) or Downloads folder (files on desktop) or share sheet (non-media on mobile)."
+  },
+  "mediaSavedTo": "{destination}に保存しました",
+  "@mediaSavedTo": {
+    "description": "Snackbar shown after a successful Save to device; placeholder is the destination (e.g. 'Photos', '/Users/...').",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "mediaSaveSuccess": "保存されました",
+  "@mediaSaveSuccess": {
+    "description": "Generic success snackbar when the destination isn't a known string (mobile share-sheet path)."
+  },
+  "mediaSaveFailed": "ファイルを保存できませんでした",
+  "@mediaSaveFailed": {
+    "description": "Snackbar shown when the Save to device action fails (permission denied / disk error)."
+  },
+  "mediaEmptyState": "まだメディアがありません。添付ファイル付きで受信したノートがここに表示されます。",
+  "@mediaEmptyState": {
+    "description": "Empty state shown in the media gallery when there are no known blobs"
+  },
+  "mediaDetailReferencedBy": "参照元",
+  "@mediaDetailReferencedBy": {
+    "description": "Metadata row label showing how many notes reference this blob"
+  },
+  "mediaDetailLabelSha": "SHA-256",
+  "@mediaDetailLabelSha": {
+    "description": "Metadata row label for the blob's sha256 hash on the media detail page"
+  },
+  "mediaDetailLabelMime": "MIME形式",
+  "@mediaDetailLabelMime": {
+    "description": "Metadata row label for the blob's MIME type on the media detail page"
+  },
+  "mediaDetailLabelSize": "サイズ",
+  "@mediaDetailLabelSize": {
+    "description": "Metadata row label for the blob's byte size on the media detail page"
+  },
+  "mediaDetailLabelDim": "寸法",
+  "@mediaDetailLabelDim": {
+    "description": "Metadata row label for the blob's width × height on the media detail page"
+  },
+  "mediaDetailLabelCached": "キャッシュ済み",
+  "@mediaDetailLabelCached": {
+    "description": "Metadata row label for when the blob was downloaded locally"
+  },
+  "mediaDetailLabelServer": "サーバー",
+  "@mediaDetailLabelServer": {
+    "description": "Metadata row label for each Blossom server URL hosting the blob"
+  },
+  "mediaPickerTitle": "ライブラリから添付する",
+  "@mediaPickerTitle": {
+    "description": "Title of the media picker bottom sheet shown from the composer"
+  },
+  "mediaPickerEmpty": "利用可能なメディアはまだありません。",
+  "@mediaPickerEmpty": {
+    "description": "Empty state shown in the media picker when there are no known blobs"
+  },
+  "composerAttachPhoto": "写真",
+  "@composerAttachPhoto": {
+    "description": "Bottom-sheet row that opens the device gallery to attach an image"
+  },
+  "composerAttachVideo": "ビデオ",
+  "@composerAttachVideo": {
+    "description": "Bottom-sheet row that opens the device gallery to attach a video"
+  },
+  "composerAttachFile": "ファイル",
+  "@composerAttachFile": {
+    "description": "Bottom-sheet row that opens the device file picker to attach any file"
+  },
+  "mediaTooLarge": "ファイルが大きすぎます（{size}）。上限は{cap}です。圧縮してから再試行してください。",
+  "@mediaTooLarge": {
+    "description": "Snackbar shown when the user picks a binary (video / PDF / doc / archive) bigger than the upload cap, AND on-device compression — when applicable, e.g. video — couldn't shrink it enough. Both placeholders are pre-formatted human strings (e.g. '72.4 MB', '50 MB').",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "cap": {
+        "type": "String"
+      }
+    }
+  },
+  "mediaTooLargeAfterCompress": "アップロードできるほど小さい画像を圧縮できませんでした。別の写真を試してください。",
+  "@mediaTooLargeAfterCompress": {
+    "description": "Snackbar shown when even maximum compression can't get the picked image under the relay's body-size limit"
+  },
+  "storageMediaRow": "メディア",
+  "@storageMediaRow": {
+    "description": "Settings row that opens the media gallery / file manager"
+  },
+  "storageMediaRowSubtitle": "ノートの写真、ビデオ、ファイル",
+  "@storageMediaRowSubtitle": {
+    "description": "Subtitle under the Storage→Media settings row"
+  },
+  "noteCardDownloadMedia": "ダウンロード",
+  "@noteCardDownloadMedia": {
+    "description": "Label on the download button overlay on an attached-media tile in a note card"
+  },
+  "noteCardFileFallbackName": "添付ファイル",
+  "@noteCardFileFallbackName": {
+    "description": "Filename label shown on a file attachment tile when the publisher did not include an imeta `name` field."
+  },
+  "noteCardFileTapToOpen": "タップして開きます",
+  "@noteCardFileTapToOpen": {
+    "description": "Subtitle hint shown on a cached file attachment tile telling the user the tap action hands the file to the OS."
+  },
+  "noteCardFileTapToDownload": "タップしてダウンロード",
+  "@noteCardFileTapToDownload": {
+    "description": "Subtitle hint shown on a not-yet-cached file attachment tile telling the user the tap action triggers a Blossom download."
+  },
+  "mediaSelectionCount": "{count}件を選択中",
+  "@mediaSelectionCount": {
+    "description": "Media gallery contextual app-bar title when the user has long-pressed one or more tiles to multi-select. {count} is the number of selected blobs.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mediaSelectionExit": "選択を終了する",
+  "@mediaSelectionExit": {
+    "description": "Tooltip on the close (X) button that clears multi-select mode in the media gallery."
+  },
+  "mediaSelectionRemoveDialogTitle": "デバイスから削除しますか?",
+  "@mediaSelectionRemoveDialogTitle": {
+    "description": "Confirmation dialog title before bulk-removing local copies of the selected media."
+  },
+  "mediaSelectionRemoveDialogBody": "このデバイスから {count} キャッシュ ファイルを削除して、スペースを解放します。サーバーのコピーは残ります。いつでも再ダウンロードできます。",
+  "@mediaSelectionRemoveDialogBody": {
+    "description": "Confirmation dialog body. Explains that only the local cache is wiped; remote bytes survive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "storageMedia": "メディア",
+  "@storageMedia": {
+    "description": "Legend label in the Settings → Storage chart for the cached media bucket (photos / videos / files under getApplicationSupportDirectory()/media/)."
+  },
+  "storageRetentionTitle": "古いノートを自動削除",
+  "@storageRetentionTitle": {
+    "description": "Row title for the auto-cleanup retention dropdown in Settings → Storage. Affects only public feed / group notes the user hasn't saved or followed."
+  },
+  "storageRetentionSubtitle": "公開フィードとグループノートのみ。保存、フォロー、自分のグループ、DM、プライベート グループは永久に残ります。ノートを削除すると、その写真/ファイルもこのデバイスから削除されます。",
+  "@storageRetentionSubtitle": {
+    "description": "Subtitle/explanation under the auto-delete retention row — clarifies which notes are affected and that their local media is removed along with them."
+  },
+  "storageRetentionOff": "オフ",
+  "@storageRetentionOff": {
+    "description": "Dropdown value for disabling auto-deletion (the default — nothing is removed)."
+  },
+  "storageRetentionDays": "{days} 日",
+  "@storageRetentionDays": {
+    "description": "Dropdown value for the auto-delete retention window in days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "syncWindowTitle": "同期ウィンドウ",
+  "@syncWindowTitle": {
+    "description": "Row title for the sync-window dropdown in Settings → Storage. Controls how many days of history feed/groups/groups pull."
+  },
+  "syncWindowSubtitle": "フィードとグループ メッセージを同期するまでの期間。フォローしたノートと DM は常に完全に同期されます。次回のアプリ起動時に適用されます。",
+  "@syncWindowSubtitle": {
+    "description": "Subtitle under the sync-window row; explains scope and that it applies on next launch."
+  },
+  "syncWindowDays": "{days} 日",
+  "@syncWindowDays": {
+    "description": "Dropdown value for the sync-window length in days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "noteCardMediaDownloading": "ダウンロード中…",
+  "@noteCardMediaDownloading": {
+    "description": "Status text shown on a note-card media tile while bytes are downloading"
+  },
+  "noteCardMediaFailed": "ダウンロードに失敗しました",
+  "@noteCardMediaFailed": {
+    "description": "Status text shown on a note-card media tile when the download fails"
+  },
+  "manasDrawerHeaderTitle": "Brahma",
+  "@manasDrawerHeaderTitle": {
+    "description": "Title of the Brahma side drawer"
+  },
+  "manasDrawerHeaderSubtitle": "あなたのナレッジグラフ",
+  "@manasDrawerHeaderSubtitle": {
+    "description": "Subtitle in the Brahma drawer header"
+  },
+  "manasDrawerBrahmaEntryTitle": "Brahma",
+  "@manasDrawerBrahmaEntryTitle": {
+    "description": "Name of the full unscoped graph entry in the Brahma drawer"
+  },
+  "manasDrawerBrahmaEntrySubtitle": "あなたが保存、執筆、下書きしたものすべて",
+  "@manasDrawerBrahmaEntrySubtitle": {
+    "description": "Subtitle under the full Brahma entry in the drawer"
+  },
+  "manasDrawerSectionTitle": "Manas",
+  "@manasDrawerSectionTitle": {
+    "description": "Section label for the list of Manases"
+  },
+  "manasDrawerNewManasButton": "新しい",
+  "@manasDrawerNewManasButton": {
+    "description": "Inline action that opens the new-Manas form"
+  },
+  "manasDrawerEmptyStateTitle": "Manasはまだありません",
+  "@manasDrawerEmptyStateTitle": {
+    "description": "Headline when the Manas list is empty"
+  },
+  "manasDrawerEmptyStateBody": "Manasを作成して、グラフの対象を絞りましょう。ノートの一部を使って専門的に考えられます。",
+  "@manasDrawerEmptyStateBody": {
+    "description": "Empty-state body copy in the Manas drawer"
+  },
+  "manasDrawerEmptyStateCta": "最初のManasを作成",
+  "@manasDrawerEmptyStateCta": {
+    "description": "CTA button for the empty Manas list"
+  },
+  "manasDrawerTileNoteCount": "{count, plural, =1{ノート1件} other{ノート{count}件}}",
+  "@manasDrawerTileNoteCount": {
+    "description": "Note-count subtitle on a Manas tile",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manasTileEmptyHint": "ノート0件 · タップして開く",
+  "@manasTileEmptyHint": {
+    "description": "Subtitle of a Manas tile with no notes yet"
+  },
+  "manasTileActionEdit": "Manasを編集する",
+  "@manasTileActionEdit": {
+    "description": "Bottom-sheet action — edit the long-pressed Manas"
+  },
+  "manasTileActionDelete": "Manasの削除",
+  "@manasTileActionDelete": {
+    "description": "Bottom-sheet action — delete the long-pressed Manas"
+  },
+  "manasDeleteConfirmTitle": "Manasを削除しますか？",
+  "@manasDeleteConfirmTitle": {
+    "description": "Confirmation dialog title for deleting a Manas"
+  },
+  "manasDeleteConfirmBody": "「{name}」を削除します。ノート自体は残り、このManasへの所属だけが解除されます。",
+  "@manasDeleteConfirmBody": {
+    "description": "Body of the Manas delete confirmation dialog",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manasDeleteConfirmConfirm": "削除",
+  "@manasDeleteConfirmConfirm": {
+    "description": "Destructive confirm button"
+  },
+  "manasDeleteConfirmCancel": "キャンセル",
+  "@manasDeleteConfirmCancel": {
+    "description": "Cancel button on the delete confirmation"
+  },
+  "manasFormCreateTitle": "新しいManas",
+  "@manasFormCreateTitle": {
+    "description": "App-bar title in create mode"
+  },
+  "manasFormEditTitle": "編集 · {name}",
+  "@manasFormEditTitle": {
+    "description": "App-bar title in edit mode",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "manasFormEditTitleFallback": "Manasを編集する",
+  "@manasFormEditTitleFallback": {
+    "description": "App-bar title in edit mode when the name is empty"
+  },
+  "manasFormSaveAction": "保存",
+  "@manasFormSaveAction": {
+    "description": "Save action on the Manas form app bar"
+  },
+  "manasFormDeleteAction": "Manasの削除",
+  "@manasFormDeleteAction": {
+    "description": "Delete button at the bottom of the Manas form (edit mode)"
+  },
+  "manasFormNameLabel": "名前",
+  "@manasFormNameLabel": {
+    "description": "Label for the Manas name field"
+  },
+  "manasFormNameHint": "例: Rustのエキスパート",
+  "@manasFormNameHint": {
+    "description": "Placeholder for the Manas name field"
+  },
+  "manasFormDescriptionLabel": "説明",
+  "@manasFormDescriptionLabel": {
+    "description": "Label for the description field"
+  },
+  "manasFormDescriptionHint": "オプション。このManasは何のためにあるのでしょうか？",
+  "@manasFormDescriptionHint": {
+    "description": "Placeholder for the description field"
+  },
+  "manasFormMembershipSectionTitle": "このManasのノート ({count})",
+  "@manasFormMembershipSectionTitle": {
+    "description": "Section title listing the included notes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manasFormMembershipEmpty": "まだノートはありません。以下を検索して追加してください。",
+  "@manasFormMembershipEmpty": {
+    "description": "Hint when the membership list is empty"
+  },
+  "manasFormAddNotesSectionTitle": "ノートを追加する",
+  "@manasFormAddNotesSectionTitle": {
+    "description": "Section title for the search/add area"
+  },
+  "manasFormSearchHint": "保存済みノート、所有ノート、または下書きノートを検索する",
+  "@manasFormSearchHint": {
+    "description": "Placeholder in the note-search field"
+  },
+  "manasFormSearchEmpty": "一致はありません。",
+  "@manasFormSearchEmpty": {
+    "description": "Hint when search returns no results"
+  },
+  "manasFormNoteUnavailable": "(ノートは利用できません)",
+  "@manasFormNoteUnavailable": {
+    "description": "Chip label when a referenced note is not in local cache"
+  },
+  "manasFormKindSaved": "保存済み",
+  "@manasFormKindSaved": {
+    "description": "Provenance badge on search-result rows for saved notes"
+  },
+  "manasFormKindOwn": "自分のノート",
+  "@manasFormKindOwn": {
+    "description": "Provenance badge on search-result rows for own (authored) notes"
+  },
+  "manasFormKindDraft": "下書き",
+  "@manasFormKindDraft": {
+    "description": "Provenance badge on search-result rows for local drafts"
+  },
+  "manasFormDeleteConfirmTitle": "このManasを削除しますか?",
+  "@manasFormDeleteConfirmTitle": {
+    "description": "Title of the form's delete confirmation dialog"
+  },
+  "manasFormDeleteConfirmBody": "これにより、Manasとそのすべてのメンバーが削除されます。ノート自体はBrahmaに残ります。",
+  "@manasFormDeleteConfirmBody": {
+    "description": "Body of the form's delete confirmation dialog"
+  },
+  "manasFormDeleteConfirmConfirm": "削除",
+  "@manasFormDeleteConfirmConfirm": {
+    "description": "Destructive confirm action in the form"
+  },
+  "manasFormDeleteConfirmCancel": "キャンセル",
+  "@manasFormDeleteConfirmCancel": {
+    "description": "Cancel action in the form's delete dialog"
+  },
+  "graphHeaderManasEditTooltip": "Manasを編集する",
+  "@graphHeaderManasEditTooltip": {
+    "description": "Tooltip for the edit-Manas pencil in the graph header"
+  },
+  "graphHeaderUnnamedManas": "Manas",
+  "@graphHeaderUnnamedManas": {
+    "description": "Fallback label for the scoped Manas chip when the name is not loaded yet"
+  },
+  "noteCardAddToManas": "Manasに追加",
+  "@noteCardAddToManas": {
+    "description": "Note-card overflow menu — open the Manas membership sheet for this note"
+  },
+  "noteCardManasSaveFailed": "ノートを保存できませんでした。もう一度やり直してください。",
+  "@noteCardManasSaveFailed": {
+    "description": "Snackbar shown when saving a note before adding it to a Manas fails"
+  },
+  "unsaveManasDialogTitle": "ノートの保存を解除しますか?",
+  "@unsaveManasDialogTitle": {
+    "description": "Title of the confirmation dialog shown when unsaving a note that belongs to one or more Manases"
+  },
+  "unsaveManasDialogBody": "このノートの保存を解除すると、次の場所からも削除されます。",
+  "@unsaveManasDialogBody": {
+    "description": "Lead-in line of the unsave confirmation dialog, above the list of Manas cards the note will be removed from"
+  },
+  "unsaveManasDialogConfirm": "保存しない",
+  "@unsaveManasDialogConfirm": {
+    "description": "Destructive confirm button on the unsave-from-Manas dialog"
+  },
+  "unsaveManasDialogCancel": "キャンセル",
+  "@unsaveManasDialogCancel": {
+    "description": "Cancel button on the unsave-from-Manas dialog"
+  },
+  "manasMembershipSheetTitle": "Manasに追加",
+  "@manasMembershipSheetTitle": {
+    "description": "Title of the bottom sheet that toggles a note's Manas memberships"
+  },
+  "manasMembershipSheetCreate": "新しいManasを作成する",
+  "@manasMembershipSheetCreate": {
+    "description": "Trailing button in the membership sheet that opens the create form"
+  },
+  "manasMembershipSheetEmptyTitle": "Manasはまだありません",
+  "@manasMembershipSheetEmptyTitle": {
+    "description": "Headline shown when the user has no Manases"
+  },
+  "manasMembershipSheetEmptyBody": "最初のManasを作成し、関連するノートをまとめましょう。",
+  "@manasMembershipSheetEmptyBody": {
+    "description": "Body copy in the empty-state of the membership sheet"
+  },
+  "manasMembershipSheetEmptyCta": "Manasを作成する",
+  "@manasMembershipSheetEmptyCta": {
+    "description": "Primary CTA in the empty-state of the membership sheet"
+  },
+  "manasIconPickerTitle": "アイコンを選択してください",
+  "@manasIconPickerTitle": {
+    "description": "Title of the bottom sheet that picks a Manas icon"
+  },
+  "ganaListTitle": "Gana",
+  "@ganaListTitle": {
+    "description": "App bar title on the Gana agents list page"
+  },
+  "ganaListNew": "新しい",
+  "@ganaListNew": {
+    "description": "Label for the create-new-Gana button on the Gana list page"
+  },
+  "ganaListSubtitle": "情報源を監視し、Manasを使って考え、あなたに代わって公開する自律型エージェントです。",
+  "@ganaListSubtitle": {
+    "description": "Intro line below the app bar on the Gana list page"
+  },
+  "ganaListPaused": "一時停止中",
+  "@ganaListPaused": {
+    "description": "Status line on a Gana card when the agent is disabled"
+  },
+  "ganaListScopeAll": "すべてのノート",
+  "@ganaListScopeAll": {
+    "description": "Gana card scope label when no Manas is selected (whole library)"
+  },
+  "ganaListScopeCount": "{count, plural, =1{Manas 1件} other{Manas {count}件}}",
+  "@ganaListScopeCount": {
+    "description": "Gana card scope label showing how many Manas the agent reasons over",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaDashboardTitle": "ダッシュボード",
+  "@ganaDashboardTitle": {
+    "description": "Title of the Gana dashboard page"
+  },
+  "ganaDashboardActive": "アクティブ",
+  "@ganaDashboardActive": {
+    "description": "Dashboard tile label: Ganas currently switched on"
+  },
+  "ganaDashboardDone": "完了",
+  "@ganaDashboardDone": {
+    "description": "Dashboard tile label: total successful runs"
+  },
+  "ganaDashboardFailed": "失敗",
+  "@ganaDashboardFailed": {
+    "description": "Dashboard tile label: total failed runs"
+  },
+  "ganaDashboardSkipped": "スキップ",
+  "@ganaDashboardSkipped": {
+    "description": "Dashboard tile label: total skipped runs"
+  },
+  "ganaDashboardAttentionTitle": "注意が必要です",
+  "@ganaDashboardAttentionTitle": {
+    "description": "Section title listing Ganas whose last run failed"
+  },
+  "ganaDashboardGanasTitle": "あなたのGana",
+  "@ganaDashboardGanasTitle": {
+    "description": "Section title listing every Gana with its numbers"
+  },
+  "ganaDashboardActivityTitle": "最近のアクティビティ",
+  "@ganaDashboardActivityTitle": {
+    "description": "Section title for the latest runs across all Ganas"
+  },
+  "ganaDashboardActivityEmpty": "実行履歴はまだありません。Ganaが動くと、ここに表示されます。",
+  "@ganaDashboardActivityEmpty": {
+    "description": "Empty text of the recent activity section"
+  },
+  "ganaDashboardRate": "{percent}%成功",
+  "@ganaDashboardRate": {
+    "description": "Success rate of a Gana; {percent} is a whole number",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaStatsCounts": "{done} 完了 · {failed} 失敗 · {skipped} スキップ",
+  "@ganaStatsCounts": {
+    "description": "Lifetime run counts of one Gana",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaDashboardFootnote": "このバージョン以降の実行回数です。最近のアクティビティには、Ganaごとに最新10件の実行が残ります。",
+  "@ganaDashboardFootnote": {
+    "description": "Footnote explaining what the dashboard numbers cover"
+  },
+  "ganaErrNoIdentityTitle": "有効なIDがありません",
+  "@ganaErrNoIdentityTitle": {
+    "description": "Failed-run title: no signed-in identity"
+  },
+  "ganaErrNoIdentityHint": "ログインすると、Ganaがノートに署名して公開できるようになります。",
+  "@ganaErrNoIdentityHint": {
+    "description": "Failed-run hint: no signed-in identity"
+  },
+  "ganaErrPublishTitle": "ノートを公開できませんでした",
+  "@ganaErrPublishTitle": {
+    "description": "Failed-run title: publishing failed"
+  },
+  "ganaErrPublishHint": "Ganaはノートを作成しましたが、送信できませんでした。次の起動時に再試行します。",
+  "@ganaErrPublishHint": {
+    "description": "Failed-run hint: publishing failed"
+  },
+  "ganaErrNetworkTitle": "ネットワークの問題",
+  "@ganaErrNetworkTitle": {
+    "description": "Failed-run title: connection or timeout error"
+  },
+  "ganaErrNetworkHint": "接続が切れたか、タイムアウトしました。インターネット接続を確認してください。次の起動時に再試行します。",
+  "@ganaErrNetworkHint": {
+    "description": "Failed-run hint: connection or timeout error"
+  },
+  "ganaErrModelTitle": "AIモデルに問題がありました",
+  "@ganaErrModelTitle": {
+    "description": "Failed-run title: model or engine error"
+  },
+  "ganaErrModelHint": "モデルの出力中にエラーが発生しました。Shivでモデルを確認してから再試行してください。",
+  "@ganaErrModelHint": {
+    "description": "Failed-run hint: model or engine error"
+  },
+  "ganaErrOtherTitle": "何か問題が発生しました",
+  "@ganaErrOtherTitle": {
+    "description": "Failed-run title: unrecognised error"
+  },
+  "ganaErrOtherHint": "予期しないエラーにより実行が停止しました。",
+  "@ganaErrOtherHint": {
+    "description": "Failed-run hint: unrecognised error"
+  },
+  "ganaRunTechnicalDetail": "技術的な詳細",
+  "@ganaRunTechnicalDetail": {
+    "description": "Label above the raw error text of a failed run"
+  },
+  "ganaRunOutputLabel": "公開されたノート",
+  "@ganaRunOutputLabel": {
+    "description": "Label above the note a run published"
+  },
+  "ganaRunOutputMissing": "このノートはこのデバイスにはもうありません。",
+  "@ganaRunOutputMissing": {
+    "description": "Shown when a run's published note was cleaned up"
+  },
+  "ganaRunOpenNote": "ノートを開く",
+  "@ganaRunOpenNote": {
+    "description": "Button that opens the note a run published"
+  },
+  "ganaRunInputCount": "{count, plural, =1{メッセージ1件を読む} other{メッセージ{count}件を読む}}",
+  "@ganaRunInputCount": {
+    "description": "How many input messages a run read",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaSkipNoActiveModel": "有効なAIモデルがありません。Shivで選択してください。",
+  "@ganaSkipNoActiveModel": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipModelMismatch": "有効なモデルが、このGanaに固定されたモデルと異なります。",
+  "@ganaSkipModelMismatch": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipNoNewInput": "新しく読む内容はありません。",
+  "@ganaSkipNoNewInput": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipModelSwapped": "実行中にモデルが変更されたため、この実行を中止しました。",
+  "@ganaSkipModelSwapped": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipNoopReturned": "モデルが何も公開しないと判断しました。",
+  "@ganaSkipNoopReturned": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipMaxOutputs": "ノートの上限に達したため、自動的に無効になりました。",
+  "@ganaSkipMaxOutputs": {
+    "description": "Skip reason explanation"
+  },
+  "ganaSkipCloudUnavailable": "UNIUNクラウドが接続されていないか、クラウドモデルが設定されていません。",
+  "@ganaSkipCloudUnavailable": {
+    "description": "Skip reason explanation"
+  },
+  "ganaDrawerEmptyTitle": "Ganaはまだありません",
+  "@ganaDrawerEmptyTitle": {
+    "description": "Empty-state title in the Ganas section"
+  },
+  "ganaDrawerEmptyBody": "情報源を監視し、ノートを公開するAIエージェントを作成しましょう。",
+  "@ganaDrawerEmptyBody": {
+    "description": "Empty-state body in the Ganas section"
+  },
+  "ganaTileDisabled": "オフ",
+  "@ganaTileDisabled": {
+    "description": "Status pill on a Gana tile when it is disabled"
+  },
+  "ganaTileTriggerReactive": "新しい入力に反応",
+  "@ganaTileTriggerReactive": {
+    "description": "Subtitle fragment shown when a Gana fires on new input"
+  },
+  "ganaTileTriggerInterval": "{n}分ごと",
+  "@ganaTileTriggerInterval": {
+    "description": "Subtitle fragment for an interval Gana; {n} is the minute count",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaTileTriggerBoth": "新しい入力または{n}分ごと",
+  "@ganaTileTriggerBoth": {
+    "description": "Subtitle when a Gana has both triggers",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaTileTriggerOnceOnEnable": "有効化時に1回",
+  "@ganaTileTriggerOnceOnEnable": {
+    "description": "Subtitle for a one-shot standalone Gana"
+  },
+  "ganaTileTriggerOnceOnInput": "最初の入力時に1回",
+  "@ganaTileTriggerOnceOnInput": {
+    "description": "Subtitle for a one-shot Gana with an input source"
+  },
+  "ganaTileLastRunNever": "実行履歴なし",
+  "@ganaTileLastRunNever": {
+    "description": "Last-run label when the Gana has never run"
+  },
+  "ganaTileLastRunSucceeded": "前回成功 · {when}",
+  "@ganaTileLastRunSucceeded": {
+    "description": "Last-run label on success; {when} is a relative time",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ganaTileLastRunSkipped": "前回スキップ · {when}",
+  "@ganaTileLastRunSkipped": {
+    "description": "Last-run label when the most recent run was skipped",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ganaTileLastRunFailed": "前回失敗 · {when}",
+  "@ganaTileLastRunFailed": {
+    "description": "Last-run label when the most recent run failed",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "ganaRelativeJustNow": "たった今",
+  "@ganaRelativeJustNow": {
+    "description": "Relative time for an event less than a minute ago"
+  },
+  "ganaRelativeMinutes": "{count}分前",
+  "@ganaRelativeMinutes": {
+    "description": "Relative time in minutes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaRelativeHours": "{count}時間前",
+  "@ganaRelativeHours": {
+    "description": "Relative time in hours",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaRelativeDays": "{count}日前",
+  "@ganaRelativeDays": {
+    "description": "Relative time in days",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ganaFormCreateTitle": "新しいGana",
+  "@ganaFormCreateTitle": {
+    "description": "AppBar title in create mode"
+  },
+  "ganaFormEditTitle": "編集 · {name}",
+  "@ganaFormEditTitle": {
+    "description": "AppBar title in edit mode",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ganaFormEditTitleFallback": "Ganaを編集",
+  "@ganaFormEditTitleFallback": {
+    "description": "Edit-mode title when the name is empty"
+  },
+  "ganaFormSaveAction": "保存",
+  "@ganaFormSaveAction": {
+    "description": "AppBar action — save the Gana"
+  },
+  "ganaFormDeleteAction": "Ganaを削除",
+  "@ganaFormDeleteAction": {
+    "description": "Edit-mode delete button label"
+  },
+  "ganaFormNameLabel": "名前",
+  "@ganaFormNameLabel": {
+    "description": "Field label"
+  },
+  "ganaFormNameHint": "例: 質問への返信役",
+  "@ganaFormNameHint": {
+    "description": "Name field placeholder"
+  },
+  "ganaFormManasSectionTitle": "知識",
+  "@ganaFormManasSectionTitle": {
+    "description": "Section title above the Manas picker"
+  },
+  "ganaFormManasSectionSubtitle": "このGanaが考えるために使うManasです。",
+  "@ganaFormManasSectionSubtitle": {
+    "description": "Helper text under the section title"
+  },
+  "ganaFormManasEmpty": "Manasがまだありません。Ganaが考えるには知識ベースが必要です。先にManasを作成してください。",
+  "@ganaFormManasEmpty": {
+    "description": "Empty-state when the user has no Manases"
+  },
+  "ganaFormManasCreateNew": "Manasを作成",
+  "@ganaFormManasCreateNew": {
+    "description": "Inline CTA to open the Manas form from the Gana form"
+  },
+  "ganaFormModeRecurring": "繰り返し",
+  "@ganaFormModeRecurring": {
+    "description": "Cron-job mode label"
+  },
+  "ganaFormModeOneShot": "1回だけ",
+  "@ganaFormModeOneShot": {
+    "description": "Fire once then auto-disable label"
+  },
+  "ganaFormModeRecurringHelp": "無効にするまで、条件に一致するたびに実行します。",
+  "@ganaFormModeRecurringHelp": {
+    "description": "Recurring mode helper"
+  },
+  "ganaFormModeOneShotHelp": "1回実行すると自動的に無効になります。再度有効にすると、もう一度実行できます。",
+  "@ganaFormModeOneShotHelp": {
+    "description": "One-shot mode helper"
+  },
+  "ganaFormBlockerName": "続行するには名前を追加してください。",
+  "@ganaFormBlockerName": {
+    "description": "Save-blocker hint: missing name"
+  },
+  "ganaFormBlockerManas": "Manasを1つ以上選択してください。Ganaが考えるには知識が必要です。",
+  "@ganaFormBlockerManas": {
+    "description": "Save-blocker hint: no Manas selected"
+  },
+  "ganaFormBlockerTask": "Ganaが何をするか分かるように、指示を入力してください。",
+  "@ganaFormBlockerTask": {
+    "description": "Save-blocker hint: empty task prompt"
+  },
+  "ganaFormBlockerInputRef": "入力元としてグループ、DM、ユーザー、ノートのいずれかを選択してください。",
+  "@ganaFormBlockerInputRef": {
+    "description": "Save-blocker hint: input type set but ref empty"
+  },
+  "ganaFormBlockerOutputRef": "Ganaの公開先を選択してください。",
+  "@ganaFormBlockerOutputRef": {
+    "description": "Save-blocker hint: output type set but ref empty"
+  },
+  "ganaFormBlockerOneShotReactive": "入力元のある1回限りのGanaでは、「新しい入力に反応」を有効にしてください。",
+  "@ganaFormBlockerOneShotReactive": {
+    "description": "Save-blocker hint: one-shot + input but reactive off"
+  },
+  "ganaFormBlockerInterval": "単独で繰り返し実行するGanaには、5分以上の間隔が必要です。",
+  "@ganaFormBlockerInterval": {
+    "description": "Save-blocker hint: recurring + standalone but no interval"
+  },
+  "ganaFormBlockerTrigger": "「新しい入力に反応」を有効にするか、5分以上の間隔を設定してください。",
+  "@ganaFormBlockerTrigger": {
+    "description": "Save-blocker hint: recurring + input but no trigger picked"
+  },
+  "ganaFormBlockerMaxOutputs": "最大ノート数の上限を 1 ～ 1000 の範囲で設定します。",
+  "@ganaFormBlockerMaxOutputs": {
+    "description": "Save-blocker hint: recurring without a maxOutputs cap"
+  },
+  "ganaFormMaxOutputsLabel": "生成できる最大ノート数",
+  "@ganaFormMaxOutputsLabel": {
+    "description": "Label for the recurring safety cap input"
+  },
+  "ganaFormMaxOutputsHelp": "この数のノートを公開すると、繰り返し実行するGanaは自動的に無効になります。1〜1000の範囲で指定してください。",
+  "@ganaFormMaxOutputsHelp": {
+    "description": "Helper text for the max-outputs cap"
+  },
+  "ganaFormOneShotStandaloneNote": "このGanaを有効にすると1回実行し、その後自動的に無効になります。",
+  "@ganaFormOneShotStandaloneNote": {
+    "description": "Help text for one-shot + standalone (no trigger UI needed)"
+  },
+  "ganaFormReactiveRequiredNote": "入力元がある1回限りのGanaでは必須です。",
+  "@ganaFormReactiveRequiredNote": {
+    "description": "Help text under reactive switch when it's required"
+  },
+  "ganaFormTaskPromptLabel": "タスクプロンプト",
+  "@ganaFormTaskPromptLabel": {
+    "description": "Field label"
+  },
+  "ganaFormTaskPromptHint": "Ganaにしてほしいことを入力してください。例:「ここに質問が投稿されたら、Manasから関連するノートを探し、1行のコメントを添えて返信する」",
+  "@ganaFormTaskPromptHint": {
+    "description": "Placeholder for the task prompt"
+  },
+  "ganaFormInputSectionTitle": "入力",
+  "@ganaFormInputSectionTitle": {
+    "description": "Section title for the input source"
+  },
+  "ganaFormInputStandalone": "単独で実行（入力なし）",
+  "@ganaFormInputStandalone": {
+    "description": "Input-type option meaning no input surface"
+  },
+  "ganaFormInputGroup": "パブリックグループ",
+  "@ganaFormInputGroup": {
+    "description": "Input-type option"
+  },
+  "ganaFormInputPrivateGroup": "プライベートグループ",
+  "@ganaFormInputPrivateGroup": {
+    "description": "Input-type option"
+  },
+  "ganaFormInputDm": "DM",
+  "@ganaFormInputDm": {
+    "description": "Input-type option"
+  },
+  "ganaFormInputUser": "ユーザーのノート",
+  "@ganaFormInputUser": {
+    "description": "Input-type option"
+  },
+  "ganaFormInputFollowedNote": "フォロー中のノートのスレッド",
+  "@ganaFormInputFollowedNote": {
+    "description": "Input-type option"
+  },
+  "ganaFormInputPickHint": "ソースを選択してください",
+  "@ganaFormInputPickHint": {
+    "description": "Hint in the input-ref picker"
+  },
+  "ganaFormInputUserHint": "公開キー (16 進数または npub) を貼り付けます",
+  "@ganaFormInputUserHint": {
+    "description": "Hint when picking the user input ref"
+  },
+  "ganaFormOutputSectionTitle": "出力",
+  "@ganaFormOutputSectionTitle": {
+    "description": "Section title for the output destination"
+  },
+  "ganaFormOutputFeed": "メインフィード（kind 1）",
+  "@ganaFormOutputFeed": {
+    "description": "Output destination"
+  },
+  "ganaFormOutputGroup": "パブリックグループ",
+  "@ganaFormOutputGroup": {
+    "description": "Output destination"
+  },
+  "ganaFormOutputPrivateGroup": "プライベートグループ",
+  "@ganaFormOutputPrivateGroup": {
+    "description": "Output destination"
+  },
+  "ganaFormOutputDm": "DM",
+  "@ganaFormOutputDm": {
+    "description": "Output destination"
+  },
+  "ganaFormOutputPickHint": "公開先を選択",
+  "@ganaFormOutputPickHint": {
+    "description": "Hint in the output-ref picker"
+  },
+  "ganaFormModelSectionTitle": "モデル",
+  "@ganaFormModelSectionTitle": {
+    "description": "Section title for model selection"
+  },
+  "ganaFormModelUseActive": "有効なモデルを使用",
+  "@ganaFormModelUseActive": {
+    "description": "Default option when no specific model is pinned"
+  },
+  "ganaFormTriggersSectionTitle": "トリガー",
+  "@ganaFormTriggersSectionTitle": {
+    "description": "Section title for trigger config"
+  },
+  "ganaFormTriggerQuestion": "いつ実行しますか？",
+  "@ganaFormTriggerQuestion": {
+    "description": "Header above the trigger preset radio group"
+  },
+  "ganaFormPresetOnceOnEnable": "有効化時に1回",
+  "@ganaFormPresetOnceOnEnable": {
+    "description": "Preset: standalone one-shot — fires on enable"
+  },
+  "ganaFormPresetOnceOnFirstMessage": "最初の新しいメッセージで1回",
+  "@ganaFormPresetOnceOnFirstMessage": {
+    "description": "Preset: one-shot + reactive"
+  },
+  "ganaFormPresetEveryMessage": "新しいメッセージごと",
+  "@ganaFormPresetEveryMessage": {
+    "description": "Preset: recurring + reactive (no interval)"
+  },
+  "ganaFormPresetOnSchedule": "定期的に実行（N分ごと）",
+  "@ganaFormPresetOnSchedule": {
+    "description": "Preset: recurring + interval only"
+  },
+  "ganaFormPresetMessageOrSchedule": "新しいメッセージごと、または定期的に実行",
+  "@ganaFormPresetMessageOrSchedule": {
+    "description": "Preset: recurring + reactive + interval"
+  },
+  "ganaFormReactiveLabel": "新しい入力に反応する",
+  "@ganaFormReactiveLabel": {
+    "description": "Reactive trigger toggle label"
+  },
+  "ganaFormReactiveHelp": "入力元に新しいメッセージが届くと、数秒以内に実行します。",
+  "@ganaFormReactiveHelp": {
+    "description": "Reactive trigger helper text"
+  },
+  "ganaFormIntervalLabel": "一定間隔で実行",
+  "@ganaFormIntervalLabel": {
+    "description": "Interval trigger label"
+  },
+  "ganaFormIntervalUnit": "分（5分以上）",
+  "@ganaFormIntervalUnit": {
+    "description": "Interval trigger unit hint"
+  },
+  "ganaFormEnabledLabel": "有効",
+  "@ganaFormEnabledLabel": {
+    "description": "Master switch label"
+  },
+  "ganaFormEnabledHelp": "デフォルトではオフです。設定を確認したらオンにします。",
+  "@ganaFormEnabledHelp": {
+    "description": "Master switch helper text"
+  },
+  "ganaFormRunsSectionTitle": "最近の実行",
+  "@ganaFormRunsSectionTitle": {
+    "description": "Section header for the run log in edit mode"
+  },
+  "ganaFormRunsEmpty": "このGanaの実行履歴はまだありません。",
+  "@ganaFormRunsEmpty": {
+    "description": "Empty state for the run log"
+  },
+  "ganaFormDeleteConfirmTitle": "このGanaを削除しますか？",
+  "@ganaFormDeleteConfirmTitle": {
+    "description": "Delete confirmation title"
+  },
+  "ganaFormDeleteConfirmBody": "エージェントを停止し、実行履歴を削除します。参照しているManasとノートは残ります。",
+  "@ganaFormDeleteConfirmBody": {
+    "description": "Delete confirmation body"
+  },
+  "ganaFormDeleteConfirmConfirm": "削除",
+  "@ganaFormDeleteConfirmConfirm": {
+    "description": "Destructive confirm"
+  },
+  "ganaFormDeleteConfirmCancel": "キャンセル",
+  "@ganaFormDeleteConfirmCancel": {
+    "description": "Cancel action"
+  },
+  "ganaRunStatusSucceeded": "成功しました",
+  "@ganaRunStatusSucceeded": {
+    "description": "Run-status label"
+  },
+  "ganaRunStatusSkipped": "スキップされました",
+  "@ganaRunStatusSkipped": {
+    "description": "Run-status label"
+  },
+  "ganaRunStatusFailed": "失敗しました",
+  "@ganaRunStatusFailed": {
+    "description": "Run-status label"
+  },
+  "ganaRunStatusRunning": "実行中",
+  "@ganaRunStatusRunning": {
+    "description": "Run-status label"
+  },
+  "natarajTileAction": "アイデアを刺激する",
+  "@natarajTileAction": {
+    "description": "Nataraj tile action button label"
+  },
+  "natarajDrawerTitle": "Nataraj",
+  "@natarajDrawerTitle": {
+    "description": "Title of the Nataraj deck side drawer"
+  },
+  "natarajScopeSheetTitle": "Manasを選択",
+  "@natarajScopeSheetTitle": {
+    "description": "Nataraj scope sheet title"
+  },
+  "natarajScopeAllNotes": "Brahma",
+  "@natarajScopeAllNotes": {
+    "description": "Nataraj scope option — all notes (Brahma)"
+  },
+  "natarajScopeManasCount": "Manas {count}件",
+  "@natarajScopeManasCount": {
+    "description": "Nataraj scope pill label when multiple manas are selected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "natarajNewChatTooltip": "新しいチャット",
+  "@natarajNewChatTooltip": {
+    "description": "Tooltip for new nataraj chat button"
+  },
+  "natarajEdgePublish": "公開",
+  "@natarajEdgePublish": {
+    "description": "Nataraj edge action — publish"
+  },
+  "natarajEdgeDraft": "下書き",
+  "@natarajEdgeDraft": {
+    "description": "Nataraj edge action — save as draft"
+  },
+  "natarajEdgeDiscard": "破棄",
+  "@natarajEdgeDiscard": {
+    "description": "Nataraj edge action — discard"
+  },
+  "natarajEdgeDiscuss": "話し合う",
+  "@natarajEdgeDiscuss": {
+    "description": "Nataraj edge action — discuss"
+  },
+  "natarajReferencesLabel": "参照",
+  "@natarajReferencesLabel": {
+    "description": "Nataraj references section label"
+  },
+  "natarajReferencesView": "参照を表示",
+  "@natarajReferencesView": {
+    "description": "Nataraj references action — view"
+  },
+  "natarajReferencesAttach": "公開すると、選択したノートが参照として添付されます。",
+  "@natarajReferencesAttach": {
+    "description": "Nataraj references helper text"
+  },
+  "natarajCoachTitle": "スワイプしてアイデアを検討する",
+  "@natarajCoachTitle": {
+    "description": "Nataraj coach/onboarding title"
+  },
+  "natarajCoachDismiss": "わかりました",
+  "@natarajCoachDismiss": {
+    "description": "Nataraj coach dismiss button"
+  },
+  "natarajGenerating": "つながりを探しています…",
+  "@natarajGenerating": {
+    "description": "Nataraj generating state label"
+  },
+  "natarajRevisitingHint": "過去のアイデアを見直し、新しい発想のためにノートを追加しましょう",
+  "@natarajRevisitingHint": {
+    "description": "Nataraj hint when revisiting older generated ideas"
+  },
+  "natarajEmptyNeedsMoreTitle": "まだノートが足りません",
+  "@natarajEmptyNeedsMoreTitle": {
+    "description": "Nataraj empty state title when scope lacks notes"
+  },
+  "natarajEmptyNeedsMoreBody": "このスコープでは、接続を開始するには少なくとも 2 つのノートが必要です。",
+  "@natarajEmptyNeedsMoreBody": {
+    "description": "Nataraj empty state body when scope lacks notes"
+  },
+  "natarajExhaustedTitle": "すべての組み合わせを見終えました",
+  "@natarajExhaustedTitle": {
+    "description": "Nataraj exhausted state title"
+  },
+  "natarajExhaustedBody": "ノートを追加して新しいアイデアを生み出します。",
+  "@natarajExhaustedBody": {
+    "description": "Nataraj exhausted state body"
+  },
+  "natarajModelErrorTitle": "アイデアを生み出すことができませんでした",
+  "@natarajModelErrorTitle": {
+    "description": "Nataraj error state title when the AI model fails to run"
+  },
+  "natarajModelErrorBody": "AI モデルはこのデバイスでは実行できませんでした。別の (小さい) モデルを試すか、[再試行] をタップします。",
+  "@natarajModelErrorBody": {
+    "description": "Nataraj error state body when the AI model fails to run"
+  },
+  "natarajNoIdeaTitle": "今回はアイデアが見つかりませんでした",
+  "@natarajNoIdeaTitle": {
+    "description": "Nataraj state title when generation succeeded but produced nothing usable (not a model/device failure)"
+  },
+  "natarajNoIdeaBody": "このノートの組み合わせからは新しい発想が生まれませんでした。また試してみてください。",
+  "@natarajNoIdeaBody": {
+    "description": "Nataraj state body when generation succeeded but produced nothing usable (not a model/device failure)"
+  },
+  "natarajPublishedSnack": "ノートとして公開しました",
+  "@natarajPublishedSnack": {
+    "description": "Snackbar after publishing a nataraj idea"
+  },
+  "natarajDraftSavedSnack": "下書きとして保存されました",
+  "@natarajDraftSavedSnack": {
+    "description": "Snackbar after saving a nataraj idea as draft"
+  },
+  "natarajGenerateErrorSnack": "現在生成できませんでした",
+  "@natarajGenerateErrorSnack": {
+    "description": "Snackbar when nataraj generation fails"
+  },
+  "natarajYouName": "あなた",
+  "@natarajYouName": {
+    "description": "Author name shown on the synthesized root card in Nataraj refs page"
+  },
+  "natarajYouHandle": "@you · 今",
+  "@natarajYouHandle": {
+    "description": "Handle/timestamp shown on the synthesized root card in Nataraj refs page"
+  },
+  "natarajDraftLabel": "下書き",
+  "@natarajDraftLabel": {
+    "description": "Display name for unknown or resolved draft references in Nataraj refs page"
+  },
+  "natarajRefsCount": "{count} 参照",
+  "@natarajRefsCount": {
+    "description": "Refs badge label on the synthesized root card action row in Nataraj refs page",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "natarajRetry": "再試行",
+  "@natarajRetry": {
+    "description": "Retry button label on the Nataraj error state"
+  },
+  "receiveShareTitle": "UNIUNに追加",
+  "@receiveShareTitle": {
+    "description": "Title of the sheet shown when content is shared into UNIUN from another app"
+  },
+  "receiveShareCommentHint": "何か言ってください… (オプション)",
+  "@receiveShareCommentHint": {
+    "description": "Composer hint on the receive-share sheet"
+  },
+  "receiveShareSaveDraft": "下書きに保存",
+  "@receiveShareSaveDraft": {
+    "description": "Draft button label on the receive-share sheet"
+  },
+  "receiveShareDraftSaved": "下書きに保存しました",
+  "@receiveShareDraftSaved": {
+    "description": "Snackbar after saving shared content as a draft"
+  },
+  "receiveShareIngesting": "添付ファイルを準備しています…",
+  "@receiveShareIngesting": {
+    "description": "Shown while shared images/videos/files are being uploaded"
+  },
+  "receiveShareDraftNeedsText": "テキストを追加して下書きを保存します",
+  "@receiveShareDraftNeedsText": {
+    "description": "Error when trying to save a draft with no text (drafts are text-only)"
+  },
+  "receiveShareNothingToShare": "最初にテキストまたはメディアを追加します",
+  "@receiveShareNothingToShare": {
+    "description": "Error when trying to publish with no text and no attachments"
+  },
+  "threadNewNote": "新しい",
+  "@threadNewNote": {
+    "description": "Marker above a note in a followed note's thread that has not been opened yet"
+  },
+  "threadNewReplyInside": "新しい返信があります",
+  "@threadNewReplyInside": {
+    "description": "Marker above a note in a followed note's thread when an unopened reply sits further down"
+  },
+  "unreadBadgeOverflow": "99+",
+  "@unreadBadgeOverflow": {
+    "description": "Shown on the jump-to-latest badge when more than 99 notes are unread"
+  },
+  "newNotesDivider": "新しいノート",
+  "@newNotesDivider": {
+    "description": "Line shown above the first unread note when a chat opens"
+  },
+  "jumpToLatest": "最新にジャンプ",
+  "@jumpToLatest": {
+    "description": "Tooltip on the floating button that scrolls a chat to the newest message and marks the surface read"
+  },
+  "interestsEyebrow": "フィードを構築する",
+  "@interestsEyebrow": {
+    "description": "Eyebrow label on the onboarding interest picker"
+  },
+  "interestsTitle": "興味のあるものを選んでください",
+  "@interestsTitle": {
+    "description": "Title on the onboarding interest picker"
+  },
+  "interestsSubtitle": "少なくとも 3 つ選択してください。それぞれが毎日投稿されるため、最初のスクロールからフィードが有効になります。",
+  "@interestsSubtitle": {
+    "description": "Subtitle explaining the onboarding interest picker"
+  },
+  "interestsSearchHint": "興味のあることを検索…",
+  "@interestsSearchHint": {
+    "description": "Placeholder in the interest picker search box"
+  },
+  "interestsNoResults": "一致する興味はありません。",
+  "@interestsNoResults": {
+    "description": "Shown when an interest search matches nothing"
+  },
+  "interestsContinue": "フィードを見る",
+  "@interestsContinue": {
+    "description": "Primary button on the interest picker, enabled once enough interests are chosen"
+  },
+  "interestsPickMore": "続行するには、さらに {count} を選択してください",
+  "@interestsPickMore": {
+    "description": "Disabled-state label on the interest picker button, shows how many more interests are needed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "interestsSkip": "今のところスキップしてください",
+  "@interestsSkip": {
+    "description": "Secondary action to skip the interest picker"
+  },
+  "interestsFollowFailed": "全員をフォローできませんでした。もう一度お試しください。",
+  "@interestsFollowFailed": {
+    "description": "Snackbar when following the chosen interests fails"
+  },
+  "interestsLoadFailed": "興味のあるものを読み込めませんでした。接続を確認してください。",
+  "@interestsLoadFailed": {
+    "description": "Shown when fetching the onboarding interest roster from the gateway fails"
+  },
+  "interestsRetry": "再試行",
+  "@interestsRetry": {
+    "description": "Button to retry loading the onboarding interest roster"
+  },
+  "welcomeMoreLanguages": "さらに多くの言語",
+  "@welcomeMoreLanguages": {
+    "description": "Link on the welcome screen that opens the full language picker"
+  },
+  "languageSelectTitle": "言語を選択してください",
+  "@languageSelectTitle": {
+    "description": "App bar title of the language selection page"
+  },
+  "languageComingSoon": "近日公開予定",
+  "@languageComingSoon": {
+    "description": "Badge on languages that don't have translations yet"
+  },
+  "settingsLanguage": "言語",
+  "@settingsLanguage": {
+    "description": "Settings section label for the app language"
+  },
+  "settingsAppLanguage": "アプリ言語",
+  "@settingsAppLanguage": {
+    "description": "Settings row label that opens the language picker"
+  },
+  "graphEmptyHint": "ノートを保存してナレッジ グラフを構築します。\n\nエッジは、あるノートが別のノートを参照するときに表示されます。",
+  "@graphEmptyHint": {
+    "description": "Empty-state message shown on the knowledge graph canvas when there are no notes yet"
+  },
+  "ganaDetailManasesLabel": "マナセス",
+  "@ganaDetailManasesLabel": {
+    "description": "Label on the Gana detail card for the number of Manases the agent draws from"
+  },
+  "settingsAppearance": "外観",
+  "@settingsAppearance": {
+    "description": "Settings section label for appearance-related options (theme mode)"
+  },
+  "settingsTheme": "テーマ",
+  "@settingsTheme": {
+    "description": "Settings row label that opens the theme mode picker"
+  },
+  "settingsThemeSheetTitle": "テーマの選択",
+  "@settingsThemeSheetTitle": {
+    "description": "Title of the bottom sheet that picks between system/light/dark theme"
+  },
+  "settingsThemeSystem": "システム設定に合わせる",
+  "@settingsThemeSystem": {
+    "description": "Theme option that follows the device's system theme"
+  },
+  "settingsThemeLight": "ライト",
+  "@settingsThemeLight": {
+    "description": "Theme option that forces light mode"
+  },
+  "settingsThemeDark": "ダーク",
+  "@settingsThemeDark": {
+    "description": "Theme option that forces dark mode"
+  },
+  "settingsNearbySync": "近くの同期",
+  "@settingsNearbySync": {
+    "description": "Settings section label for nearby-device sync"
+  },
+  "meshTitle": "近くのデバイスと同期する",
+  "@meshTitle": {
+    "description": "Title of the nearby-device sync toggle in settings"
+  },
+  "meshSubtitle": "ベータ · 同じ Wi-Fi 上の他のデバイスとノートを同期します。インターネットは必要ありません。",
+  "@meshSubtitle": {
+    "description": "Subtitle explaining the nearby-device sync toggle"
+  },
+  "meshConnected": "{count, plural, =0{ピアなし} =1{ピア1件} other{ピア{count}件}}",
+  "@meshConnected": {
+    "description": "Status line under the mesh toggle: how many peers are currently connected",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "drawerSurrounding": "周囲",
+  "@drawerSurrounding": {
+    "description": "Drawer entry opening the Surrounding (nearby) feed"
+  },
+  "surroundingTitle": "周囲",
+  "@surroundingTitle": {
+    "description": "App bar title of the Surrounding feed"
+  },
+  "surroundingEmpty": "近くにはまだ何もありません",
+  "@surroundingEmpty": {
+    "description": "Empty state title for the Surrounding feed"
+  },
+  "surroundingEmptySub": "メッシュ上の近くのデバイスによってブロードキャストされるノートがここに表示されます。それらは毎日クリアされます。",
+  "@surroundingEmptySub": {
+    "description": "Empty state subtitle for the Surrounding feed"
+  },
+  "surroundingSave": "保存",
+  "@surroundingSave": {
+    "description": "Button that saves a surrounding note before it is evicted"
+  },
+  "surroundingSaved": "保存されました",
+  "@surroundingSaved": {
+    "description": "Snackbar shown after keeping a surrounding note"
+  },
+  "surroundingSourceLabel": "📍近く",
+  "@surroundingSourceLabel": {
+    "description": "Source tag shown on a note received from a nearby device in the Surrounding feed"
+  },
+  "noteCardTranslate": "翻訳する",
+  "translateSheetTitle": "翻訳先の言語",
+  "translateSheetAction": "翻訳する",
+  "translateSheetSettingsHint": "アプリの言語を使用",
+  "translatingLabel": "翻訳中…",
+  "translatedToLabel": "{language} に翻訳",
+  "@translatedToLabel": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "translationShowOriginal": "オリジナルを表示",
+  "translationShowTranslation": "翻訳を表示",
+  "translationChangeLanguage": "変更",
+  "translationFailed": "このノートを翻訳できませんでした。もう一度やり直してください。",
+  "translationNotProduced": "AI モデルはこのノートを翻訳できませんでした。より大きなモデルまたはUNIUNクラウドをお試しください。",
+  "brahmaPublishConfirmTitle": "このノートを公開しますか?",
+  "brahmaPublishConfirmBody": "公開したノートは残り続けます。リレーに送信され、編集や削除はできません。まだ作業中なら、下書きとして保存してください。",
+  "errorUnexpected": "問題が発生しました。",
+  "@errorUnexpected": {
+    "description": "Generic error message when a screen has no more specific failure text"
+  },
+  "savedNoSearchResults": "検索に一致するノートはありません。",
+  "@savedNoSearchResults": {
+    "description": "Empty search result on the saved notes page"
+  },
+  "qrScannerInvalidCode": "無効なQRコード: {error}",
+  "@qrScannerInvalidCode": {
+    "description": "Error shown when a scanned UNIUN QR cannot be decoded",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "qrScannerInstruction": "UNIUNのQRコードをスキャンしてください（ユーザー、公開グループ、非公開グループ）",
+  "@qrScannerInstruction": {
+    "description": "Instruction below the universal QR scanner"
+  },
+  "qrCopiedToClipboard": "{label} • クリップボードにコピーしました",
+  "@qrCopiedToClipboard": {
+    "description": "Confirmation after copying a QR card's identifier",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "privateGroupShareQrTooltip": "QRコードを共有",
+  "@privateGroupShareQrTooltip": {
+    "description": "Tooltip for sharing a private group's QR code"
+  },
+  "privateGroupLeaveAction": "グループから退出",
+  "@privateGroupLeaveAction": {
+    "description": "Menu action for leaving a private group"
+  },
+  "privateGroupPendingApprovalTitle": "承認待ち",
+  "@privateGroupPendingApprovalTitle": {
+    "description": "Title while a request to join a private group awaits admin approval"
+  },
+  "privateGroupPendingApprovalBody": "参加リクエストを送信しました。グループ管理者に承認されると、メッセージの閲覧と送信ができるようになります。",
+  "@privateGroupPendingApprovalBody": {
+    "description": "Explanation while a request to join a private group awaits admin approval"
+  },
+  "dmShareKeysTooltip": "鍵を共有",
+  "@dmShareKeysTooltip": {
+    "description": "Tooltip for sharing direct-message identity keys"
+  },
+  "groupFeedNoMessages": "メッセージはまだありません。最初に投稿しましょう！",
+  "@groupFeedNoMessages": {
+    "description": "Empty state in a public group's message feed"
+  },
+  "threadShowMoreReferences": "{count, plural, =1{さらに参照1件を表示} other{さらに参照{count}件を表示}}",
+  "@threadShowMoreReferences": {
+    "description": "Expands hidden parent references in a thread",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}
