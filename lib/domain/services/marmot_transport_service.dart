@@ -30,6 +30,9 @@ class MarmotTransportService {
   final NoteRelationRepository _relations;
   final MeshEventSigner _signer;
   StreamSubscription<void>? _subscription;
+  Future<void>? _processing;
+  bool _again = false;
+  bool _stopping = false;
 
   MarmotTransportService(
     this._isar,
@@ -39,14 +42,39 @@ class MarmotTransportService {
   );
 
   void start() {
-    _processPendingMessages();
+    if (_subscription != null) return;
+    _stopping = false;
+    unawaited(_processLoop());
     _subscription = _isar.encryptedMessageModels.watchLazy().listen((_) {
-      _processPendingMessages();
+      unawaited(_processLoop());
     });
   }
 
-  void stop() {
-    _subscription?.cancel();
+  Future<void> stop() async {
+    _stopping = true;
+    await _subscription?.cancel();
+    _subscription = null;
+    await _processing;
+  }
+
+  Future<void> _processLoop() async {
+    if (_stopping) return;
+    if (_processing != null) {
+      _again = true;
+      return;
+    }
+    final processing = () async {
+      do {
+        _again = false;
+        await _processPendingMessages();
+      } while (_again && !_stopping);
+    }();
+    _processing = processing;
+    try {
+      await processing;
+    } finally {
+      _processing = null;
+    }
   }
 
   Future<PrivateGroupModel?> _findGroup(String groupId) {

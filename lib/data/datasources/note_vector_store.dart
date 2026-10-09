@@ -91,6 +91,9 @@ class NoteVectorStore {
 
   Future<void> delete(String id) => _ask<void>((reply) => _Delete(reply, id));
 
+  /// Removes all note vectors when switching accounts.
+  Future<void> clear() => _ask<void>(_Clear.new);
+
   Future<bool> contains(String id) =>
       _ask<bool>((reply) => _Contains(reply, id));
 
@@ -136,6 +139,10 @@ class _Upsert extends _Command {
 class _Delete extends _Command {
   const _Delete(super.reply, this.id);
   final String id;
+}
+
+class _Clear extends _Command {
+  const _Clear(super.reply);
 }
 
 class _Contains extends _Command {
@@ -195,6 +202,10 @@ Future<void> _serve(({String path, SendPort ready}) init) async {
           await db
               .delete(embeddingsTableName)
               .where(embeddingsIdField, '=', id);
+          await db.flush();
+          command.reply.send(null);
+        case _Clear():
+          await db.clear(embeddingsTableName);
           await db.flush();
           command.reply.send(null);
         case _Contains(:final id):

@@ -85,8 +85,12 @@ class _ShivPageState extends State<ShivPage> {
     // no bottom tab — same slide it already uses for the keyboard/drawer).
     if (_hasModel == true) {
       return BlocProvider(
-        create: (_) =>
-            getIt<ShivAIBloc>()..add(const ShivAIEvent.loadConversations()),
+        create: (_) {
+          final bloc = getIt<ShivAIBloc>();
+          ShivAIBloc.registerActiveSession(bloc);
+          bloc.add(const ShivAIEvent.loadConversations());
+          return bloc;
+        },
         child: Stack(
           children: [
             _ShivRoot(

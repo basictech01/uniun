@@ -29,4 +29,6 @@ class SurroundingReadStateStore {
     if (ts.millisecondsSinceEpoch <= current) return;
     await _prefs.setInt(_kLastReadMs, ts.millisecondsSinceEpoch);
   }
+
+  Future<void> clear() => _prefs.remove(_kLastReadMs);
 }

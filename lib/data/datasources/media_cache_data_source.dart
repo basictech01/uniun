@@ -78,6 +78,14 @@ class MediaCacheDataSource {
     }
   }
 
+  /// Clear attachments cached for the logged-out account.
+  Future<void> clear() async {
+    final dir = await _mediaDir();
+    await for (final entry in dir.list()) {
+      await entry.delete(recursive: true);
+    }
+  }
+
   /// Total bytes the cache currently occupies. Used by the Storage page.
   Future<int> totalBytes() async {
     final dir = await _mediaDir();

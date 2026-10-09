@@ -124,21 +124,25 @@ class GanaEngine {
   final Set<String> _firedOnEnable = <String>{};
 
   bool _started = false;
+  bool _stopping = false;
+  Timer? _rebuildDebounce;
+  final Set<Future<void>> _rebuilds = {};
 
   static const Duration _reactiveDebounceDelay = Duration(seconds: 3);
   static const Duration _scheduleRebuildDebounce = Duration(milliseconds: 500);
 
   Future<void> start() async {
     if (_started) return;
+    _stopping = false;
     _started = true;
-    await _rebuildSchedule();
+    await _trackRebuild();
+    if (_stopping) return;
 
     // Schedule reload on any Gana config change.
-    Timer? rebuildDebounce;
     _subs.add(_isar.ganaModels.watchLazy().listen((_) {
-      rebuildDebounce?.cancel();
-      rebuildDebounce =
-          Timer(_scheduleRebuildDebounce, _rebuildSchedule);
+      _rebuildDebounce?.cancel();
+      _rebuildDebounce =
+          Timer(_scheduleRebuildDebounce, () => unawaited(_trackRebuild()));
     }));
 
     // Reactive trigger source. Single watcher; each enabled Gana picks up
@@ -155,6 +159,9 @@ class GanaEngine {
   }
 
   Future<void> stop() async {
+    _stopping = true;
+    _rebuildDebounce?.cancel();
+    _rebuildDebounce = null;
     for (final s in _subs) {
       await s.cancel();
     }
@@ -167,10 +174,24 @@ class GanaEngine {
       t.cancel();
     }
     _intervalTimers.clear();
+    await Future.wait(_rebuilds.toList());
+    await _runMutex?.future;
+    _enabledGanas = const [];
+    _firedOnEnable.clear();
     _started = false;
   }
 
   // ── Schedule rebuild ───────────────────────────────────────────────────
+
+  Future<void> _trackRebuild() async {
+    final rebuild = _rebuildSchedule();
+    _rebuilds.add(rebuild);
+    try {
+      await rebuild;
+    } finally {
+      _rebuilds.remove(rebuild);
+    }
+  }
 
   Future<void> _rebuildSchedule() async {
     final rows = await _isar.ganaModels
@@ -179,6 +200,7 @@ class GanaEngine {
         .and()
         .enabledEqualTo(true)
         .findAll();
+    if (_stopping) return;
     _enabledGanas = rows.map((m) => m.toDomain()).toList();
 
     final liveIds = {for (final g in _enabledGanas) g.ganaId};
@@ -226,6 +248,7 @@ class GanaEngine {
   // ── Triggers ───────────────────────────────────────────────────────────
 
   void _scheduleReactive(GanaEntity g) {
+    if (_stopping) return;
     _reactiveDebounce[g.ganaId]?.cancel();
     _reactiveDebounce[g.ganaId] =
         Timer(_reactiveDebounceDelay, () => _runIfPossible(g.ganaId));
@@ -260,6 +283,7 @@ class GanaEngine {
   }
 
   Future<void> _runIfPossible(String ganaId) async {
+    if (_stopping) return;
     if (_runMutex != null) return; // single-flight
     final mutex = _runMutex = Completer<void>();
     try {
@@ -269,7 +293,7 @@ class GanaEngine {
           .and()
           .removedAtIsNull()
           .findFirst();
-      if (row == null || !row.enabled) return;
+      if (_stopping || row == null || !row.enabled) return;
       await _runOnce(row.toDomain());
     } catch (e, st) {
       debugPrint('GanaEngine: unexpected error in _runOnce: $e\n$st');
@@ -754,4 +778,3 @@ class GanaEngine {
     });
   }
 }
-

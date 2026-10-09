@@ -1263,6 +1263,21 @@ void main() {
       expect(rows, hasLength(2));
     });
 
+    test('stop cancels a pending rebuild before it can run old-account Ganas',
+        () async {
+      await engine.start();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await seedStandaloneGana(ganaId: 'old-account');
+
+      await engine.stop();
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+
+      expect(await isar.ganaRunModels
+          .filter()
+          .ganaIdEqualTo('old-account')
+          .count(), 0);
+    });
+
     test('a config change after start() debounces through the watchLazy '
         'listener and picks up a newly-enabled Gana (proves the watcher → '
         'debounce → rebuild path actually fires, not just the initial '

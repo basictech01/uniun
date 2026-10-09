@@ -19,26 +19,26 @@ void main() {
 
   setUp(() async {
     support = await Directory.systemTemp.createTemp('uniun_media_cache_');
-    TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (call) async {
-        // MediaCacheDataSource only calls getApplicationSupportDirectory.
-        if (call.method == 'getApplicationSupportDirectory') return support.path;
-        return null;
-      },
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async {
+            // MediaCacheDataSource only calls getApplicationSupportDirectory.
+            if (call.method == 'getApplicationSupportDirectory') {
+              return support.path;
+            }
+            return null;
+          },
+        );
     ds = MediaCacheDataSource();
   });
 
   tearDown(() async {
-    TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      null,
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
     if (await support.exists()) {
       await support.delete(recursive: true);
     }
@@ -49,10 +49,7 @@ void main() {
   group('fileFor / directory creation', () {
     test('creates media/ subdirectory on first call', () async {
       final f = await ds.fileFor('abc', 'jpg');
-      expect(
-        p.dirname(f.path),
-        p.join(support.path, 'media'),
-      );
+      expect(p.dirname(f.path), p.join(support.path, 'media'));
       expect(await Directory(p.join(support.path, 'media')).exists(), isTrue);
     });
 
@@ -142,6 +139,24 @@ void main() {
     });
   });
 
+  test(
+    'logout clear removes every cached attachment, including nested files',
+    () async {
+      await ds.write('first', 'jpg', bytesOf('one'));
+      await ds.write('second', 'png', bytesOf('two'));
+      final nested = Directory(p.join(support.path, 'media', 'nested'));
+      await nested.create();
+      await File(p.join(nested.path, 'partial.tmp')).writeAsString('partial');
+
+      await ds.clear();
+
+      expect(await ds.read('first', 'jpg'), isNull);
+      expect(await ds.read('second', 'png'), isNull);
+      expect(await nested.exists(), isFalse);
+      expect(await ds.totalBytes(), 0);
+    },
+  );
+
   group('idempotency / overwrite', () {
     test('re-writing the same sha overwrites with new bytes', () async {
       await ds.write('sha', 'txt', bytesOf('v1'));
@@ -187,10 +202,9 @@ void main() {
 
   group('scale', () {
     test('handles 100 concurrent writes without collision', () async {
-      await Future.wait(List.generate(
-        100,
-        (i) => ds.write('sha$i', 'txt', bytesOf('v$i')),
-      ));
+      await Future.wait(
+        List.generate(100, (i) => ds.write('sha$i', 'txt', bytesOf('v$i'))),
+      );
       for (var i = 0; i < 100; i++) {
         final f = await ds.read('sha$i', 'txt');
         expect(await f!.readAsBytes(), bytesOf('v$i'));

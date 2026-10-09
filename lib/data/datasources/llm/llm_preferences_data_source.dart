@@ -31,4 +31,9 @@ class LlmPreferencesDataSource {
       await _prefs.setString(_kActiveCloudModelId, id);
     }
   }
+
+  Future<void> clear() async {
+    await _prefs.remove(_kActiveBackend);
+    await _prefs.remove(_kActiveCloudModelId);
+  }
 }

@@ -1,9 +1,6 @@
-// Gives device tests an on-device model without downloading it each run.
-//
-// `flutter test` reinstalls the app per file, wiping its storage, so a model
-// downloaded through the app is lost. Push it once to a path the uninstall
-// does not touch (`scripts/device_test.sh push-model`); this installs it from
-// there and marks it active. Same idea as flutter_edge_ai's own example tests.
+// Reuses a local model fixture across integration test runs. The fixture may
+// be in the app documents directory, a configured directory, or the existing
+// device test fixture directory.
 
 import 'dart:io';
 
@@ -18,6 +15,7 @@ import 'package:uniun/data/datasources/app_settings_store.dart';
 import 'package:uniun/domain/entities/ai_model/ai_model_entity.dart';
 
 const kTestModelDir = '/data/local/tmp/uniun_test';
+const _configuredTestModelDir = String.fromEnvironment('UNIUN_TEST_MODEL_DIR');
 
 /// Replaces the blank/splash screen while a test provisions state.
 void showTestScreen(String message) {
@@ -36,8 +34,8 @@ void showTestScreen(String message) {
   );
 }
 
-/// Installs [id] from [kTestModelDir] and makes it active. Returns false when
-/// the file was never pushed, so the caller can SKIP with a useful message.
+/// Installs [id] from an available test fixture and makes it active. Returns
+/// false when no fixture or installed model is available.
 /// Needs no DI, so it also works in tests that never call
 /// `configureDependencies()`.
 Future<bool> provisionTestModel(AIModelId id) async {
@@ -48,20 +46,29 @@ Future<bool> provisionTestModel(AIModelId id) async {
   );
 
   final filename = _filename(id);
+  final documents = await getApplicationDocumentsDirectory();
+  final file = File(p.join(documents.path, filename));
 
-  // Always (re)register from the pushed file: `isModelInstalled` can stay true
-  // from a previous run while the plugin has lost the active-model link.
-  final pushed = File(p.join(kTestModelDir, filename));
-  if (pushed.existsSync()) {
-    // Copied into the app folder, where flutter_gemma restores a model from in
-    // every isolate; a path outside it is only known to the isolate that
-    // registered it. Kept between runs when the app is not uninstalled.
-    final file = File(
-      p.join((await getApplicationDocumentsDirectory()).path, filename),
-    );
-    if (!file.existsSync() || file.lengthSync() != pushed.lengthSync()) {
+  final fixtureDirs = [
+    if (_configuredTestModelDir.isNotEmpty) _configuredTestModelDir,
+    kTestModelDir,
+  ];
+  File? fixture;
+  for (final dir in fixtureDirs) {
+    final candidate = File(p.join(dir, filename));
+    if (candidate.existsSync()) {
+      fixture = candidate;
+      break;
+    }
+  }
+
+  // Register from the file on each run: the plugin may retain the installed
+  // flag while losing its active-model link after an app reinstall.
+  if (fixture != null || file.existsSync()) {
+    if (fixture != null &&
+        (!file.existsSync() || file.lengthSync() != fixture.lengthSync())) {
       showTestScreen('UNIUN test starting — copying ${id.name} (one time)…');
-      await pushed.copy(file.path);
+      await fixture.copy(file.path);
     }
     await FlutterGemma.installModel(
       modelType: _modelType(id),
@@ -70,7 +77,7 @@ Future<bool> provisionTestModel(AIModelId id) async {
           : ModelFileType.litertlm,
     ).fromFile(file.path).install();
   } else if (!await FlutterGemma.isModelInstalled(filename)) {
-    showTestScreen('No pushed model — run scripts/device_test.sh push-model');
+    showTestScreen('No ${id.name} model fixture is available');
     return false;
   }
   await AppSettingsStore(

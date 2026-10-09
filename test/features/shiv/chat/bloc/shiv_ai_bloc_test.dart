@@ -884,6 +884,20 @@ void main() {
   });
 
   group('close()', () {
+    test('logout closes the mounted chat without resuming old-account work',
+        () async {
+      final bloc = build();
+      ShivAIBloc.registerActiveSession(bloc);
+
+      await ShivAIBloc.closeActiveSessionForLogout();
+      await bloc.close(); // BlocProvider also closes it when its route unmounts.
+
+      expect(bloc.isClosed, isTrue);
+      verify(() => closeConv.call()).called(1);
+      verifyNever(() => resume.call());
+      verifyNever(() => drainPending.call());
+    });
+
     test('idle close: skips interrupted-stream persistence, still tears '
         'down conv/resume/drain', () async {
       final bloc = build();

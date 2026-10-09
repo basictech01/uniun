@@ -401,6 +401,11 @@ the phone once, to `/data/local/tmp/uniun_test/` (the uninstall does not touch
 it), and tests install it from there with `provisionTestModel(AIModelId.…)`
 from `integration_test/support/test_model.dart`:
 
+For other device targets, place the model in the app documents directory or
+set `--dart-define=UNIUN_TEST_MODEL_DIR=<device-accessible-directory>` when
+running the test. The helper uses that fixture directory before its existing
+default path and registers a model already present in app documents.
+
 ```
 # once per model (the catalog URL gives the file name, e.g. gemma-4-E2B-it.litertlm)
 adb shell mkdir -p /data/local/tmp/uniun_test

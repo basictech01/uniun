@@ -6,7 +6,7 @@ import 'package:uniun/data/datasources/note_vector_store.dart';
 
 /// Covers: NoteVectorStore on real tostore in its own isolate — save, search,
 /// delete, ordering, reopening, recall at 120 notes, and failing fast once the
-/// isolate has stopped.
+/// isolate has stopped. Logout clears all vectors before another account uses it.
 void main() {
   late Directory dir;
   late NoteVectorStore store;
@@ -70,6 +70,18 @@ void main() {
 
     expect(await store.contains('a'), isFalse);
     expect((await store.search(vec(1), topK: 5)).map((h) => h.id), ['b']);
+  });
+
+  test('clear removes every old-account vector and accepts new ones', () async {
+    await store.upsert('account-a-one', vec(1));
+    await store.upsert('account-a-two', vec(2));
+
+    await store.clear();
+
+    expect(await store.contains('account-a-one'), isFalse);
+    expect(await store.search(vec(1), topK: 5), isEmpty);
+    await store.upsert('account-b', vec(3));
+    expect((await store.search(vec(3), topK: 5)).single.id, 'account-b');
   });
 
   test('deleting an id that is not there is not an error', () async {

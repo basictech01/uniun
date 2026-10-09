@@ -5,16 +5,14 @@ import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/core/usecases/usecase.dart';
 import 'package:uniun/domain/entities/user_key/user_key_entity.dart';
 import 'package:uniun/domain/repositories/profile_repository.dart';
+import 'package:uniun/domain/repositories/logout_session_repository.dart';
 import 'package:uniun/domain/repositories/user_repository.dart';
 
 // ── UserSigningKeys ───────────────────────────────────────────────────────────
 
 /// Decoded signing keys, ready for use in Nostr event construction.
 class UserSigningKeys {
-  const UserSigningKeys({
-    required this.privkeyHex,
-    required this.pubkeyHex,
-  });
+  const UserSigningKeys({required this.privkeyHex, required this.pubkeyHex});
   final String privkeyHex;
   final String pubkeyHex;
 }
@@ -47,10 +45,12 @@ class GetActiveUserKeysUseCase
     final result = await _repository.getActiveUser();
     return result.fold(
       Left.new,
-      (user) => Right(UserSigningKeys(
-        privkeyHex: Nip19.decodePrivkey(user.nsec),
-        pubkeyHex: user.pubkeyHex,
-      )),
+      (user) => Right(
+        UserSigningKeys(
+          privkeyHex: Nip19.decodePrivkey(user.nsec),
+          pubkeyHex: user.pubkeyHex,
+        ),
+      ),
     );
   }
 }
@@ -82,27 +82,22 @@ class GetActiveUserProfileUseCase
   @override
   Future<Either<Failure, ActiveUserProfile>> call() async {
     final userResult = await _userRepository.getActiveUser();
-    return userResult.fold(
-      Left.new,
-      (user) async {
-        final profileResult =
-            await _profileRepository.getOwnProfile(user.pubkeyHex);
-        final avatarUrl =
-            profileResult.fold((_) => null, (p) => p?.avatarUrl);
-        return Right(ActiveUserProfile(
-          pubkeyHex: user.pubkeyHex,
-          avatarUrl: avatarUrl,
-        ));
-      },
-    );
+    return userResult.fold(Left.new, (user) async {
+      final profileResult = await _profileRepository.getOwnProfile(
+        user.pubkeyHex,
+      );
+      final avatarUrl = profileResult.fold((_) => null, (p) => p?.avatarUrl);
+      return Right(
+        ActiveUserProfile(pubkeyHex: user.pubkeyHex, avatarUrl: avatarUrl),
+      );
+    });
   }
 }
 
 // ── ImportKeyUseCase ──────────────────────────────────────────────────────────
 
 @lazySingleton
-class ImportKeyUseCase
-    extends UseCase<Either<Failure, UserKeyEntity>, String> {
+class ImportKeyUseCase extends UseCase<Either<Failure, UserKeyEntity>, String> {
   final UserRepository _repository;
   const ImportKeyUseCase(this._repository);
 
@@ -117,14 +112,33 @@ class ImportKeyUseCase
 
 // ── LogoutUseCase ─────────────────────────────────────────────────────────────
 
-/// Clears the stored keypair (nsec from secure storage + the public
-/// `UserKeyModel` from Isar). After this resolves the app has no active
-/// identity, so the caller should route back to onboarding (Welcome).
+/// Device-local model retention choice for logout.
+class LogoutParams {
+  const LogoutParams({this.keepModelFiles = false});
+
+  final bool keepModelFiles;
+}
+
+/// Stops the current session, clears its local data, then removes the keypair.
 @lazySingleton
-class LogoutUseCase extends NoParamsUseCase<Either<Failure, Unit>> {
+class LogoutUseCase extends UseCase<Either<Failure, Unit>, LogoutParams> {
   final UserRepository _repository;
-  const LogoutUseCase(this._repository);
+  final LogoutSessionRepository _session;
+  const LogoutUseCase(this._repository, this._session);
 
   @override
-  Future<Either<Failure, Unit>> call() => _repository.logout();
+  Future<Either<Failure, Unit>> call(
+    LogoutParams input, {
+    bool cached = false,
+  }) async {
+    try {
+      final cleared = await _session.clear(
+        keepModelFiles: input.keepModelFiles,
+      );
+      if (cleared.isLeft()) return cleared;
+    } catch (e) {
+      return Left(Failure.errorFailure(e.toString()));
+    }
+    return _repository.logout();
+  }
 }

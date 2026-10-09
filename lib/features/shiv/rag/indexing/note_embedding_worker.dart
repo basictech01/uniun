@@ -48,6 +48,8 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   static Duration chatPollInterval = const Duration(seconds: 2);
 
   bool _running = false;
+  bool _stopping = false;
+  Future<void>? _active;
 
   @visibleForTesting
   bool get isRunning => _running;
@@ -57,11 +59,21 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   /// Starts a pass, or asks the running one to look again when it finishes.
   @override
   void nudge() {
+    if (!_running) _stopping = false;
     if (_running) {
       _again = true;
       return;
     }
-    unawaited(_run());
+    _active = _run();
+  }
+
+  /// Wait for the current note to finish before account data is removed.
+  @override
+  Future<void> stop() async {
+    _stopping = true;
+    _retry?.cancel();
+    _retry = null;
+    await _active;
   }
 
   Future<void> _run() async {
@@ -72,13 +84,13 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
       do {
         _again = false;
         if (await _drain()) {
-          _retry = Timer(retryDelay, nudge);
+          if (!_stopping) _retry = Timer(retryDelay, nudge);
           return;
         }
-      } while (_again);
+      } while (_again && !_stopping);
     } catch (e, st) {
       debugPrint('❌ NoteEmbeddingWorker pass failed: $e\n$st');
-      _retry = Timer(retryDelay, nudge);
+      if (!_stopping) _retry = Timer(retryDelay, nudge);
     } finally {
       _running = false;
     }
@@ -87,7 +99,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   /// Embeds queued notes until the table is empty. True when it stopped early
   /// and should be retried later.
   Future<bool> _drain() async {
-    while (true) {
+    while (!_stopping) {
       final queued = await _nextPending.call();
       final item = queued.fold<PendingEmbeddingItem?>((f) {
         debugPrint('❌ NoteEmbeddingWorker: cannot read the queue: $f');
@@ -98,9 +110,10 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
       final shortId = item.eventId.length > 8
           ? item.eventId.substring(0, 8)
           : item.eventId;
-      while (_scheduler.isChatRunning) {
+      while (_scheduler.isChatRunning && !_stopping) {
         await Future<void>.delayed(chatPollInterval);
       }
+      if (_stopping) return false;
       final List<double> vec;
       try {
         // `embed` answers [] both when the model is not loaded (try later, keep
@@ -151,7 +164,8 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
             debugPrint('⚠️ NoteEmbeddingWorker: could not clear $shortId: $f'),
       );
       debugPrint('✅ NoteEmbeddingWorker: embedded $shortId');
-      unawaited(_extract.call((item.eventId, item.text, vec)));
+      await _extract.call((item.eventId, item.text, vec));
     }
+    return false;
   }
 }

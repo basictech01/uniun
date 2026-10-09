@@ -570,7 +570,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLogoutBody =>
-      'You\'ll need your private key (nsec) to sign back in. Make sure it\'s backed up before logging out.';
+      'Your notes, chats, and account data on this device will be removed. You\'ll need your private key (nsec) to sign back in. Make sure it\'s backed up.';
+
+  @override
+  String get settingsKeepDownloadedModels =>
+      'Keep downloaded AI models for another login';
+
+  @override
+  String get settingsLoggingOut => 'Logging out…';
 
   @override
   String get settingsLogoutConfirm => 'Log out';

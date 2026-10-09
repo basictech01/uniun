@@ -22,6 +22,20 @@ part 'shiv_ai_bloc.freezed.dart';
 
 @injectable
 class ShivAIBloc extends Bloc<ShivAIEvent, ShivAIState> {
+  static ShivAIBloc? _activeSession;
+
+  /// The mounted Shiv tab keeps its bloc alive behind Settings.
+  static void registerActiveSession(ShivAIBloc bloc) => _activeSession = bloc;
+
+  static Future<void> closeActiveSessionForLogout() async {
+    final bloc = _activeSession;
+    if (bloc == null) return;
+    bloc._loggingOut = true;
+    await bloc.close();
+  }
+
+  bool _loggingOut = false;
+  Future<void>? _closing;
   final GetConversationsUseCase _getConversations;
   final WatchConversationsUseCase _watchConversations;
   final CreateConversationUseCase _createConversation;
@@ -611,20 +625,27 @@ class ShivAIBloc extends Bloc<ShivAIEvent, ShivAIState> {
 
   @override
   Future<void> close() async {
+    await (_closing ??= _closeSession());
+    await super.close();
+  }
+
+  Future<void> _closeSession() async {
     // Bloc/app teardown mid-generation (logout, HomePage disposal) — same
     // finalize-don't-leave-blank rule as _onCloseConversation.
     if (state.status == ShivChatStatus.streaming) {
       await _persistInterruptedStream('(interrupted)');
     }
-    _streamSub?.cancel();
-    _conversationsSub?.cancel();
+    await _streamSub?.cancel();
+    await _conversationsSub?.cancel();
     _cancelTokenFlush();
     await _closeConv.call();
     // Safety net for logout / HomePage teardown — make sure the queue isn't
     // left paused and any pending extractions get a final chance to drain.
-    await _resume.call();
-    unawaited(_drainPending.call());
-    return super.close();
+    if (!_loggingOut) {
+      await _resume.call();
+      unawaited(_drainPending.call());
+    }
+    if (identical(_activeSession, this)) _activeSession = null;
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
