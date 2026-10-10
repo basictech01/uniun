@@ -1,8 +1,9 @@
 {
   "@@locale": "en",
-  "appVersion": "UNIUN v1.0.0-beta",
+  "appVersion": "UNIUN v{version}",
   "@appVersion": {
-    "description": "App version string shown in settings / footer"
+    "description": "App name and installed package version shown in the privacy footer",
+    "placeholders": {"version": {"type": "String"}}
   },
   "appTagline": "Your notes, your\nnetwork, your identity.",
   "@appTagline": {

@@ -139,9 +139,7 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, snap) => Text(
-                    snap.hasData
-                        ? 'UNIUN v${snap.data!.version}'
-                        : l10n.appVersion,
+                    l10n.appVersion(snap.data?.version ?? '…'),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,

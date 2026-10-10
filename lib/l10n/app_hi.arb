@@ -1,6 +1,6 @@
 {
   "@@locale": "hi",
-  "appVersion": "UNIUN v1.0.0-beta",
+  "appVersion": "UNIUN v{version}",
   "appTagline": "आपके नोट्स, आपका\nनेटवर्क, आपकी पहचान।",
   "navVishnu": "विष्णु",
   "navBrahma": "ब्रह्मा",

@@ -102,11 +102,11 @@ abstract class AppLocalizations {
     Locale('ja'),
   ];
 
-  /// App version string shown in settings / footer
+  /// App name and installed package version shown in the privacy footer
   ///
   /// In en, this message translates to:
-  /// **'UNIUN v1.0.0-beta'**
-  String get appVersion;
+  /// **'UNIUN v{version}'**
+  String appVersion(String version);
 
   /// Hero tagline on the welcome screen
   ///
