@@ -1,20 +1,27 @@
 // Covers Brahma's note A → note B selection and Manas membership on a device.
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
+import 'package:flutter_gemma_mediapipe/flutter_gemma_mediapipe.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/note_card/note_card_menu.dart';
+import 'package:uniun/common/widgets/safe_interactive_viewer.dart';
+import 'package:uniun/common/widgets/floating_nav.dart';
+import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/data/models/saved_note_model.dart';
 import 'package:uniun/domain/entities/manas/manas_entity.dart';
 import 'package:uniun/domain/usecases/manas_usecases.dart';
 import 'package:uniun/domain/usecases/saved_note_usecases.dart';
-import 'package:uniun/features/brahma/graph/bloc/graph_bloc.dart';
-import 'package:uniun/features/brahma/graph/models/graph_node_type.dart';
+import 'package:uniun/features/brahma/graph/pages/graph_page.dart';
+import 'package:uniun/features/brahma/graph/widgets/graph_canvas.dart';
 import 'package:uniun/features/brahma/graph/widgets/graph_node_panel.dart';
 import 'package:uniun/features/brahma/manas/widgets/manas_membership_sheet.dart';
+import 'package:uniun/features/home/pages/home_page.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 
 import '../test/_helpers/fixtures.dart';
@@ -23,19 +30,14 @@ const _manasId = 'e2e-manas-issue-261';
 const _noteA = 'e2e-manas-issue-261-a';
 const _noteB = 'e2e-manas-issue-261-b';
 
-GraphNodeData _node(String id) => GraphNodeData(
-  eventId: id,
-  content: id == _noteA ? 'Brahma note A' : 'Brahma note B',
-  eTagRefs: const [],
-  type: GraphNodeType.saved,
-  authorPubkey: kAlicePub,
-  created: DateTime(2026, 1, 1),
-);
-
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
+    await FlutterGemma.initialize(
+      inferenceEngines: const [LiteRtLmEngine(), MediaPipeEngine()],
+      embeddingBackends: const [LiteRtEmbeddingBackend()],
+    );
     if (!getIt.isRegistered<Isar>()) await configureDependencies();
   });
 
@@ -48,7 +50,21 @@ void main() {
     final byId = getIt<GetManasByIdUseCase>();
     final members = getIt<GetManasIdsForNoteUseCase>();
     final notes = getIt<GetNoteIdsForManasUseCase>();
-    final selected = ValueNotifier<GraphNodeData>(_node(_noteA));
+    final router = GoRouter(
+      initialLocation: '/home',
+      routes: [
+        GoRoute(
+          name: AppRoutes.home,
+          path: '/home',
+          builder: (_, __) => const HomePage(),
+        ),
+        GoRoute(
+          name: AppRoutes.graph,
+          path: '/graph',
+          builder: (_, __) => const GraphPage(),
+        ),
+      ],
+    );
 
     Future<void> cleanup() async {
       await delete.call(_manasId);
@@ -81,33 +97,45 @@ void main() {
       }
 
       await tester.pumpWidget(
-        MaterialApp(
+        MaterialApp.router(
           theme: AppTheme.light,
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: BlocProvider<GraphBloc>(
-            create: (_) => getIt<GraphBloc>(),
-            child: Scaffold(
-              body: Column(
-                children: [
-                  TextButton(
-                    onPressed: () => selected.value = _node(_noteB),
-                    child: const Text('Open note B'),
-                  ),
-                  Expanded(
-                    child: ValueListenableBuilder<GraphNodeData>(
-                      valueListenable: selected,
-                      builder: (_, node, __) =>
-                          GraphNodePanel(node: node, onClose: () {}),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          routerConfig: router,
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.byType(FloatingNav), findsOneWidget);
+      final nav = tester.getRect(find.byType(FloatingNav));
+      await tester.tapAt(Offset(nav.center.dx, nav.top + 28));
+      await tester.pumpAndSettle();
+      expect(find.byType(GraphCanvas), findsOneWidget);
+
+      Offset nodeScreenPosition(String id) {
+        final canvas = tester.getRect(find.byType(GraphCanvas));
+        final state = tester.state<GraphCanvasState>(find.byType(GraphCanvas));
+        final camera = tester
+            .widget<Transform>(
+              find.descendant(
+                of: find.byType(SafeInteractiveViewer),
+                matching: find.byType(Transform),
+              ),
+            )
+            .transform;
+        return canvas.topLeft +
+            MatrixUtils.transformPoint(camera, state.nodeCentre(id)!);
+      }
+
+      Future<void> openNote(String id) async {
+        await tester.tapAt(nodeScreenPosition(id));
+        await tester.pumpAndSettle();
+        expect(find.byType(GraphNodePanel), findsOneWidget);
+        expect(
+          find.text(id == _noteA ? 'Brahma note A' : 'Brahma note B'),
+          findsOneWidget,
+        );
+      }
 
       Future<void> openMembership() async {
         await tester.tap(find.byType(NoteCardMenu));
@@ -117,6 +145,7 @@ void main() {
         expect(find.byType(ManasMembershipSheet), findsOneWidget);
       }
 
+      await openNote(_noteA);
       await openMembership();
       expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
       await tester.tap(find.text('Issue 261 Work'));
@@ -131,9 +160,7 @@ void main() {
 
       Navigator.of(tester.element(find.byType(ManasMembershipSheet))).pop();
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Open note B'));
-      await tester.pumpAndSettle();
-      expect(find.text('Brahma note B'), findsOneWidget);
+      await openNote(_noteB);
 
       await openMembership();
       expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
@@ -151,8 +178,8 @@ void main() {
         _noteB,
       });
     } finally {
-      selected.dispose();
       await tester.pumpWidget(const SizedBox.shrink());
+      router.dispose();
       await cleanup();
     }
   });
