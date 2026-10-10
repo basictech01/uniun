@@ -9,7 +9,9 @@ class AppLocalizationsGu extends AppLocalizations {
   AppLocalizationsGu([String locale = 'gu']) : super(locale);
 
   @override
-  String get appVersion => 'UNIUN v1.0.0-beta';
+  String appVersion(String version) {
+    return 'UNIUN v$version';
+  }
 
   @override
   String get appTagline => 'તમારી નોંધો, તમારું\nનેટવર્ક, તમારી ઓળખ.';
