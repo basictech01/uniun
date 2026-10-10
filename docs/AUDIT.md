@@ -11,8 +11,8 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 Selecting another note in the Brahma graph reused the `NoteCard` element at the same position. Its `BlocProvider` created `NoteCardCubit` only for the first note, and the cubit holds that note as a final field. The Manas menu read `cubit.note.id`, so it opened a fresh membership sheet for the previous note. The sheet itself already loads membership on each open; refreshing it for a changed `noteId` does not address this path.
 
 - **Fix:** key the `NoteCard`'s cubit provider by note ID. A new note now gets a new cubit and all note-specific actions use the selected note.
-- **Verified:** the graph widget test failed before the fix with the menu still on `n1` after selecting `n2`, then passed after it. A second test opens the Manas sheet for two notes in turn, verifies the second starts unchecked, and confirms its add action targets `n2`. Graph, Manas sheet and note-card tests pass.
-- **Not verified:** a physical-device tap through the graph; the tests cover the widget lifecycle and use-case calls.
+- **Verified:** the graph widget test failed before the fix with the menu still on `n1` after selecting `n2`, then passed after it. A second test opens the Manas sheet for two notes in turn, verifies the second starts unchecked, and confirms its add action targets `n2`. The existing Isar Manas flow test now checks membership and count after each add. On a vivo 1933 phone, the Brahma note panel opened note A and then note B with real Manas storage: B started unchecked, and adding it raised the count from one to two while both links remained.
+- **Not verified:** tapping nodes directly on the graph canvas; the device test switches the selected node in a Brahma panel harness.
 
 ## 2026-10-09 — notification dot stays after reading (#201)
 

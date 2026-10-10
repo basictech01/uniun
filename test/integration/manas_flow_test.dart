@@ -65,7 +65,13 @@ void main() {
   test('Scenario 1: create → add 2 notes → list shows it with noteCount=2', () async {
     await upsert.call(_manas('work', name: 'Work', icon: 'work'));
     await addLink.call(const ManasNoteLink('work', 'note-1'));
+    expect((await getById.call('work')).getOrElse(() => throw 'missing').noteCount, 1);
+    expect((await manasesOf.call('note-1')).getOrElse(() => []), ['work']);
+    expect((await manasesOf.call('note-2')).getOrElse(() => []), isEmpty);
+
     await addLink.call(const ManasNoteLink('work', 'note-2'));
+    expect((await manasesOf.call('note-1')).getOrElse(() => []), ['work']);
+    expect((await manasesOf.call('note-2')).getOrElse(() => []), ['work']);
 
     final list = (await listManas.call()).getOrElse(() => []);
     expect(list, hasLength(1));
