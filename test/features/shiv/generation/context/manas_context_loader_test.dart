@@ -353,8 +353,97 @@ void main() {
     });
   });
 
+  test('mergeAll ranks Brahma notes against input and excludes unrelated peers',
+      () async {
+    final at = DateTime(2026);
+    await isar.writeTxn(() async {
+      await isar.savedNoteModels.put(_savedNote('saved', 'saved insight', at));
+      await isar.noteModels.put(_ownNote('own', 'own insight', at));
+      await isar.noteModels.put(
+          _ownNote('peer', 'unrelated peer', at, author: 'other'));
+    });
+    when(() => embedder.embed('input')).thenAnswer((_) async => [1.0, 0.0]);
+    when(() => searcher.search(
+          queryVector: any(named: 'queryVector'),
+          topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
+        )).thenAnswer((_) async => const [
+          ScoredNote(noteId: 'peer', score: 0.99, content: 'unrelated peer'),
+          ScoredNote(noteId: 'saved', score: 0.8, content: 'saved insight'),
+          ScoredNote(noteId: 'own', score: 0.6, content: 'own insight'),
+        ]);
+
+    final result = await loader.mergeAll(
+        selfPubkey: 'self', budget: 100, relevanceQuery: 'input');
+
+    expect(result.map((n) => n.id), ['saved', 'own']);
+  });
+
   group('static packNewest / loadPool / loadAll (background-isolate-safe)',
       () {
+    test(
+      'Brahma scope packs saved, own, draft and linked notes once, newest first',
+      () async {
+        final old = DateTime(2026, 1, 1);
+        final recent = DateTime(2026, 1, 2);
+        await isar.writeTxn(() async {
+          await isar.savedNoteModels.put(_savedNote('saved', 'saved', old));
+          await isar.noteModels.put(_ownNote('own', 'own', recent));
+          await isar.noteModels.put(
+            _ownNote('linked', 'linked', old, author: 'other'),
+          );
+          await isar.draftModels.put(_draft('draft', 'draft', old));
+          await isar.manasNoteLinkModels.put(_link('m1', 'linked', old));
+          await isar.manasNoteLinkModels.put(_link('m2', 'own', old));
+        });
+
+        final foreground = await loader.mergeAll(
+          selfPubkey: 'self',
+          budget: 100,
+        );
+        final background = await ManasContextLoader.packAllNewest(
+          isar: isar,
+          selfPubkey: 'self',
+          budget: 100,
+        );
+        expect(foreground.map((n) => n.id), background.map((n) => n.id));
+        expect(foreground.first.id, 'own');
+        expect(foreground.map((n) => n.id).toSet(), {
+          'saved',
+          'own',
+          'linked',
+          'draft',
+        });
+        expect(foreground, hasLength(4));
+      },
+    );
+
+    test(
+      'Brahma scope skips oversize notes and rejects nonpositive budgets',
+      () async {
+        final at = DateTime(2026);
+        await isar.writeTxn(() async {
+          await isar.noteModels.put(_ownNote('large', 'x' * 500, at));
+          await isar.noteModels.put(_ownNote('small', 'small', at));
+        });
+        expect(
+          (await loader.mergeAll(
+            selfPubkey: 'self',
+            budget: 10,
+          )).map((n) => n.id),
+          ['small'],
+        );
+        expect(await loader.mergeAll(selfPubkey: 'self', budget: 0), isEmpty);
+        expect(
+          await ManasContextLoader.packAllNewest(
+            isar: isar,
+            selfPubkey: 'self',
+            budget: -1,
+          ),
+          isEmpty,
+        );
+      },
+    );
     test('packNewest mirrors merge\'s newest-first behavior with a plain '
         'Isar handle', () async {
       final t1 = DateTime(2026, 1, 1);

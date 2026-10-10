@@ -3257,7 +3257,7 @@
   "@ganaListNew": {
     "description": "Label for the create-new-Gana button on the Gana list page"
   },
-  "ganaListSubtitle": "情報源を監視し、Manasを使って考え、あなたに代わって公開する自律型エージェントです。",
+  "ganaListSubtitle": "情報源を監視し、ブラフマーまたはManasを使って考え、あなたに代わって公開する自律型エージェントです。",
   "@ganaListSubtitle": {
     "description": "Intro line below the app bar on the Gana list page"
   },
@@ -3265,7 +3265,7 @@
   "@ganaListPaused": {
     "description": "Status line on a Gana card when the agent is disabled"
   },
-  "ganaListScopeAll": "すべてのノート",
+  "ganaListScopeAll": "ブラフマー",
   "@ganaListScopeAll": {
     "description": "Gana card scope label when no Manas is selected (whole library)"
   },
@@ -3576,11 +3576,11 @@
   "@ganaFormManasSectionTitle": {
     "description": "Section title above the Manas picker"
   },
-  "ganaFormManasSectionSubtitle": "このGanaが考えるために使うManasです。",
+  "ganaFormManasSectionSubtitle": "すべての知識にはブラフマー、特定のコレクションにはManasを選んでください。",
   "@ganaFormManasSectionSubtitle": {
     "description": "Helper text under the section title"
   },
-  "ganaFormManasEmpty": "Manasがまだありません。Ganaが考えるには知識ベースが必要です。先にManasを作成してください。",
+  "ganaFormManasEmpty": "Manasはまだありません。ブラフマーを使うか、特定のコレクション用にManasを作成できます。",
   "@ganaFormManasEmpty": {
     "description": "Empty-state when the user has no Manases"
   },

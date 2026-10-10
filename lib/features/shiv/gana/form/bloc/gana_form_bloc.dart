@@ -52,9 +52,16 @@ class GanaFormBloc extends Bloc<GanaFormEvent, GanaFormState> {
     this._requestProfileFetch,
   ) : super(const GanaFormState()) {
     on<GanaFormLoadEvent>(_onLoad);
+    on<GanaFormRefreshManasesEvent>((event, emit) async {
+      final result = await _getManases.call();
+      result.fold((_) {}, (manases) => emit(state.copyWith(manases: manases)));
+    });
     on<GanaFormNameChangedEvent>((e, em) =>
         em(state.copyWith(name: e.value, clearError: true)));
     on<GanaFormToggleManasEvent>(_onToggleManas);
+    on<GanaFormSelectBrahmaEvent>(
+      (event, emit) => emit(state.copyWith(clearSelectedManasId: true)),
+    );
     on<GanaFormTaskPromptChangedEvent>(
         (e, em) => em(state.copyWith(taskPrompt: e.value)));
     on<GanaFormInputTypeChangedEvent>(_onInputType);

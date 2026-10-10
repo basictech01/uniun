@@ -69,7 +69,7 @@ void main() {
 
   group('ganaScopeLabel', () {
     test('no Manas means all notes', () {
-      expect(ganaScopeLabel(aGana(), l10n), 'All notes');
+      expect(ganaScopeLabel(aGana(), l10n), 'Brahma');
     });
 
     test('counts Manas, singular and plural', () {

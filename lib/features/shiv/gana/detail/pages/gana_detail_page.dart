@@ -233,8 +233,8 @@ class _StatusRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _kv(context, 'Enabled', gana.enabled ? 'Yes' : 'No'),
-          _kv(context, l10n.ganaDetailManasesLabel,
-              gana.manasIds.length.toString()),
+          _kv(context, l10n.ganaFormManasSectionTitle,
+              ganaScopeLabel(gana, l10n)),
           _kv(context, 'Input',
               gana.inputType?.name ?? 'standalone (interval-only)'),
           _kv(context, 'Output', gana.outputType.name),

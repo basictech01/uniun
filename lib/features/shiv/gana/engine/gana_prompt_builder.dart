@@ -30,6 +30,7 @@ class GanaPromptBuilder {
   static String build({
     required String taskPrompt,
     required List<String> manasNames,
+    bool brahmaScope = false,
     required List<PackedNote> knowledge,
     required List<NoteModel> inputMessagesByOldestFirst,
     required Map<String, List<NoteModel>> replyAncestry,
@@ -73,8 +74,10 @@ class GanaPromptBuilder {
 
     // ── KNOWLEDGE (Manas notes) ────────────────────────────────────────────
     if (knowledge.isNotEmpty) {
-      final manasLabel = manasNames.isEmpty ? '—' : manasNames.join(', ');
-      buf.writeln('KNOWLEDGE — the user\'s own notes (Manas: $manasLabel):');
+      final scope = brahmaScope
+          ? 'Brahma'
+          : 'Manas: ${manasNames.isEmpty ? '—' : manasNames.join(', ')}';
+      buf.writeln('KNOWLEDGE — the user\'s notes ($scope):');
       for (final k in knowledge) {
         final preview = PromptParts.collapse(k.content);
         final dateStr = PromptParts.isoDate(k.created);

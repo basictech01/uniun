@@ -6,6 +6,15 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-11 — Gana draft reload and Brahma scope (#262)
+
+Returning to a Gana form after creating a Manas dispatched the full Gana load event. In create mode the draft ID had never been persisted, so the load tried to fetch it as an existing Gana and displayed "Gana not found". The form now refreshes only the Manas picker; the unsaved ID, name, task, trigger and selection stay in the existing bloc state. Cancelling Manas creation also leaves the draft intact.
+
+- **Brahma scope:** the form offers Brahma alongside Manas. An empty `manasIds` list now means the whole Brahma knowledge base, rather than blocking Save. The foreground engine ranks that pool against input when available; the background worker packs its newest notes. Both use `loadAll` and the existing prompt budget. Existing Ganas with selected Manas keep their scoped path.
+- **Verified:** focused form, context-loader and engine tests cover draft retention, validation, empty/selected scope, ranking, fallback and prompt construction. On a vivo 1933 phone, all five `gana_dashboard_e2e_test.dart` cases passed: new Brahma Gana, new Gana creating a Manas from an empty picker, edit with cancel then creation from a populated picker, switching the edit to Brahma, and dashboard/run detail. The test file remains in `integration_test/all_tests.dart`.
+- **Dashboard UI review:** the page uses the same theme surfaces, border colors, back button and localized copy as the surrounding Shiv screens. A 320 px widget test at 1.5× text scale exposed metadata overflowing a Gana card; trigger and scope lines now wrap within its width. The existing dashboard test also had an obsolete "All notes" expectation, updated to the Brahma label. Dashboard widget and navigation tests pass.
+- **Not verified:** a real AI generation using Brahma scope on the phone; the background OS tick on iOS; dark theme and non-English dashboard layouts on a device.
+
 ## 2026-10-10 — graph note's Manas checkmark follows the wrong note (#261)
 
 Selecting another note in the Brahma graph reused the `NoteCard` element at the same position. Its `BlocProvider` created `NoteCardCubit` only for the first note, and the cubit holds that note as a final field. The Manas menu read `cubit.note.id`, so it opened a fresh membership sheet for the previous note. The sheet itself already loads membership on each open; refreshing it for a changed `noteId` does not address this path.

@@ -9,6 +9,11 @@ class GanaFormLoadEvent extends GanaFormEvent {
   final String? ganaId; // null ⇒ create mode
 }
 
+/// Refresh the Manas picker without reloading the Gana draft.
+class GanaFormRefreshManasesEvent extends GanaFormEvent {
+  const GanaFormRefreshManasesEvent();
+}
+
 class GanaFormNameChangedEvent extends GanaFormEvent {
   const GanaFormNameChangedEvent(this.value);
   final String value;
@@ -17,6 +22,10 @@ class GanaFormNameChangedEvent extends GanaFormEvent {
 class GanaFormToggleManasEvent extends GanaFormEvent {
   const GanaFormToggleManasEvent(this.manasId);
   final String manasId;
+}
+
+class GanaFormSelectBrahmaEvent extends GanaFormEvent {
+  const GanaFormSelectBrahmaEvent();
 }
 
 class GanaFormTaskPromptChangedEvent extends GanaFormEvent {

@@ -80,6 +80,7 @@ void main() {
     expect(find.text('Alpha'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
     expect(find.text('75% succeeded'), findsOneWidget);
+    expect(find.text('Brahma'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
     expect(find.text('4'), findsOneWidget);
   });

@@ -39,8 +39,7 @@ class GanaFormState {
 
   final String name;
 
-  /// Single Manas backing the Gana (null until picked). Persisted as a
-  /// one-element `manasIds` list on the entity.
+  /// A selected Manas, or null for the whole Brahma knowledge base.
   final String? selectedManasId;
   final String taskPrompt;
 
@@ -95,7 +94,6 @@ class GanaFormState {
   bool get canSave {
     if (name.trim().isEmpty) return false;
     if (taskPrompt.trim().isEmpty) return false;
-    if (selectedManasId == null) return false;
     if (inputType != null && (inputRefId == null || inputRefId!.isEmpty)) {
       return false;
     }
@@ -148,7 +146,6 @@ class GanaFormState {
   /// "no reason; save should be possible".
   String? saveBlocker(AppLocalizations l10n) {
     if (name.trim().isEmpty) return l10n.ganaFormBlockerName;
-    if (selectedManasId == null) return l10n.ganaFormBlockerManas;
     if (taskPrompt.trim().isEmpty) return l10n.ganaFormBlockerTask;
     if (inputType != null && (inputRefId == null || inputRefId!.isEmpty)) {
       return l10n.ganaFormBlockerInputRef;

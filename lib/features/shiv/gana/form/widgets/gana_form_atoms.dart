@@ -131,7 +131,7 @@ class _NoManasesCta extends StatelessWidget {
                   await context.pushNamed<bool>(AppRoutes.brahmaManasForm);
               if (created == true && context.mounted) {
                 final bloc = context.read<GanaFormBloc>();
-                bloc.add(GanaFormLoadEvent(bloc.state.ganaId));
+                bloc.add(const GanaFormRefreshManasesEvent());
               }
             },
             icon: const Icon(Icons.add, size: 18),
