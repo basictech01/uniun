@@ -6,6 +6,15 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-10 — graph note's Manas checkmark follows the wrong note (#261)
+
+Selecting another note in the Brahma graph reused the `NoteCard` element at the same position. Its `BlocProvider` created `NoteCardCubit` only for the first note, and the cubit holds that note as a final field. The Manas menu read `cubit.note.id`, so it opened a fresh membership sheet for the previous note. The sheet itself already loads membership on each open; refreshing it for a changed `noteId` does not address this path.
+
+- **Fix:** key the `NoteCard`'s cubit provider by note ID. A new note now gets a new cubit and all note-specific actions use the selected note.
+- **Verified:** the graph widget test failed before the fix with the menu still on `n1` after selecting `n2`, then passed after it. A second test opens the Manas sheet for two notes in turn, verifies the second starts unchecked, and confirms its add action targets `n2`. The existing Isar Manas flow test now checks membership and count after each add. On a vivo 1933 phone, the test entered Brahma from Vishnu, tapped note A and then note B on the graph canvas, used each note's three-dot menu, and added both to the same Manas. B started unchecked; adding it raised the visible count from one to two while both links remained.
+- **More device paths:** the same Manas test file now covers adding from a Vishnu feed note, a note's thread, a public group message, and a private group message. Each uses the visible three-dot menu and checks both saved-note persistence and the Manas link. The private group test activates the shared fixture identity and restores any previously active identity. The host Isar flow also verifies feed and both group note kinds can coexist in one Manas.
+- **Found while running the Vishnu path:** a delayed visibility callback could call `context.read` after the feed was unmounted. `_onNoteVisibility` now checks `mounted` before using its context.
+
 ## 2026-10-09 — notification dot stays after reading (#201)
 
 Reading a group, DM or private group often left its drawer dot on. **Root cause:** nothing marked a chat read when it opened. The mark-all event was sent only from the scroll listener, and the per-note fallback only fires when a note scrolls fully out of view, so a chat that opens at the newest note (short, or already at the bottom) never scrolls and never marks, and a note arriving while the user is at the bottom is never marked either. Followed notes had two more gaps: the badge counted only direct replies (a reply to a reply never counted), and it was cleared in bulk when the row was tapped in the drawer.

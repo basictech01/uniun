@@ -171,6 +171,7 @@ class _VishnuFeedViewState extends State<_VishnuFeedView> {
   /// note majority-visible at some point AND it has now left the viewport.
   /// Debounced via [_everVisible] + bloc's [_markedThisSession] set.
   void _onNoteVisibility(String eventId, VisibilityInfo info) {
+    if (!mounted) return;
     if (info.visibleFraction >= 0.5) {
       _everVisible.add(eventId);
     } else if (info.visibleFraction == 0 && _everVisible.contains(eventId)) {

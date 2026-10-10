@@ -145,6 +145,38 @@ void main() {
     verifyNever(() => addLink.call(any()));
   });
 
+  testWidgets('reopening for another note starts from its own memberships',
+      (tester) async {
+    when(() => getList.call())
+        .thenAnswer((_) async => Right([_manas('Work', count: 1)]));
+    when(() => getMemberships.call('note-1'))
+        .thenAnswer((_) async => const Right(['Work']));
+    when(() => getMemberships.call('note-2'))
+        .thenAnswer((_) async => const Right([]));
+    when(() => addLink.call(any())).thenAnswer((_) async => const Right(unit));
+
+    await tester.pumpWidget(host('note-1'));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+
+    Navigator.of(tester.element(find.byType(ManasMembershipSheet))).pop();
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(host('note-2'));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+    expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
+    await tester.tap(find.text('Work'));
+    await tester.pumpAndSettle();
+
+    final link =
+        verify(() => addLink.call(captureAny())).captured.single as ManasNoteLink;
+    expect(link.noteId, 'note-2');
+    verifyNever(() => removeLink.call(any()));
+  });
+
   testWidgets('empty Manas list — sheet still renders (no crash, no tiles)',
       (tester) async {
     when(() => getList.call()).thenAnswer((_) async => const Right([]));

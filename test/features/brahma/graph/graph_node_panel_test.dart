@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/common/widgets/note_card/cubit/note_card_cubit.dart';
 import 'package:uniun/common/widgets/note_card/note_card.dart';
+import 'package:uniun/common/widgets/note_card/note_card_menu.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
 import 'package:uniun/features/brahma/graph/bloc/graph_bloc.dart';
@@ -22,8 +23,11 @@ class _MockGraphBloc extends MockBloc<GraphEvent, GraphState>
 class _MockNoteCardCubit extends MockCubit<NoteCardState>
     implements NoteCardCubit {}
 
-GraphNodeData _node({GraphNodeType type = GraphNodeType.own}) => GraphNodeData(
-      eventId: 'n1',
+GraphNodeData _node({
+  String id = 'n1',
+  GraphNodeType type = GraphNodeType.own,
+}) => GraphNodeData(
+      eventId: id,
       content: 'a note',
       eTagRefs: const [],
       type: type,
@@ -105,6 +109,47 @@ void main() {
     await t.pumpAndSettle();
 
     expect(find.text('back'), findsOneWidget);
+  });
+
+  testWidgets('switching graph notes gives the Manas menu the selected note',
+      (t) async {
+    final secondCubit = _MockNoteCardCubit();
+    when(() => secondCubit.state).thenReturn(const NoteCardState());
+    when(() => secondCubit.note).thenReturn(
+      aNote(id: 'n2', authorPubkey: 'me', content: 'a second note'),
+    );
+    when(() => bloc.state).thenReturn(
+      const GraphState(status: GraphStatus.loaded),
+    );
+    GetIt.instance.unregister<NoteCardCubit>();
+    GetIt.instance.registerFactoryParam<NoteCardCubit, NoteEntity, void>(
+      (note, _) => note.id == 'n1' ? cardCubit : secondCubit,
+    );
+
+    final selected = ValueNotifier<GraphNodeData>(_node());
+    addTearDown(selected.dispose);
+    await t.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: BlocProvider<GraphBloc>.value(
+        value: bloc,
+        child: Scaffold(
+          body: ValueListenableBuilder<GraphNodeData>(
+            valueListenable: selected,
+            builder: (_, node, __) => GraphNodePanel(node: node, onClose: () {}),
+          ),
+        ),
+      ),
+    ));
+
+    NoteCardMenu menu() => t.widget(find.byType(NoteCardMenu));
+    expect(menu().cubit.note.id, 'n1');
+
+    selected.value = _node(id: 'n2');
+    await t.pumpAndSettle();
+
+    expect(find.byType(NoteCard), findsOneWidget);
+    expect(menu().cubit.note.id, 'n2');
   });
 
   testWidgets('no graph reload while the thread is still open', (t) async {

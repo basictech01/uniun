@@ -39,6 +39,8 @@ class NoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
+      // A reused card must not keep a cubit bound to the previous note.
+      key: ValueKey(note.id),
       create: (_) => getIt<NoteCardCubit>(param1: note),
       child: _NoteCardView(note: note, onTap: onTap, onDelete: onDelete),
     );
