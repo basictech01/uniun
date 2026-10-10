@@ -3,7 +3,7 @@ name: Builds
 # Compiles the real app for Android, iOS and Windows. tests.yml covers Dart
 # logic on Linux only; this catches what only a platform build finds: Gradle,
 # CocoaPods, MSVC/CMake and the native-asset hooks (flutter_gemma, openmls,
-# pdfrx, tostore). Debug builds, no signing, nothing is uploaded or released.
+# pdfrx, tostore). Release builds only; nothing is uploaded or released.
 
 on:
   pull_request:
@@ -46,13 +46,13 @@ jobs:
         target:
           - name: android
             os: ubuntu-latest
-            command: flutter build apk --debug
+            command: flutter build appbundle --release
           - name: ios
             os: macos-latest
-            command: flutter build ios --debug --no-codesign
+            command: flutter build ios --release --no-codesign
           - name: windows
             os: windows-latest
-            command: flutter build windows --debug
+            command: flutter build windows --release
     steps:
       # No LFS: the embedding model is a 145 MB LFS file and every job would
       # count against the repo's LFS bandwidth. The build only bundles it, so a
@@ -80,6 +80,20 @@ jobs:
       - run: flutter pub get
 
       - run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Create disposable Android signing key
+        if: matrix.target.name == 'android'
+        shell: bash
+        run: |
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/ci-upload.jks" \
+            -storepass ci-build -keypass ci-build -alias ci \
+            -dname "CN=UNIUN CI" -keyalg RSA -keysize 2048 -validity 1
+          cat > android/key.properties <<EOF
+          storePassword=ci-build
+          keyPassword=ci-build
+          keyAlias=ci
+          storeFile=$RUNNER_TEMP/ci-upload.jks
+          EOF
 
       - name: Build ${{ matrix.target.name }}
         run: ${{ matrix.target.command }}

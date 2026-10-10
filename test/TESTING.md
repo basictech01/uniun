@@ -366,11 +366,12 @@ libmdbx races otherwise — see SIGBUS prevention in `tests.yml`).
 ## 6. Pipeline awareness
 
 `.github/workflows/builds.yml` is separate: it compiles the app for Android
-(`flutter build apk --debug`), iOS (`--debug --no-codesign`) and Windows
-(`flutter build windows --debug`) on PRs, pushes to `main` and nightly. It runs
-no tests; it catches Gradle, CocoaPods, MSVC and native-hook breakage the Linux
-test shards cannot see. The iOS build uses CocoaPods only (`pubspec.yaml`) to
-avoid duplicate SDWebImage symbols.
+(`flutter build appbundle --release`), iOS (`flutter build ios --release
+--no-codesign`) and Windows (`flutter build windows --release`) on PRs, pushes
+to `main` and nightly. Android uses a disposable CI signing key; iOS has no
+code signing. No artifacts are uploaded. This catches Gradle, CocoaPods, MSVC
+and native-hook breakage the Linux test shards cannot see. The iOS build uses
+CocoaPods only (`pubspec.yaml`) to avoid duplicate SDWebImage symbols.
 
 The CI workflow (`.github/workflows/tests.yml`) shards tests by top-level
 path:
