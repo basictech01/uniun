@@ -3249,7 +3249,7 @@
   "@ganaListNew": {
     "description": "Label for the create-new-Gana button on the Gana list page"
   },
-  "ganaListSubtitle": "Autonomous agents that watch a surface, reason over a Manas, and publish for you.",
+  "ganaListSubtitle": "Autonomous agents that watch a surface, use Brahma or a Manas, and publish for you.",
   "@ganaListSubtitle": {
     "description": "Intro line below the app bar on the Gana list page"
   },
@@ -3257,7 +3257,7 @@
   "@ganaListPaused": {
     "description": "Status line on a Gana card when the agent is disabled"
   },
-  "ganaListScopeAll": "All notes",
+  "ganaListScopeAll": "Brahma",
   "@ganaListScopeAll": {
     "description": "Gana card scope label when no Manas is selected (whole library)"
   },
@@ -3568,11 +3568,11 @@
   "@ganaFormManasSectionTitle": {
     "description": "Section title above the Manas picker"
   },
-  "ganaFormManasSectionSubtitle": "The Manas this Gana reasons over.",
+  "ganaFormManasSectionSubtitle": "Choose Brahma for all your knowledge, or a Manas for one collection.",
   "@ganaFormManasSectionSubtitle": {
     "description": "Helper text under the section title"
   },
-  "ganaFormManasEmpty": "No Manases yet. A Gana needs a knowledge base to reason over — create one to continue.",
+  "ganaFormManasEmpty": "No Manases yet. You can use Brahma or create a Manas for a focused collection.",
   "@ganaFormManasEmpty": {
     "description": "Empty-state when the user has no Manases"
   },

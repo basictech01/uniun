@@ -4695,7 +4695,7 @@ abstract class AppLocalizations {
   /// Intro line below the app bar on the Gana list page
   ///
   /// In en, this message translates to:
-  /// **'Autonomous agents that watch a surface, reason over a Manas, and publish for you.'**
+  /// **'Autonomous agents that watch a surface, use Brahma or a Manas, and publish for you.'**
   String get ganaListSubtitle;
 
   /// Status line on a Gana card when the agent is disabled
@@ -4707,7 +4707,7 @@ abstract class AppLocalizations {
   /// Gana card scope label when no Manas is selected (whole library)
   ///
   /// In en, this message translates to:
-  /// **'All notes'**
+  /// **'Brahma'**
   String get ganaListScopeAll;
 
   /// Gana card scope label showing how many Manas the agent reasons over
@@ -5067,13 +5067,13 @@ abstract class AppLocalizations {
   /// Helper text under the section title
   ///
   /// In en, this message translates to:
-  /// **'The Manas this Gana reasons over.'**
+  /// **'Choose Brahma for all your knowledge, or a Manas for one collection.'**
   String get ganaFormManasSectionSubtitle;
 
   /// Empty-state when the user has no Manases
   ///
   /// In en, this message translates to:
-  /// **'No Manases yet. A Gana needs a knowledge base to reason over — create one to continue.'**
+  /// **'No Manases yet. You can use Brahma or create a Manas for a focused collection.'**
   String get ganaFormManasEmpty;
 
   /// Inline CTA to open the Manas form from the Gana form

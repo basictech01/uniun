@@ -99,6 +99,30 @@ class ManasContextLoader {
     return _packNewestFromIds(isar: _isar, noteIds: unique, charBudget: charBudget);
   }
 
+  /// Pack the whole Brahma knowledge base for a foreground Gana run.
+  Future<List<PackedNote>> mergeAll({
+    required String selfPubkey,
+    required int budget,
+    String? relevanceQuery,
+  }) async {
+    if (budget <= 0) return const [];
+    final all = await loadAll(isar: _isar, selfPubkey: selfPubkey);
+    if (all.isEmpty) return const [];
+    final charBudget = (budget * _charsPerTokenEstimate * _safetyMargin)
+        .floor();
+    if (relevanceQuery != null && relevanceQuery.trim().isNotEmpty) {
+      final byRelevance = await _packByRelevance(
+        isar: _isar,
+        query: relevanceQuery,
+        allowedNoteIds: all.map((n) => n.id).toSet(),
+        charBudget: charBudget,
+      );
+      if (byRelevance != null) return byRelevance;
+    }
+    all.sort((a, b) => b.created.compareTo(a.created));
+    return _packUnderBudget(all, charBudget);
+  }
+
   /// Relevance-rank over the WHOLE vector index (no Manas filter) — the
   /// "All notes" scope of the composer-chat / Shiv chat. Returns up to [topK]
   /// packed notes ranked by similarity to [query]. Empty if the embedder or
@@ -185,6 +209,20 @@ class ManasContextLoader {
     final unique = await _noteIdsForManases(isar, manasIds);
     if (unique.isEmpty) return const [];
     return _packNewestFromIds(isar: isar, noteIds: unique, charBudget: charBudget);
+  }
+
+  /// Pack the whole Brahma knowledge base in the background isolate.
+  static Future<List<PackedNote>> packAllNewest({
+    required Isar isar,
+    required String selfPubkey,
+    required int budget,
+  }) async {
+    if (budget <= 0) return const [];
+    final all = await loadAll(isar: isar, selfPubkey: selfPubkey);
+    all.sort((a, b) => b.created.compareTo(a.created));
+    final charBudget = (budget * _charsPerTokenEstimate * _safetyMargin)
+        .floor();
+    return _packUnderBudget(all, charBudget);
   }
 
   /// Full note pool (no ranking, no token budget) for the union of [manasIds].

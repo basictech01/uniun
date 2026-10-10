@@ -2567,13 +2567,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ganaListSubtitle =>
-      'Autonomous agents that watch a surface, reason over a Manas, and publish for you.';
+      'Autonomous agents that watch a surface, use Brahma or a Manas, and publish for you.';
 
   @override
   String get ganaListPaused => 'Paused';
 
   @override
-  String get ganaListScopeAll => 'All notes';
+  String get ganaListScopeAll => 'Brahma';
 
   @override
   String ganaListScopeCount(int count) {
@@ -2804,11 +2804,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ganaFormManasSectionSubtitle =>
-      'The Manas this Gana reasons over.';
+      'Choose Brahma for all your knowledge, or a Manas for one collection.';
 
   @override
   String get ganaFormManasEmpty =>
-      'No Manases yet. A Gana needs a knowledge base to reason over — create one to continue.';
+      'No Manases yet. You can use Brahma or create a Manas for a focused collection.';
 
   @override
   String get ganaFormManasCreateNew => 'Create Manas';

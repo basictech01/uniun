@@ -2510,13 +2510,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ganaListNew => '新しい';
 
   @override
-  String get ganaListSubtitle => '情報源を監視し、Manasを使って考え、あなたに代わって公開する自律型エージェントです。';
+  String get ganaListSubtitle =>
+      '情報源を監視し、ブラフマーまたはManasを使って考え、あなたに代わって公開する自律型エージェントです。';
 
   @override
   String get ganaListPaused => '一時停止中';
 
   @override
-  String get ganaListScopeAll => 'すべてのノート';
+  String get ganaListScopeAll => 'ブラフマー';
 
   @override
   String ganaListScopeCount(int count) {
@@ -2737,11 +2738,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get ganaFormManasSectionTitle => '知識';
 
   @override
-  String get ganaFormManasSectionSubtitle => 'このGanaが考えるために使うManasです。';
+  String get ganaFormManasSectionSubtitle =>
+      'すべての知識にはブラフマー、特定のコレクションにはManasを選んでください。';
 
   @override
   String get ganaFormManasEmpty =>
-      'Manasがまだありません。Ganaが考えるには知識ベースが必要です。先にManasを作成してください。';
+      'Manasはまだありません。ブラフマーを使うか、特定のコレクション用にManasを作成できます。';
 
   @override
   String get ganaFormManasCreateNew => 'Manasを作成';

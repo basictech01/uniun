@@ -2585,13 +2585,13 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get ganaListSubtitle =>
-      'स्वायत्त एजेंट जो किसी सतह को देखते हैं, किसी मानस पर तर्क करते हैं, और आपके लिए प्रकाशित करते हैं।';
+      'स्वायत्त एजेंट जो किसी सतह को देखते हैं, ब्रह्मा या मानस का उपयोग करते हैं, और आपके लिए प्रकाशित करते हैं।';
 
   @override
   String get ganaListPaused => 'रुका हुआ';
 
   @override
-  String get ganaListScopeAll => 'सभी नोट्स';
+  String get ganaListScopeAll => 'ब्रह्मा';
 
   @override
   String ganaListScopeCount(int count) {
@@ -2822,11 +2822,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get ganaFormManasSectionSubtitle =>
-      'वह मानस जिस पर यह गण तर्क करता है।';
+      'पूरे ज्ञान के लिए ब्रह्मा चुनें या किसी एक संग्रह के लिए मानस चुनें।';
 
   @override
   String get ganaFormManasEmpty =>
-      'अभी तक कोई मानस नहीं। एक गण को तर्क करने के लिए ज्ञान आधार चाहिए — जारी रखने के लिए एक बनाएं।';
+      'अभी कोई मानस नहीं है। आप ब्रह्मा इस्तेमाल कर सकते हैं या खास संग्रह के लिए मानस बना सकते हैं।';
 
   @override
   String get ganaFormManasCreateNew => 'मानस बनाएं';

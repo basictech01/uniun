@@ -63,7 +63,7 @@ class _Body extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        // ── Knowledge (single Manas) ──────────────────────────────────────
+        // ── Knowledge scope ──────────────────────────────────────
         _Card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +72,14 @@ class _Body extends StatelessWidget {
               const SizedBox(height: 4),
               _SectionSubtitle(l10n.ganaFormManasSectionSubtitle),
               const SizedBox(height: 12),
+              FilterChip(
+                label: Text(l10n.brahmaTitle),
+                selected: state.selectedManasId == null,
+                onSelected: (_) => context.read<GanaFormBloc>().add(
+                  const GanaFormSelectBrahmaEvent(),
+                ),
+              ),
+              const SizedBox(height: 8),
               if (state.manases.isEmpty)
                 _NoManasesCta()
               else
@@ -90,8 +98,7 @@ class _Body extends StatelessWidget {
                         selectedColor:
                             Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                       ),
-                    // "+ Create" trailing affordance — opens Brahma's Manas
-                    // form and reloads picker pools on return.
+                    // Opens Brahma's Manas form and refreshes the picker on return.
                     ActionChip(
                       avatar: Icon(Icons.add,
                           size: 16, color: Theme.of(context).colorScheme.primary),
@@ -103,7 +110,7 @@ class _Body extends StatelessWidget {
                         if (created == true && context.mounted) {
                           context
                               .read<GanaFormBloc>()
-                              .add(GanaFormLoadEvent(state.ganaId));
+                              .add(const GanaFormRefreshManasesEvent());
                         }
                       },
                     ),

@@ -13,7 +13,11 @@ import 'package:uniun/l10n/app_localizations.dart';
 /// One Gana on the dashboard: on/off switch, outcome bar, lifetime counts and
 /// the last run. Tapping it opens the Gana's detail page.
 class GanaDashboardRow extends StatelessWidget {
-  const GanaDashboardRow({super.key, required this.gana, required this.lastRun});
+  const GanaDashboardRow({
+    super.key,
+    required this.gana,
+    required this.lastRun,
+  });
 
   final GanaEntity gana;
   final GanaRunEntity? lastRun;
@@ -73,8 +77,8 @@ class GanaDashboardRow extends StatelessWidget {
                     Switch(
                       value: gana.enabled,
                       onChanged: (v) => context.read<GanaListBloc>().add(
-                            GanaListToggleEnabledEvent(gana.ganaId, v),
-                          ),
+                        GanaListToggleEnabledEvent(gana.ganaId, v),
+                      ),
                       activeThumbColor: Colors.white,
                       activeTrackColor: colorScheme.primary,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -90,19 +94,23 @@ class GanaDashboardRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 14,
-                  runSpacing: 4,
-                  children: [
-                    _MetaLine(
-                      icon: ganaTriggerIcon(gana),
-                      value: ganaTriggerSummary(gana, l10n),
-                    ),
-                    _MetaLine(
-                      icon: Icons.hub_rounded,
-                      value: ganaScopeLabel(gana, l10n),
-                    ),
-                  ],
+                LayoutBuilder(
+                  builder: (context, constraints) => Wrap(
+                    spacing: 14,
+                    runSpacing: 4,
+                    children: [
+                      _MetaLine(
+                        icon: ganaTriggerIcon(gana),
+                        value: ganaTriggerSummary(gana, l10n),
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      _MetaLine(
+                        icon: Icons.hub_rounded,
+                        value: ganaScopeLabel(gana, l10n),
+                        maxWidth: constraints.maxWidth,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -122,7 +130,7 @@ class GanaDashboardRow extends StatelessWidget {
                   lastRun == null
                       ? l10n.ganaTileLastRunNever
                       : '${ganaRunStatusLabel(lastRun!.status, l10n)} · '
-                          '${ganaRelativeWhen(lastRun!.startedAt, l10n)}',
+                            '${ganaRelativeWhen(lastRun!.startedAt, l10n)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: lastRun == null
@@ -140,27 +148,39 @@ class GanaDashboardRow extends StatelessWidget {
 }
 
 class _MetaLine extends StatelessWidget {
-  const _MetaLine({required this.icon, required this.value});
+  const _MetaLine({
+    required this.icon,
+    required this.value,
+    required this.maxWidth,
+  });
   final IconData icon;
   final String value;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.onSurfaceVariant;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 15, color: color),
-        const SizedBox(width: 6),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: color,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

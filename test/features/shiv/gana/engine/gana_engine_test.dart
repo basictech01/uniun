@@ -136,6 +136,11 @@ void main() {
           budget: any(named: 'budget'),
           relevanceQuery: any(named: 'relevanceQuery'),
         )).thenAnswer((_) async => const []);
+    when(() => manasLoader.mergeAll(
+          selfPubkey: any(named: 'selfPubkey'),
+          budget: any(named: 'budget'),
+          relevanceQuery: any(named: 'relevanceQuery'),
+        )).thenAnswer((_) async => const []);
 
     engine = GanaEngine(
       isar,
@@ -258,6 +263,49 @@ void main() {
   }
 
   group('cloud-pinned Gana', () {
+    test('Brahma scope loads whole knowledge and labels the prompt Brahma',
+        () async {
+      when(() => isCloudConnected.call()).thenAnswer((_) async => true);
+      when(() => manasLoader.mergeAll(
+            selfPubkey: any(named: 'selfPubkey'),
+            budget: any(named: 'budget'),
+            relevanceQuery: any(named: 'relevanceQuery'),
+          )).thenAnswer((_) async => [
+            PackedNote(
+              id: 'note-knowledge',
+              content: 'A private insight',
+              created: DateTime(2026),
+              source: PackedNoteSource.own,
+            ),
+          ]);
+      when(() => generateOneShot.call(any()))
+          .thenAnswer((_) async => const Right('A short reply'));
+      await seedStandaloneGana(
+        ganaId: 'brahma-scope-1',
+        desiredBackend: LlmBackendType.uniunCloud,
+        desiredModelId: 'claude-cloud-mini',
+      );
+
+      await engine.start();
+      final run = await waitForRun('brahma-scope-1');
+
+      expect(run?.status, GanaRunStatus.succeeded);
+      verify(() => manasLoader.mergeAll(
+            selfPubkey: any(named: 'selfPubkey'),
+            budget: any(named: 'budget'),
+            relevanceQuery: any(named: 'relevanceQuery'),
+          )).called(1);
+      verifyNever(() => manasLoader.merge(
+            manasIds: any(named: 'manasIds'),
+            budget: any(named: 'budget'),
+            relevanceQuery: any(named: 'relevanceQuery'),
+          ));
+      final request = verify(() => generateOneShot.call(captureAny()))
+          .captured.single as GenerateOneShotInput;
+      expect(request.prompt, contains('KNOWLEDGE — the user\'s notes (Brahma):'));
+      expect(request.prompt, contains('A private insight'));
+    });
+
     test('not connected to UNIUN Cloud → skipped(cloudUnavailable), never '
         'calls generateOneShot or publishes', () async {
       when(() => isCloudConnected.call()).thenAnswer((_) async => false);
@@ -1090,11 +1138,11 @@ void main() {
   });
 
   group('unexpected exception inside a run', () {
-    test('a manasLoader.merge throw is caught by _runIfPossible\'s outer '
+    test('a Brahma knowledge loader throw is caught by _runIfPossible\'s outer '
         'guard — no run log, no crash, mutex released', () async {
       when(() => isCloudConnected.call()).thenAnswer((_) async => true);
-      when(() => manasLoader.merge(
-            manasIds: any(named: 'manasIds'),
+      when(() => manasLoader.mergeAll(
+            selfPubkey: any(named: 'selfPubkey'),
             budget: any(named: 'budget'),
             relevanceQuery: any(named: 'relevanceQuery'),
           )).thenThrow(Exception('vector index corrupt'));

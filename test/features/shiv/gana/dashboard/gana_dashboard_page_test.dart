@@ -28,15 +28,26 @@ void main() {
     GetIt.instance.registerFactory<GanaListBloc>(() => bloc);
   });
 
-  Future<void> show(WidgetTester t, GanaListState state) async {
+  Future<void> show(
+    WidgetTester t,
+    GanaListState state, {
+    double width = 800,
+    double textScale = 1,
+  }) async {
     // Tall enough to build the whole lazy list.
-    t.view.physicalSize = const Size(800, 8000);
+    t.view.physicalSize = Size(width, 8000);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     when(() => bloc.state).thenReturn(state);
     await t.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const GanaDashboardPage(),
@@ -77,8 +88,28 @@ void main() {
     );
 
     expect(find.text('Reactive'), findsOneWidget);
-    expect(find.text('All notes'), findsOneWidget);
+    expect(find.text('Brahma'), findsOneWidget);
     expect(find.text('2 Manas'), findsOneWidget);
+  });
+
+  testWidgets('Gana rows fit a narrow screen with larger text', (t) async {
+    await show(
+      t,
+      ready(
+        ganas: [
+          aGana(
+            name: 'A long but readable Gana name',
+            triggerReactive: true,
+            triggerIntervalMinutes: 1440,
+            manasIds: ['m1'],
+          ),
+        ],
+      ),
+      width: 320,
+      textScale: 1.5,
+    );
+
+    expect(t.takeException(), isNull);
   });
 
   testWidgets('with no Ganas it explains how to start', (t) async {
