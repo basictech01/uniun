@@ -212,6 +212,9 @@ dependency_overrides:
   background_downloader: 9.5.6
 
 flutter:
+  # Use CocoaPods for iOS plugins to avoid duplicate SDWebImage symbols.
+  config:
+    enable-swift-package-manager: false
   generate: true
   uses-material-design: true
 

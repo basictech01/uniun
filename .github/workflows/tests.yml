@@ -122,7 +122,7 @@ jobs:
             lib/**/*.freezed.dart
           key: codegen-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'lib/**/*.dart', '!lib/**/*.g.dart', '!lib/**/*.freezed.dart') }}
       - run: flutter pub get --offline
-      - run: flutter analyze --no-fatal-infos lib/ test/
+      - run: flutter analyze --no-fatal-infos lib/ test/ integration_test/
 
   test:
     name: ${{ matrix.shard.name }}
