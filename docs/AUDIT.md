@@ -6,6 +6,14 @@ Format: one dated section per audit pass, newest first. Each item states what wa
 
 ---
 
+## 2026-10-10 — graph note's Manas checkmark follows the wrong note (#261)
+
+Selecting another note in the Brahma graph reused the `NoteCard` element at the same position. Its `BlocProvider` created `NoteCardCubit` only for the first note, and the cubit holds that note as a final field. The Manas menu read `cubit.note.id`, so it opened a fresh membership sheet for the previous note. The sheet itself already loads membership on each open; refreshing it for a changed `noteId` does not address this path.
+
+- **Fix:** key the `NoteCard`'s cubit provider by note ID. A new note now gets a new cubit and all note-specific actions use the selected note.
+- **Verified:** the graph widget test failed before the fix with the menu still on `n1` after selecting `n2`, then passed after it. A second test opens the Manas sheet for two notes in turn, verifies the second starts unchecked, and confirms its add action targets `n2`. Graph, Manas sheet and note-card tests pass.
+- **Not verified:** a physical-device tap through the graph; the tests cover the widget lifecycle and use-case calls.
+
 ## 2026-10-09 — notification dot stays after reading (#201)
 
 Reading a group, DM or private group often left its drawer dot on. **Root cause:** nothing marked a chat read when it opened. The mark-all event was sent only from the scroll listener, and the per-note fallback only fires when a note scrolls fully out of view, so a chat that opens at the newest note (short, or already at the bottom) never scrolls and never marks, and a note arriving while the user is at the bottom is never marked either. Followed notes had two more gaps: the badge counted only direct replies (a reply to a reply never counted), and it was cleared in bulk when the row was tapped in the drawer.
