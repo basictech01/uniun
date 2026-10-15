@@ -46,6 +46,7 @@ class _Vectors implements VectorRepository {
     List<double> queryVector, {
     int topK = 5,
     double minScore = 0.3,
+    Set<String>? allowedNoteIds,
   }) async => const [];
 }
 

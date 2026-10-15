@@ -391,14 +391,16 @@ Vectors live on the chunk rows themselves (`DocumentChunkModel.vector`, 4 KB
 each), never in the note ToStore. Embedding goes through `EmbeddingQueue`,
 bounding concurrency at 2.
 
-**Retrieval** — unscoped chat only. `RagPipeline` searches notes and chunks
-independently (chunk top-K = `max(1, topK ~/ 2)`); chunks skip memory and graph
-expansion, since they are not graph nodes. `PromptBuilder` renders them under
-`## Relevant Documents`, and `RagMessage.sourceChunkIds` carries them to the
-Sources sheet, which resolves them on open via `DocumentSourceRepository`.
+**Retrieval** — `RagPipeline` searches notes and chunks independently (chunk
+top-K = `max(1, topK ~/ 2)`); chunks skip memory and graph expansion, since they
+are not graph nodes. `PromptBuilder` renders them under `## Relevant Documents`,
+and `RagMessage.sourceChunkIds` carries them to the Sources sheet, which resolves
+them on open via `DocumentSourceRepository`.
 
-A Manas-scoped chat never searches documents: it scopes by note membership, and
-a document blob has none (#236).
+In a Manas-scoped chat, document scope is derived from note membership: the
+loader collects SHA-256 values from attachments on notes linked to any selected
+Manas, and only those documents compete for the chunk top-K. A document remains
+in scope when it is also attached to a note outside the selected Manas.
 
 ### Images — the text inside them, and what they show
 
@@ -671,6 +673,6 @@ a plain `flutter test`. `test/_helpers/pdfium_test_lib.dart` downloads it once
 and points pdfrx at it, mirroring what `ensureIsarCore()` already does for
 Isar's native binary.
 
-**Not built:** documents in Manas-scoped chat
-(#236), a `notSearchable` badge, OCR of pictures inside DOCX text boxes, headers or tables' VML, `.doc`/`.odt`, DOCX headers,
+**Not built:** a `notSearchable` badge, OCR of pictures inside DOCX text boxes,
+headers or tables' VML, `.doc`/`.odt`, DOCX headers,
 footers and footnotes.

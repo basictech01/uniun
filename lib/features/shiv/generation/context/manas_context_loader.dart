@@ -4,6 +4,7 @@ import 'package:isar_community/isar.dart';
 import 'package:uniun/core/notes/note_kinds.dart';
 import 'package:uniun/data/models/draft_model.dart';
 import 'package:uniun/data/models/manas_note_link_model.dart';
+import 'package:uniun/data/models/notes/media_attachment.dart';
 import 'package:uniun/data/models/notes/note_model.dart';
 import 'package:uniun/data/models/saved_note_model.dart';
 import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
@@ -63,10 +64,6 @@ class ManasContextLoader {
   static const int _charsPerTokenEstimate = 4;
   static const double _safetyMargin = 0.85;
 
-  /// How many vector hits to consider before intersecting with the Manas
-  /// set. The intersection can be small, so we pull a generous pool.
-  static const int _vectorPoolSize = 50;
-
   // ── Main-isolate entry (relevance-aware) ───────────────────────────────────
 
   /// Build the context for a Gana on the main isolate. Set semantics: a note
@@ -78,6 +75,7 @@ class ManasContextLoader {
     required List<String> manasIds,
     required int budget,
     String? relevanceQuery,
+    List<double>? relevanceVector,
   }) async {
     if (manasIds.isEmpty || budget <= 0) return const [];
 
@@ -89,6 +87,7 @@ class ManasContextLoader {
       final byRelevance = await _packByRelevance(
         isar: _isar,
         query: relevanceQuery,
+        queryVector: relevanceVector,
         allowedNoteIds: unique,
         charBudget: charBudget,
       );
@@ -97,6 +96,49 @@ class ManasContextLoader {
     }
 
     return _packNewestFromIds(isar: _isar, noteIds: unique, charBudget: charBudget);
+  }
+
+  /// SHA-256 values of documents attached to any active note in [manasIds].
+  ///
+  /// Membership belongs to notes rather than blobs: a document is in scope
+  /// when at least one linked own, saved, or draft note carries its SHA. A
+  /// document may also be attached to notes outside the selected Manas; that
+  /// does not remove it from the scope.
+  Future<Set<String>> documentSha256sForManases(
+    List<String> manasIds,
+  ) async {
+    final noteIds = await _noteIdsForManases(_isar, manasIds);
+    if (noteIds.isEmpty) return const {};
+
+    final shas = <String>{};
+    void collect(Iterable<MediaAttachment> attachments) {
+      for (final attachment in attachments) {
+        final sha = attachment.sha256;
+        if (sha.isNotEmpty) shas.add(sha);
+      }
+    }
+
+    final own = (await _isar.noteModels.getAllByEventId(noteIds.toList()))
+        .whereType<NoteModel>();
+    for (final note in own) {
+      collect(note.attachments);
+    }
+
+    final saved = (await _isar.savedNoteModels.getAllByEventId(noteIds.toList()))
+        .whereType<SavedNoteModel>()
+        .where((note) => note.removedAt == null);
+    for (final note in saved) {
+      collect(note.attachments);
+    }
+
+    // Draft attachments are included for forward compatibility. The current
+    // DocumentIndexer does not yet index draft documents.
+    final drafts = (await _isar.draftModels.getAllByDraftId(noteIds.toList()))
+        .whereType<DraftModel>();
+    for (final note in drafts) {
+      collect(note.attachments);
+    }
+    return shas;
   }
 
   /// Pack the whole Brahma knowledge base for a foreground Gana run.
@@ -155,20 +197,22 @@ class ManasContextLoader {
   Future<List<PackedNote>?> _packByRelevance({
     required Isar isar,
     required String query,
+    List<double>? queryVector,
     required Set<String> allowedNoteIds,
     required int charBudget,
   }) async {
     try {
       // `embed()` lazily calls `init()` internally if not ready.
-      final vec = await _embedder.embed(query);
+      final vec = queryVector ?? await _embedder.embed(query);
       if (vec.isEmpty) return null;
 
       final hits = await _searcher.search(
         queryVector: vec,
-        topK: _vectorPoolSize,
+        topK: allowedNoteIds.length,
         minScore: 0.0, // filter by Manas membership, not score
+        allowedNoteIds: allowedNoteIds,
       );
-      if (hits.isEmpty) return null;
+      if (hits.isEmpty) return const [];
 
       // Intersect with the Manas set, preserving search order (score desc),
       // then resolve all survivors in a single batch.
@@ -178,7 +222,7 @@ class ManasContextLoader {
         if (!allowedNoteIds.contains(h.noteId)) continue;
         if (seen.add(h.noteId)) orderedIds.add(h.noteId);
       }
-      if (orderedIds.isEmpty) return null;
+      if (orderedIds.isEmpty) return const [];
 
       final byId = await _resolveMany(isar, orderedIds);
       final ordered = [
@@ -354,11 +398,9 @@ class ManasContextLoader {
     final wanted = ids.toSet();
     final out = <String, PackedNote>{};
 
-    final saved = await isar.savedNoteModels
-        .filter()
-        .removedAtIsNull()
-        .anyOf(wanted, (q, id) => q.eventIdEqualTo(id))
-        .findAll();
+    final saved = (await isar.savedNoteModels.getAllByEventId(ids))
+        .whereType<SavedNoteModel>()
+        .where((note) => note.removedAt == null);
     for (final s in saved) {
       out.putIfAbsent(
         s.eventId,
@@ -373,10 +415,8 @@ class ManasContextLoader {
 
     final remainingOwn = wanted.where((id) => !out.containsKey(id)).toSet();
     if (remainingOwn.isNotEmpty) {
-      final own = await isar.noteModels
-          .filter()
-          .anyOf(remainingOwn, (q, id) => q.eventIdEqualTo(id))
-          .findAll();
+      final own = (await isar.noteModels.getAllByEventId(remainingOwn.toList()))
+          .whereType<NoteModel>();
       for (final n in own) {
         out.putIfAbsent(
           n.eventId,
@@ -392,10 +432,9 @@ class ManasContextLoader {
 
     final remainingDraft = wanted.where((id) => !out.containsKey(id)).toSet();
     if (remainingDraft.isNotEmpty) {
-      final drafts = await isar.draftModels
-          .filter()
-          .anyOf(remainingDraft, (q, id) => q.draftIdEqualTo(id))
-          .findAll();
+      final drafts = (await isar.draftModels.getAllByDraftId(
+        remainingDraft.toList(),
+      )).whereType<DraftModel>();
       for (final d in drafts) {
         out.putIfAbsent(
           d.draftId,

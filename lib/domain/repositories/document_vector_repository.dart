@@ -21,11 +21,14 @@ abstract class DocumentVectorRepository {
   /// With [queryText], the ranking also weighs exact words (BM25): a chunk that
   /// contains the question's rare words — a number, a name — rises even when
   /// its meaning-based score is modest. Without it, ranking is by meaning
-  /// alone. [ScoredChunk.score] is always the cosine similarity.
+  /// alone. When [allowedSha256] is provided, only chunks belonging to one of
+  /// those documents compete for the top-K. [ScoredChunk.score] is always the
+  /// cosine similarity.
   Future<List<ScoredChunk>> search(
     List<double> queryVector, {
     String? queryText,
     int topK = 3,
     double minScore = 0.3,
+    Set<String>? allowedSha256,
   });
 }

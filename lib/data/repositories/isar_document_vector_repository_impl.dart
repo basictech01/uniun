@@ -52,23 +52,42 @@ class IsarDocumentVectorRepositoryImpl implements DocumentVectorRepository {
     String? queryText,
     int topK = 3,
     double minScore = 0.3,
+    Set<String>? allowedSha256,
   }) async {
-    if (queryVector.isEmpty || topK <= 0) return const [];
+    if (queryVector.isEmpty ||
+        topK <= 0 ||
+        (allowedSha256 != null && allowedSha256.isEmpty)) {
+      return const [];
+    }
     final ranker = HybridRanker(
       queryVector,
       queryText: queryText,
       config: _config,
       minScore: minScore,
     );
-    for (var offset = 0; ; offset += _batch) {
-      final rows = await _isar.documentChunkModels
-          .where()
-          .offset(offset)
-          .limit(_batch)
-          .findAll();
-      if (rows.isEmpty) break;
-      for (final row in rows) {
-        ranker.add(row.id, row.vector, row.text);
+    if (allowedSha256 != null) {
+      // Scoped Manases usually reference only a few documents. Use the
+      // sha256/ordinal index so unrelated chunk vectors are never loaded.
+      for (final sha in allowedSha256) {
+        final rows = await _isar.documentChunkModels
+            .where()
+            .sha256EqualToAnyOrdinal(sha)
+            .findAll();
+        for (final row in rows) {
+          ranker.add(row.id, row.vector, row.text);
+        }
+      }
+    } else {
+      for (var offset = 0; ; offset += _batch) {
+        final rows = await _isar.documentChunkModels
+            .where()
+            .offset(offset)
+            .limit(_batch)
+            .findAll();
+        if (rows.isEmpty) break;
+        for (final row in rows) {
+          ranker.add(row.id, row.vector, row.text);
+        }
       }
     }
 

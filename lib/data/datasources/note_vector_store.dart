@@ -115,7 +115,11 @@ class NoteVectorStore {
   Future<List<NoteVectorHit>> search(
     List<double> vector, {
     required int topK,
-  }) => _ask<List<NoteVectorHit>>((reply) => _Search(reply, vector, topK));
+    Set<String>? allowedIds,
+  }) =>
+      _ask<List<NoteVectorHit>>(
+        (reply) => _Search(reply, vector, topK, allowedIds),
+      );
 
   /// Flushes and closes the store; the isolate then exits.
   Future<void> close() async {
@@ -173,9 +177,10 @@ class _Contains extends _Command {
 }
 
 class _Search extends _Command {
-  const _Search(super.reply, this.vector, this.topK);
+  const _Search(super.reply, this.vector, this.topK, this.allowedIds);
   final List<double> vector;
   final int topK;
+  final Set<String>? allowedIds;
 }
 
 class _Close extends _Command {
@@ -265,16 +270,41 @@ Future<void> _serve(
           ]);
         case _Contains(:final id):
           command.reply.send(await _has(db, id));
-        case _Search(:final vector, :final topK):
-          final hits = await db.vectorSearch(
-            embeddingsTableName,
-            fieldName: embeddingsVectorField,
-            queryVector: VectorData.fromList(vector),
-            topK: topK,
-          );
-          command.reply.send([
-            for (final h in hits) (id: h.primaryKey, score: h.score),
-          ]);
+        case _Search(:final vector, :final topK, :final allowedIds):
+          if (allowedIds != null && allowedIds.isEmpty) {
+            command.reply.send(const <NoteVectorHit>[]);
+            break;
+          }
+          if (allowedIds == null) {
+            final hits = await db.vectorSearch(
+              embeddingsTableName,
+              fieldName: embeddingsVectorField,
+              queryVector: VectorData.fromList(vector),
+              topK: topK,
+            );
+            command.reply.send([
+              for (final h in hits) (id: h.primaryKey, score: h.score),
+            ]);
+          } else {
+            // Apply the Manas membership filter before vector ranking, so a
+            // large unrelated library cannot crowd scoped notes out of top-K.
+            final rows = await db
+                .query(embeddingsTableName)
+                .select([embeddingsIdField, embeddingsVectorField])
+                .whereIn(embeddingsIdField, allowedIds.toList())
+                .limit(allowedIds.length);
+            final query = VectorData.fromList(vector);
+            final hits = <NoteVectorHit>[
+              for (final row in rows.data)
+                if (row[embeddingsVectorField] case final VectorData stored)
+                  (
+                    id: row[embeddingsIdField] as String,
+                    score: query.cosineSimilarity(stored),
+                  ),
+            ]
+              ..sort((a, b) => b.score.compareTo(a.score));
+            command.reply.send(hits.take(topK).toList());
+          }
         case _Close():
           rebuildTimer?.cancel();
           await db.close();

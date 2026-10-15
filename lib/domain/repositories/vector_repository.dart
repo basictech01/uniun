@@ -17,10 +17,12 @@ abstract class VectorRepository {
   Future<void> delete(String id);
 
   /// Return up to [topK] notes whose cosine similarity to [queryVector]
-  /// is at or above [minScore], sorted highest-first.
+  /// is at or above [minScore], sorted highest-first. When [allowedNoteIds]
+  /// is provided, only those notes compete for top-K.
   Future<List<ScoredNote>> search(
     List<double> queryVector, {
     int topK = 5,
     double minScore = 0.3,
+    Set<String>? allowedNoteIds,
   });
 }

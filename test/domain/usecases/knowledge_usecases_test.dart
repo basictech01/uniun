@@ -52,7 +52,7 @@ void main() {
       updatedAt: DateTime(2026, 1, 1),
     ));
     registerFallbackValue(const GenerateOneShotInput(prompt: ''));
-    registerFallbackValue((<double>[], 0, 0.0));
+    registerFallbackValue((<double>[], 0, 0.0, null as Set<String>?));
     registerFallbackValue(('', '', <double>[]));
   });
 

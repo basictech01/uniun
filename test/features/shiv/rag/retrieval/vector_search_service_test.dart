@@ -18,8 +18,10 @@ class _MockChunkUseCase extends Mock implements SearchDocumentChunksUseCase {}
 /// instead of literal-tuple matching for that reason.
 void main() {
   setUpAll(() {
-    registerFallbackValue((<double>[], 0, 0.0));
-    registerFallbackValue((<double>[], 0, 0.0, null as String?));
+    registerFallbackValue((<double>[], 0, 0.0, null as Set<String>?));
+    registerFallbackValue(
+      const SearchDocumentChunksInput(vector: [], topK: 0, minScore: 0),
+    );
   });
 
   late _MockSearchUseCase useCase;
@@ -46,7 +48,7 @@ void main() {
     ]);
     final captured =
         verify(() => useCase.call(captureAny())).captured.single
-            as (List<double>, int, double);
+            as (List<double>, int, double, Set<String>?);
     expect(captured.$1, [1.0, 2.0]);
   });
 
@@ -59,7 +61,7 @@ void main() {
 
     final captured =
         verify(() => useCase.call(captureAny())).captured.single
-            as (List<double>, int, double);
+            as (List<double>, int, double, Set<String>?);
     expect(captured.$2, 5);
     expect(captured.$3, 0.3);
   });
@@ -73,9 +75,22 @@ void main() {
 
     final captured =
         verify(() => useCase.call(captureAny())).captured.single
-            as (List<double>, int, double);
+            as (List<double>, int, double, Set<String>?);
     expect(captured.$2, 10);
     expect(captured.$3, 0.7);
+  });
+
+  test('forwards an allowed note id scope', () async {
+    when(() => useCase.call(any())).thenAnswer(
+      (_) async => const Right(<ScoredNote>[]),
+    );
+    await service.search(
+      queryVector: [1.0],
+      allowedNoteIds: const {'note-in-manas'},
+    );
+    final captured = verify(() => useCase.call(captureAny())).captured.single
+        as (List<double>, int, double, Set<String>?);
+    expect(captured.$4, {'note-in-manas'});
   });
 
   test('a use case failure degrades to an empty list, not a throw', () async {
@@ -108,8 +123,8 @@ void main() {
       expect(result, [hit]);
       final captured =
           verify(() => chunkUseCase.call(captureAny())).captured.single
-              as (List<double>, int, double, String?);
-      expect(captured.$1, [1.0, 2.0]);
+              as SearchDocumentChunksInput;
+      expect(captured.vector, [1.0, 2.0]);
     });
 
     test('forwards the query text for keyword ranking', () async {
@@ -121,8 +136,8 @@ void main() {
 
       final captured =
           verify(() => chunkUseCase.call(captureAny())).captured.single
-              as (List<double>, int, double, String?);
-      expect(captured.$4, 'helpline');
+              as SearchDocumentChunksInput;
+      expect(captured.queryText, 'helpline');
     });
 
     test('defaults topK to 3 and minScore to 0.3', () async {
@@ -134,9 +149,9 @@ void main() {
 
       final captured =
           verify(() => chunkUseCase.call(captureAny())).captured.single
-              as (List<double>, int, double, String?);
-      expect(captured.$2, 3);
-      expect(captured.$3, 0.3);
+              as SearchDocumentChunksInput;
+      expect(captured.topK, 3);
+      expect(captured.minScore, 0.3);
     });
 
     test('forwards custom topK/minScore unchanged', () async {
@@ -148,9 +163,25 @@ void main() {
 
       final captured =
           verify(() => chunkUseCase.call(captureAny())).captured.single
-              as (List<double>, int, double, String?);
-      expect(captured.$2, 7);
-      expect(captured.$3, 0.6);
+              as SearchDocumentChunksInput;
+      expect(captured.topK, 7);
+      expect(captured.minScore, 0.6);
+    });
+
+    test('forwards the allowed document SHA set', () async {
+      when(
+        () => chunkUseCase.call(any()),
+      ).thenAnswer((_) async => const Right(<ScoredChunk>[]));
+
+      await service.searchChunks(
+        queryVector: [1.0],
+        allowedSha256: const {'inside'},
+      );
+
+      final captured =
+          verify(() => chunkUseCase.call(captureAny())).captured.single
+              as SearchDocumentChunksInput;
+      expect(captured.allowedSha256, {'inside'});
     });
 
     test('a use case failure degrades to an empty list, not a throw', () async {

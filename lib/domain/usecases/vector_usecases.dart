@@ -18,7 +18,7 @@ class SearchVectorNotesUseCase
     extends
         UseCase<
           Either<Failure, List<ScoredNote>>,
-          (List<double>, int, double)
+          (List<double>, int, double, Set<String>?)
         > {
   final VectorRepository _repository;
 
@@ -26,15 +26,16 @@ class SearchVectorNotesUseCase
 
   @override
   Future<Either<Failure, List<ScoredNote>>> call(
-    (List<double>, int, double) input, {
+    (List<double>, int, double, Set<String>?) input, {
     bool cached = false,
   }) async {
     try {
-      final (vec, topK, minScore) = input;
+      final (vec, topK, minScore, allowedNoteIds) = input;
       final result = await _repository.search(
         vec,
         topK: topK,
         minScore: minScore,
+        allowedNoteIds: allowedNoteIds,
       );
       return Right(result);
     } catch (e) {
@@ -131,17 +132,33 @@ class EmbedAndStoreNoteUseCase extends UseCase<void, (String, String)> {
   }
 }
 
+/// Inputs for [SearchDocumentChunksUseCase].
+class SearchDocumentChunksInput {
+  const SearchDocumentChunksInput({
+    required this.vector,
+    required this.topK,
+    required this.minScore,
+    this.queryText,
+    this.allowedSha256,
+  });
+
+  final List<double> vector;
+  final int topK;
+  final double minScore;
+  final String? queryText;
+  final Set<String>? allowedSha256;
+}
+
 /// Top-K PDF chunks most similar to a query vector, from the document store.
 ///
-/// The document twin of [SearchVectorNotesUseCase]: same tuple input
-/// `(vector, topK, minScore, queryText)`, separate store, so note retrieval is
-/// unaffected.
+/// `allowedSha256` confines a scoped search before top-K selection; null
+/// searches every indexed document.
 @lazySingleton
 class SearchDocumentChunksUseCase
     extends
         UseCase<
           Either<Failure, List<ScoredChunk>>,
-          (List<double>, int, double, String?)
+          SearchDocumentChunksInput
         > {
   final DocumentVectorRepository _repository;
 
@@ -149,17 +166,17 @@ class SearchDocumentChunksUseCase
 
   @override
   Future<Either<Failure, List<ScoredChunk>>> call(
-    (List<double>, int, double, String?) input, {
+    SearchDocumentChunksInput input, {
     bool cached = false,
   }) async {
     try {
-      final (vec, topK, minScore, queryText) = input;
       return Right(
         await _repository.search(
-          vec,
-          queryText: queryText,
-          topK: topK,
-          minScore: minScore,
+          input.vector,
+          queryText: input.queryText,
+          topK: input.topK,
+          minScore: input.minScore,
+          allowedSha256: input.allowedSha256,
         ),
       );
     } catch (e) {

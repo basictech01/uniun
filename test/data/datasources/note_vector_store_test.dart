@@ -55,6 +55,25 @@ void main() {
     expect(await store.search(vec(0), topK: 3), hasLength(3));
   });
 
+  test('scoped search ranks only allowed ids before applying topK', () async {
+    final query = vec(0);
+    for (var i = 0; i < 60; i++) {
+      await store.upsert('outside-$i', query);
+    }
+    final inside = [...query]..[0] += 0.01;
+    await store.upsert('inside', inside);
+
+    expect(
+      (await store.search(query, topK: 1)).map((hit) => hit.id),
+      isNot(contains('inside')),
+    );
+    expect(
+      (await store.search(query, topK: 1, allowedIds: const {'inside'}))
+          .map((hit) => hit.id),
+      ['inside'],
+    );
+  });
+
   test('contains tells saved ids from unknown ones', () async {
     await store.upsert('a', vec(1));
 

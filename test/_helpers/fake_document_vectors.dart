@@ -12,6 +12,7 @@ class FakeDocumentVectors implements DocumentVectorRepository {
   List<double>? lastQuery;
   String? lastQueryText;
   int? lastTopK;
+  Set<String>? lastAllowedSha256;
 
   @override
   Future<void> upsert(String chunkId, List<double> vector) async =>
@@ -23,10 +24,16 @@ class FakeDocumentVectors implements DocumentVectorRepository {
     String? queryText,
     int topK = 3,
     double minScore = 0.3,
+    Set<String>? allowedSha256,
   }) async {
     lastQuery = queryVector;
     lastQueryText = queryText;
     lastTopK = topK;
-    return searchResult;
+    lastAllowedSha256 = allowedSha256;
+    if (allowedSha256 == null) return searchResult;
+    return searchResult
+        .where((chunk) => allowedSha256.contains(chunk.sha256))
+        .take(topK)
+        .toList();
   }
 }

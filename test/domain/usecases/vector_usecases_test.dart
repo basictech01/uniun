@@ -38,7 +38,12 @@ void main() {
     test(
       'forwards vector/topK/minScore and wraps the result in Right',
       () async {
-        when(() => repo.search([1.0, 2.0], topK: 5, minScore: 0.3)).thenAnswer(
+        when(() => repo.search(
+          [1.0, 2.0],
+          topK: 5,
+          minScore: 0.3,
+          allowedNoteIds: null,
+        )).thenAnswer(
           (_) async => const [
             ScoredNote(noteId: 'n1', score: 0.9, content: 'hit'),
           ],
@@ -46,10 +51,15 @@ void main() {
 
         final result = await SearchVectorNotesUseCase(
           repo,
-        ).call(([1.0, 2.0], 5, 0.3));
+        ).call(([1.0, 2.0], 5, 0.3, null));
 
         expect(result.getOrElse(() => []), hasLength(1));
-        verify(() => repo.search([1.0, 2.0], topK: 5, minScore: 0.3)).called(1);
+        verify(() => repo.search(
+          [1.0, 2.0],
+          topK: 5,
+          minScore: 0.3,
+          allowedNoteIds: null,
+        )).called(1);
       },
     );
 
@@ -61,12 +71,13 @@ void main() {
             any(),
             topK: any(named: 'topK'),
             minScore: any(named: 'minScore'),
+            allowedNoteIds: any(named: 'allowedNoteIds'),
           ),
         ).thenThrow(Exception('index unavailable'));
 
         final result = await SearchVectorNotesUseCase(
           repo,
-        ).call(([1.0], 5, 0.3));
+        ).call(([1.0], 5, 0.3, null));
 
         expect(result.isLeft(), isTrue);
       },
@@ -173,10 +184,19 @@ void main() {
             queryText: 'leave rules',
             topK: 7,
             minScore: 0.6,
+            allowedSha256: const {'inside'},
           ),
         ).thenAnswer((_) async => const [hit]);
 
-        final result = await useCase(([1.0, 2.0], 7, 0.6, 'leave rules'));
+        final result = await useCase(
+          const SearchDocumentChunksInput(
+            vector: [1.0, 2.0],
+            topK: 7,
+            minScore: 0.6,
+            queryText: 'leave rules',
+            allowedSha256: {'inside'},
+          ),
+        );
 
         expect(result.getOrElse(() => []), [hit]);
         verify(
@@ -185,6 +205,7 @@ void main() {
             queryText: 'leave rules',
             topK: 7,
             minScore: 0.6,
+            allowedSha256: const {'inside'},
           ),
         ).called(1);
       },
@@ -199,13 +220,26 @@ void main() {
             queryText: any(named: 'queryText'),
             topK: any(named: 'topK'),
             minScore: any(named: 'minScore'),
+            allowedSha256: any(named: 'allowedSha256'),
           ),
         ).thenAnswer((_) async => const [hit]);
 
-        await useCase(([1.0], 3, 0.3, null));
+        await useCase(
+          const SearchDocumentChunksInput(
+            vector: [1.0],
+            topK: 3,
+            minScore: 0.3,
+          ),
+        );
 
         verify(
-          () => repo.search([1.0], queryText: null, topK: 3, minScore: 0.3),
+          () => repo.search(
+            [1.0],
+            queryText: null,
+            topK: 3,
+            minScore: 0.3,
+            allowedSha256: null,
+          ),
         ).called(1);
       },
     );
@@ -217,11 +251,19 @@ void main() {
           queryText: any(named: 'queryText'),
           topK: any(named: 'topK'),
           minScore: any(named: 'minScore'),
+          allowedSha256: any(named: 'allowedSha256'),
         ),
       ).thenAnswer((_) async => const []);
 
       expect(
-        (await useCase(([1.0], 3, 0.3, null))).getOrElse(() => [hit]),
+        (await useCase(
+          const SearchDocumentChunksInput(
+            vector: [1.0],
+            topK: 3,
+            minScore: 0.3,
+          ),
+        ))
+            .getOrElse(() => [hit]),
         isEmpty,
       );
     });
@@ -233,10 +275,17 @@ void main() {
           queryText: any(named: 'queryText'),
           topK: any(named: 'topK'),
           minScore: any(named: 'minScore'),
+          allowedSha256: any(named: 'allowedSha256'),
         ),
       ).thenThrow(Exception('store unavailable'));
 
-      final result = await useCase(([1.0], 3, 0.3, null));
+      final result = await useCase(
+        const SearchDocumentChunksInput(
+          vector: [1.0],
+          topK: 3,
+          minScore: 0.3,
+        ),
+      );
 
       expect(result.isLeft(), isTrue);
     });

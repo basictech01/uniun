@@ -65,6 +65,7 @@ void main() {
     registerFallbackValue(_FakeEnrichedContext());
     registerFallbackValue(_FakePromptBudget());
     registerFallbackValue(<String>[]);
+    registerFallbackValue(<String>{});
     registerFallbackValue((<String>[], 1));
     registerFallbackValue(const PersonalizationContext());
   });
@@ -238,6 +239,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       );
     });
@@ -248,6 +250,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer((_) async => const []);
 
@@ -264,6 +267,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer(
         (_) async => const [
@@ -337,6 +341,7 @@ void main() {
           () => vectorSearch.search(
             queryVector: any(named: 'queryVector'),
             topK: any(named: 'topK'),
+            minScore: any(named: 'minScore'),
           ),
         ).thenAnswer(
           (_) async => const [
@@ -377,6 +382,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer(
         (_) async => const [
@@ -447,6 +453,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer((_) async => const []);
     });
@@ -456,6 +463,8 @@ void main() {
         queryVector: any(named: 'queryVector'),
         queryText: any(named: 'queryText'),
         topK: any(named: 'topK'),
+        minScore: any(named: 'minScore'),
+        allowedSha256: any(named: 'allowedSha256'),
       ),
     ).thenAnswer((_) async => chunks);
 
@@ -490,6 +499,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer(
         (_) async => const [
@@ -517,6 +527,7 @@ void main() {
           () => vectorSearch.search(
             queryVector: any(named: 'queryVector'),
             topK: 3,
+            minScore: PromptBudget.forActiveModel(null).minScore,
           ),
         ).called(1);
         verify(
@@ -524,6 +535,8 @@ void main() {
             queryVector: any(named: 'queryVector'),
             queryText: 'q',
             topK: 1,
+            minScore: PromptBudget.forActiveModel(null).minScore,
+            allowedSha256: any(named: 'allowedSha256'),
           ),
         ).called(1);
       },
@@ -534,6 +547,7 @@ void main() {
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       ).thenAnswer(
         (_) async => const [
@@ -545,6 +559,8 @@ void main() {
           queryVector: any(named: 'queryVector'),
           queryText: any(named: 'queryText'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
+          allowedSha256: any(named: 'allowedSha256'),
         ),
       ).thenThrow(Exception('store unavailable'));
 
@@ -586,6 +602,10 @@ void main() {
       when(
         () => getNodesByKeys.call(any()),
       ).thenAnswer((_) async => const Right([]));
+      when(() => embedding.embed(any())).thenAnswer((_) async => [1.0]);
+      when(
+        () => manasLoader.documentSha256sForManases(any()),
+      ).thenAnswer((_) async => const {});
     });
 
     test('a non-empty manasIds list uses ManasContextLoader.merge, not the '
@@ -595,6 +615,7 @@ void main() {
           manasIds: any(named: 'manasIds'),
           budget: any(named: 'budget'),
           relevanceQuery: any(named: 'relevanceQuery'),
+          relevanceVector: any(named: 'relevanceVector'),
         ),
       ).thenAnswer(
         (_) async => [
@@ -614,11 +635,12 @@ void main() {
 
       expect(result.sourceNoteIds, ['n1']);
       expect(result.sourceChunkIds, isEmpty);
-      verifyNever(() => embedding.embed(any()));
+      verify(() => embedding.embed('q')).called(1);
       verifyNever(
         () => vectorSearch.search(
           queryVector: any(named: 'queryVector'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
         ),
       );
       verifyNever(
@@ -626,6 +648,8 @@ void main() {
           queryVector: any(named: 'queryVector'),
           queryText: any(named: 'queryText'),
           topK: any(named: 'topK'),
+          minScore: any(named: 'minScore'),
+          allowedSha256: any(named: 'allowedSha256'),
         ),
       );
     });
@@ -636,6 +660,7 @@ void main() {
           manasIds: any(named: 'manasIds'),
           budget: any(named: 'budget'),
           relevanceQuery: any(named: 'relevanceQuery'),
+          relevanceVector: any(named: 'relevanceVector'),
         ),
       ).thenAnswer(
         (_) async => List.generate(
@@ -668,6 +693,7 @@ void main() {
             manasIds: any(named: 'manasIds'),
             budget: any(named: 'budget'),
             relevanceQuery: any(named: 'relevanceQuery'),
+            relevanceVector: any(named: 'relevanceVector'),
           ),
         ).thenAnswer((_) async => const []);
 
@@ -679,5 +705,56 @@ void main() {
         expect(result.contextCount, 0);
       },
     );
+
+    test('searches only documents attached to notes in the selected Manas',
+        () async {
+      when(
+        () => manasLoader.merge(
+          manasIds: any(named: 'manasIds'),
+          budget: any(named: 'budget'),
+          relevanceQuery: any(named: 'relevanceQuery'),
+          relevanceVector: any(named: 'relevanceVector'),
+        ),
+      ).thenAnswer((_) async => const []);
+      when(
+        () => manasLoader.documentSha256sForManases(const ['m1']),
+      ).thenAnswer((_) async => const {'inside'});
+      when(
+        () => vectorSearch.searchChunks(
+          queryVector: [1.0],
+          queryText: 'q',
+          topK: any(named: 'topK'),
+          minScore: PromptBudget.forActiveModel(null).minScore,
+          allowedSha256: const {'inside'},
+        ),
+      ).thenAnswer(
+        (_) async => const [
+          ScoredChunk(
+            chunkId: 'inside:0',
+            sha256: 'inside',
+            kind: DocumentKind.pdf,
+            label: '1',
+            score: 0.9,
+            content: 'matching passage',
+          ),
+        ],
+      );
+
+      final result = await pipeline.buildMessage(
+        userQuestion: 'q',
+        manasIds: const ['m1'],
+      );
+
+      expect(result.sourceChunkIds, ['inside:0']);
+      verify(
+        () => vectorSearch.searchChunks(
+          queryVector: [1.0],
+          queryText: 'q',
+          topK: any(named: 'topK'),
+          minScore: PromptBudget.forActiveModel(null).minScore,
+          allowedSha256: const {'inside'},
+        ),
+      ).called(1);
+    });
   });
 }

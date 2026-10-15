@@ -44,8 +44,8 @@ class RagMessage {
   final List<String> sourceNoteIds;
 
   /// Chunk ids (`"<sha256>:<ordinal>"`) of the PDF passages that informed this
-  /// turn, score-desc. Resolved on demand by the Sources sheet. Always empty in
-  /// Manas-scoped chat, which never searches documents.
+  /// turn, score-desc. Resolved on demand by the Sources sheet. In a
+  /// Manas-scoped chat, only documents attached to notes in that Manas appear.
   final List<String> sourceChunkIds;
 }
 
@@ -130,6 +130,7 @@ class RagPipeline {
       userQuestion,
       topK: budget.topK,
       maxHops: budget.maxHops,
+      minScore: budget.minScore,
       manasIds: manasIds,
     );
     _personalization ??= await _loadPersonalization();
@@ -165,6 +166,7 @@ class RagPipeline {
     String query, {
     int topK = 5,
     int maxHops = 1,
+    double minScore = PromptBudget.defaultMinScore,
     List<String> manasIds = const [],
   }) async {
     try {
@@ -172,26 +174,43 @@ class RagPipeline {
       final List<ScoredNote> seedNotes;
       var seedChunks = const <ScoredChunk>[];
       if (manasIds.isNotEmpty) {
-        // Manas-scoped: relevance-rank within the picked Manas's notes.
+        // Embed once for both note and document retrieval. The loader receives
+        // the vector so its relevance path does not run the on-device model a
+        // second time; an unavailable embedder still falls back to newest notes.
+        final vec = await _safeEmbed(query);
         final packed = await _manasLoader.merge(
           manasIds: manasIds,
           budget: topK * 200, // ~topK notes' worth of tokens
           relevanceQuery: query,
+          relevanceVector: vec,
         );
         seedNotes = [
           for (final p in packed.take(topK))
             ScoredNote(noteId: p.id, score: 1.0, content: p.content),
         ];
+        final allowedSha256 = await _safeDocumentScope(manasIds);
+        if (vec.isNotEmpty && allowedSha256.isNotEmpty) {
+          seedChunks = await _safeChunkSearch(
+            vec,
+            query,
+            math.max(1, topK ~/ 2),
+            minScore: minScore,
+            allowedSha256: allowedSha256,
+          );
+        }
       } else {
         final vec = await _embedding.embed(query);
         if (vec.isEmpty) return EnrichedContext.empty;
-        seedNotes = await _vectorSearch.search(queryVector: vec, topK: topK);
-        // Documents are unscoped-chat only: a Manas scopes by note membership,
-        // which a PDF blob has none of.
+        seedNotes = await _vectorSearch.search(
+          queryVector: vec,
+          topK: topK,
+          minScore: minScore,
+        );
         seedChunks = await _safeChunkSearch(
           vec,
           query,
           math.max(1, topK ~/ 2),
+          minScore: minScore,
         );
       }
       if (seedNotes.isEmpty && seedChunks.isEmpty) return EnrichedContext.empty;
@@ -257,16 +276,36 @@ class RagPipeline {
   Future<List<ScoredChunk>> _safeChunkSearch(
     List<double> vec,
     String query,
-    int topK,
-  ) async {
+    int topK, {
+    double minScore = PromptBudget.defaultMinScore,
+    Set<String>? allowedSha256,
+  }) async {
     try {
       return await _vectorSearch.searchChunks(
         queryVector: vec,
         queryText: query,
         topK: topK,
+        minScore: minScore,
+        allowedSha256: allowedSha256,
       );
     } catch (_) {
       return const [];
+    }
+  }
+
+  Future<List<double>> _safeEmbed(String query) async {
+    try {
+      return await _embedding.embed(query);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<Set<String>> _safeDocumentScope(List<String> manasIds) async {
+    try {
+      return await _manasLoader.documentSha256sForManases(manasIds);
+    } catch (_) {
+      return const {};
     }
   }
 

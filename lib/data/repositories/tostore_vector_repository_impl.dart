@@ -28,10 +28,15 @@ class TostoreVectorRepositoryImpl implements VectorRepository {
     List<double> queryVector, {
     int topK = 5,
     double minScore = 0.3,
+    Set<String>? allowedNoteIds,
   }) async {
     if (queryVector.isEmpty) return const [];
 
-    final hits = await _store.search(queryVector, topK: topK);
+    final hits = await _store.search(
+      queryVector,
+      topK: topK,
+      allowedIds: allowedNoteIds,
+    );
     debugPrint('🔍 Tostore.vectorSearch → ${hits.length} raw hit(s)');
 
     // Keep qualifying hits in score order, then resolve ALL their content in

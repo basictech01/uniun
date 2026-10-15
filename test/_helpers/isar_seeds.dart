@@ -5,6 +5,7 @@ import 'package:uniun/core/notes/note_kinds.dart';
 import 'package:uniun/data/models/deleted_note_model.dart';
 import 'package:uniun/data/models/dm/dm_conversation_model.dart';
 import 'package:uniun/data/models/event_queue_model.dart';
+import 'package:uniun/data/models/manas_note_link_model.dart';
 import 'package:uniun/data/models/media/media_cache_model.dart';
 import 'package:uniun/data/models/note_relation_model.dart';
 import 'package:uniun/data/models/private_group_join_request_model.dart';
@@ -73,6 +74,19 @@ NoteModel noteRow(
       attachments: attachments,
       created: created ?? tNow,
     );
+
+/// Build an active or tombstoned note-membership edge for a Manas.
+ManasNoteLinkModel manasNoteLinkRow(
+  String manasId,
+  String noteId, {
+  DateTime? addedAt,
+  DateTime? removedAt,
+}) =>
+    ManasNoteLinkModel()
+      ..manasId = manasId
+      ..noteId = noteId
+      ..addedAt = addedAt ?? tNow
+      ..removedAt = removedAt;
 
 /// Build an [UnreadNoteModel] row without committing it.
 UnreadNoteModel unreadRow(

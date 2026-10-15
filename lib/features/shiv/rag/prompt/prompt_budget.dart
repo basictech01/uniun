@@ -21,13 +21,18 @@ class PromptBudget {
     required this.memoriesTokens,
     required this.topK,
     required this.maxHops,
+    this.minScore = defaultMinScore,
   });
+
+  static const double defaultMinScore = 0.3;
+  static const double smallModelMinScore = 0.72;
 
   final int maxTokens;
   final int queryTokens;
   final int topNotesTokens;
   final int graphRelationsTokens;
   final int memoriesTokens;
+  final double minScore;
 
   /// How many vector seed notes to retrieve. Larger models can handle more context.
   final int topK;
@@ -61,6 +66,7 @@ class PromptBudget {
     final int max;
     final int topK;
     final int maxHops;
+    var minScore = defaultMinScore;
     switch (modelId) {
       case AIModelId.gemma4E4b:
         max = 8192;
@@ -82,8 +88,9 @@ class PromptBudget {
         max = 2048;
         topK = 3;
         maxHops = 1;
+        minScore = smallModelMinScore;
     }
-    return _build(max, topK, maxHops);
+    return _build(max, topK, maxHops, minScore: minScore);
   }
 
   /// Cloud models routinely expose 32k–200k context windows. We don't try
@@ -100,7 +107,12 @@ class PromptBudget {
     return _build(cap, 15, 2);
   }
 
-  static PromptBudget _build(int max, int topK, int maxHops) {
+  static PromptBudget _build(
+    int max,
+    int topK,
+    int maxHops, {
+    double minScore = defaultMinScore,
+  }) {
     // Split: query 10%, topNotes 35%, graphRelations 20%, summaries 15%.
     return PromptBudget(
       maxTokens: max,
@@ -110,6 +122,7 @@ class PromptBudget {
       memoriesTokens: (max * 0.15).round(),
       topK: topK,
       maxHops: maxHops,
+      minScore: minScore,
     );
   }
 

@@ -210,6 +210,37 @@ void main() {
         expect((await repo.search(oneHot(4), topK: 1)).single.sha256, 'b');
       },
     );
+
+    test('document scope is applied before topK selection', () async {
+      await seedChunk('outside', 0, 'best but outside');
+      await seedChunk('inside', 0, 'weaker but allowed');
+      await repo.upsert(chunkIdOf('outside', 0), oneHot(0));
+      await repo.upsert(
+        chunkIdOf('inside', 0),
+        List<double>.generate(
+          dims,
+          (i) => i == 0 ? 0.8 : (i == 1 ? 0.6 : 0.0),
+        ),
+      );
+
+      final hits = await repo.search(
+        oneHot(0),
+        topK: 1,
+        allowedSha256: const {'inside'},
+      );
+
+      expect(hits.single.sha256, 'inside');
+    });
+
+    test('an explicitly empty document scope returns no chunks', () async {
+      await seedChunk('s', 0, 'present');
+      await repo.upsert(chunkIdOf('s', 0), oneHot(0));
+
+      expect(
+        await repo.search(oneHot(0), allowedSha256: const {}),
+        isEmpty,
+      );
+    });
   });
 
   group('purged chunks', () {

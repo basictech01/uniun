@@ -13,6 +13,7 @@ void main() {
       expect(b.maxTokens, 8192);
       expect(b.topK, 10);
       expect(b.maxHops, 2);
+      expect(b.minScore, PromptBudget.defaultMinScore);
     });
 
     test('gemma4E2b gets a mid-size budget (4096, topK 5, 2 hops)', () {
@@ -34,6 +35,7 @@ void main() {
       expect(b.maxTokens, 2048);
       expect(b.topK, 3);
       expect(b.maxHops, 1);
+      expect(b.minScore, PromptBudget.smallModelMinScore);
     });
 
     test('a null modelId falls into the same default bucket as qwen25_05b',

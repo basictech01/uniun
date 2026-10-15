@@ -71,7 +71,7 @@ class ExtractKnowledgeUseCase
     }
 
     try {
-      final similarResult = await _searchVector.call((queryVec, 5, 0.3));
+      final similarResult = await _searchVector.call((queryVec, 5, 0.3, null));
       final similar = similarResult
           .fold<List<ScoredNote>>((_) => const [], (s) => s)
           .where((s) => s.noteId != noteId)
