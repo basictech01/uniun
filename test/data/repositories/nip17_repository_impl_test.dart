@@ -116,6 +116,29 @@ void main() {
       expect(await isar.encryptedDmModels.count(), 0);
     });
 
+    test('a reply and a mention each add an edge; the thread root adds none',
+        () async {
+      final wrapId = await seedWrap('w1');
+
+      await repo.saveInbound(
+        giftWrapId: wrapId,
+        otherPubkey: kAlicePub,
+        message: aDmText(conversationId: 0, id: 'dm-r', authorPubkey: kAlicePub)
+            .copyWith(
+          rootEventId: 'root',
+          replyToEventId: 'parent',
+          eTagRefs: ['root', 'parent', 'mentioned'],
+        ),
+        ownPubkey: kSelfPub,
+      );
+
+      final edges = await isar.noteRelationModels.where().findAll();
+      expect(
+        edges.map((e) => e.parentId).toSet(),
+        {'parent', 'mentioned'},
+      );
+    });
+
     test('a message from ourselves is stored read', () async {
       final wrapId = await seedWrap('w1');
 
@@ -291,6 +314,19 @@ void main() {
       expect(note.attachments, hasLength(1));
       expect(await isar.unreadNoteModels.count(), 0);
       expect(await isar.noteRelationModels.count(), 1);
+    });
+
+    test('a mention adds an edge next to the reply edge', () async {
+      await repo.saveOutgoing(
+        aDmText(conversationId: 7, id: 'out-2', authorPubkey: kSelfPub)
+            .copyWith(
+          replyToEventId: 'parent',
+          eTagRefs: ['parent', 'mentioned'],
+        ),
+      );
+
+      final edges = await isar.noteRelationModels.where().findAll();
+      expect(edges.map((e) => e.parentId).toSet(), {'parent', 'mentioned'});
     });
 
     test('sending the same id twice is refused and keeps the first row',

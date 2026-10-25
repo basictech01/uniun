@@ -8,6 +8,7 @@ import 'package:uniun/data/models/notes/unread_note_model.dart';
 import 'package:uniun/data/repositories/dm_conversation_repository_impl.dart';
 import 'package:uniun/data/repositories/dm_message_repository_impl.dart';
 import 'package:uniun/data/repositories/feed_repository_impl.dart';
+import 'package:uniun/data/repositories/nip17_repository_impl.dart';
 import 'package:uniun/data/repositories/note_attachments_enricher.dart';
 import 'package:uniun/data/repositories/note_relation_repository_impl.dart';
 import 'package:uniun/data/repositories/note_resolver_repository_impl.dart';
@@ -33,6 +34,7 @@ void main() {
   late Isar isar;
   late DmConversationRepositoryImpl conversations;
   late DmMessageRepositoryImpl messages;
+  late Nip17RepositoryImpl nip17;
   late UnreadRepositoryImpl unread;
   late FeedRepositoryImpl feed;
 
@@ -49,7 +51,16 @@ void main() {
       isar: isar,
       signer: MeshEventSigner(StubUserRepository()..keys = null),
     );
-    messages = DmMessageRepositoryImpl(isar: isar, resolver: resolver);
+    messages = DmMessageRepositoryImpl(
+      isar: isar,
+      resolver: resolver,
+      relations: relations,
+    );
+    nip17 = Nip17RepositoryImpl(
+      isar: isar,
+      relations: relations,
+      conversations: conversations,
+    );
     unread = UnreadRepositoryImpl(isar: isar);
     feed = FeedRepositoryImpl(
       isar: isar,
@@ -224,5 +235,41 @@ void main() {
         isEmpty);
     // The message row survives in the unified Note collection.
     expect((await messages.getMessageById('dm-1')).isRight(), isTrue);
+  });
+
+  test(
+      'SCENARIO: a reply and a reference sent or received in a DM show up in '
+      'the chat counts (issue #304)', () async {
+    // The peer's first message arrives, then both sides reply to it.
+    await nip17.saveInbound(
+      giftWrapId: 0,
+      otherPubkey: kSampleTargetPubkeyHex,
+      message: aDmText(
+        conversationId: 0,
+        id: 'dm-parent',
+        authorPubkey: kSampleTargetPubkeyHex,
+      ),
+      ownPubkey: kSelfPub,
+    );
+    final convoId = (await conversations
+            .getConversationByOtherPubkey(kSampleTargetPubkeyHex))
+        .getOrElse(() => throw 'unreachable')
+        .id;
+    await nip17.saveOutgoing(
+      aDmText(conversationId: convoId, id: 'dm-reply', authorPubkey: kSelfPub)
+          .copyWith(replyToEventId: 'dm-parent', eTagRefs: ['dm-parent']),
+    );
+    await nip17.saveOutgoing(
+      aDmText(conversationId: convoId, id: 'dm-ref', authorPubkey: kSelfPub)
+          .copyWith(eTagRefs: ['dm-parent']),
+    );
+
+    final chat = (await messages.getMessages(convoId))
+        .getOrElse(() => throw 'unreachable');
+    final byId = {for (final n in chat) n.id: n};
+
+    expect(byId['dm-parent']!.cachedReplyCount, 2);
+    expect(byId['dm-reply']!.referenceCount, 1);
+    expect(byId['dm-ref']!.referenceCount, 1);
   });
 }

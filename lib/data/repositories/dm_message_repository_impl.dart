@@ -5,14 +5,29 @@ import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/data/models/notes/note_model.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
 import 'package:uniun/domain/repositories/dm_message_repository.dart';
+import 'package:uniun/domain/repositories/note_relation_repository.dart';
 import 'package:uniun/domain/repositories/note_resolver_repository.dart';
 
 @Injectable(as: DmMessageRepository)
 class DmMessageRepositoryImpl extends DmMessageRepository {
   final Isar isar;
   final NoteResolverRepository _resolver;
-  DmMessageRepositoryImpl({required this.isar, required NoteResolverRepository resolver})
-      : _resolver = resolver;
+  final NoteRelationRepository _relations;
+  DmMessageRepositoryImpl({
+    required this.isar,
+    required NoteResolverRepository resolver,
+    required NoteRelationRepository relations,
+  })  : _resolver = resolver,
+        _relations = relations;
+
+  /// Attaches the live reply + reference counts from the edge table.
+  Future<List<NoteEntity>> _withCounts(List<NoteEntity> notes) async => [
+        for (final n in notes)
+          n.copyWith(
+            cachedReplyCount: await _relations.replyCount(n.id),
+            referenceCount: await _relations.referenceCount(n.id),
+          ),
+      ];
 
   @override
   Future<Either<Failure, NoteEntity>> saveMessage(NoteEntity entity) async {
@@ -71,7 +86,7 @@ class DmMessageRepositoryImpl extends DmMessageRepository {
           : rows.where((m) => m.created.isBefore(before)).toList();
 
       final entities = filtered.take(limit).map((m) => m.toDomain()).toList();
-      return Right(await _resolver.enrichWithQuotes(entities));
+      return Right(await _resolver.enrichWithQuotes(await _withCounts(entities)));
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
     }
@@ -89,7 +104,9 @@ class DmMessageRepositoryImpl extends DmMessageRepository {
           Failure.notFoundFailure('DM message not found for eventId: $eventId'),
         );
       }
-      final enriched = await _resolver.enrichWithQuotes([row.toDomain()]);
+      final enriched = await _resolver.enrichWithQuotes(
+        await _withCounts([row.toDomain()]),
+      );
       return Right(enriched.first);
     } catch (e) {
       return Left(Failure.errorFailure(e.toString()));
