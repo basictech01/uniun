@@ -29,6 +29,7 @@ void main() {
         relations: relations,
         attachments: NoteAttachmentsEnricher(isar: isar),
       ),
+      relations: relations,
     );
   });
 
@@ -131,6 +132,29 @@ void main() {
       expect(idsOf(r), isEmpty);
     });
 
+    test('carries the live reply and reference counts (issue #304)', () async {
+      await seedNoteRow(isar, 'parent', kind: kDmTextKind, conversationId: 1);
+      await seedNoteRow(isar, 'child', kind: kDmTextKind, conversationId: 1);
+      await seedNoteRow(isar, 'ref', kind: kDmTextKind, conversationId: 1);
+      final relations = NoteRelationRepositoryImpl(isar: isar);
+      await isar.writeTxn(() async {
+        await relations.addEdgesInTxn(parents: {'parent'}, childId: 'child');
+        await relations.addEdgesInTxn(
+          parents: {'parent', 'child'},
+          childId: 'ref',
+        );
+      });
+
+      final notes = (await repo.getMessages(1)).getOrElse(() => const []);
+      final byId = {for (final n in notes) n.id: n};
+
+      expect(byId['parent']!.cachedReplyCount, 2);
+      expect(byId['child']!.cachedReplyCount, 1);
+      expect(byId['child']!.referenceCount, 1);
+      expect(byId['ref']!.referenceCount, 2);
+      expect(byId['parent']!.referenceCount, 0);
+    });
+
     test('kind-1 feed notes (null conversationId) never leak in', () async {
       await seedNoteRow(isar, 'feed-note');
       await seedConversation(1, 1);
@@ -144,6 +168,18 @@ void main() {
       await seedNoteRow(isar, 'dm-x', kind: kDmTextKind, conversationId: 5);
       final r = await repo.getMessageById('dm-x');
       expect(r.getOrElse(() => throw 'unreachable').id, 'dm-x');
+    });
+
+    test('carries the live reply count', () async {
+      await seedNoteRow(isar, 'dm-p', kind: kDmTextKind, conversationId: 5);
+      await seedNoteRow(isar, 'dm-c', kind: kDmTextKind, conversationId: 5);
+      await isar.writeTxn(
+        () => NoteRelationRepositoryImpl(isar: isar)
+            .addEdgesInTxn(parents: {'dm-p'}, childId: 'dm-c'),
+      );
+
+      final n = (await repo.getMessageById('dm-p')).getOrElse(() => throw 'x');
+      expect(n.cachedReplyCount, 1);
     });
 
     test('unknown eventId → Left(notFoundFailure)', () async {

@@ -658,6 +658,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i894.PendingEmbeddingRepository>(),
       ),
     );
+    gh.factory<_i551.DmMessageRepository>(
+      () => _i398.DmMessageRepositoryImpl(
+        isar: gh<_i214.Isar>(),
+        resolver: gh<_i789.NoteResolverRepository>(),
+        relations: gh<_i1017.NoteRelationRepository>(),
+      ),
+    );
     gh.factory<_i880.UniunRepository>(
       () => _i307.UniunRepositoryImpl(
         gh<_i83.UniunGatewayClient>(),
@@ -844,12 +851,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i574.JoinGroupBloc(
         gh<_i433.SaveRelayUseCase>(),
         gh<_i511.SaveGroupUseCase>(),
-      ),
-    );
-    gh.factory<_i551.DmMessageRepository>(
-      () => _i398.DmMessageRepositoryImpl(
-        isar: gh<_i214.Isar>(),
-        resolver: gh<_i789.NoteResolverRepository>(),
       ),
     );
     gh.lazySingleton<_i961.VectorSearchService>(

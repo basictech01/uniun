@@ -91,10 +91,8 @@ class Nip17RepositoryImpl extends Nip17Repository {
         }
         final parents = replyEdgeParentIds(
           replyToEventId: model.replyToEventId,
-          rootEventId: null,
-          eTagRefs: model.replyToEventId != null
-              ? [model.replyToEventId!]
-              : const [],
+          rootEventId: model.rootEventId,
+          eTagRefs: model.eTagRefs,
         );
         await _relations.addEdgesInTxn(
           parents: parents,
@@ -116,10 +114,8 @@ class Nip17RepositoryImpl extends Nip17Repository {
         await isar.noteModels.put(model);
         final parents = replyEdgeParentIds(
           replyToEventId: model.replyToEventId,
-          rootEventId: null,
-          eTagRefs: model.replyToEventId != null
-              ? [model.replyToEventId!]
-              : const [],
+          rootEventId: model.rootEventId,
+          eTagRefs: model.eTagRefs,
         );
         await _relations.addEdgesInTxn(
           parents: parents,
