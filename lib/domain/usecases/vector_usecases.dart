@@ -83,17 +83,21 @@ class RemovePendingEmbeddingUseCase
       _repository.remove(input);
 }
 
-/// Stores a note's vector. Input: (eventId, vector). Throws when the vector
-/// store fails, so the caller can tell a storage problem from a bad note.
+/// Stores a note's vectors, one per piece. Input: (eventId, vectors). Throws
+/// when the vector store fails, so the caller can tell a storage problem from a
+/// bad note.
 @lazySingleton
-class StoreNoteVectorUseCase extends UseCase<void, (String, List<double>)> {
+class StoreNoteVectorUseCase
+    extends UseCase<void, (String, List<List<double>>)> {
   final VectorRepository _repository;
 
   StoreNoteVectorUseCase(this._repository);
 
   @override
-  Future<void> call((String, List<double>) input, {bool cached = false}) =>
-      _repository.upsert(input.$1, input.$2);
+  Future<void> call(
+    (String, List<List<double>>) input, {
+    bool cached = false,
+  }) => _repository.upsertNote(input.$1, input.$2);
 }
 
 /// Queues a note for embedding; `NoteEmbeddingWorker` does the embedding, so a

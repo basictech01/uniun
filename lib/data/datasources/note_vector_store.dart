@@ -3,9 +3,11 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:tostore/tostore.dart';
+import 'package:uniun/core/notes/note_vector_ids.dart';
 
-/// Table shape: `id` = Nostr event id (string primary key), `embedding` = the
-/// note's vector, cosine distance.
+/// Table shape: `id` = a vector id (a Nostr event id, or `<eventId>#<k>` for the
+/// later pieces of a long note, see `note_vector_ids.dart`), `embedding` = its
+/// vector, cosine distance.
 const String embeddingsTableName = 'note_embeddings';
 const String embeddingsIdField = 'id';
 const String embeddingsVectorField = 'embedding';
@@ -92,11 +94,21 @@ class NoteVectorStore {
     return NoteVectorStore._(isolate, first as SendPort, exit);
   }
 
-  /// Stores [vector] for [id] and flushes it to disk before returning.
-  Future<void> upsert(String id, List<double> vector) =>
-      _ask<void>((reply) => _Upsert(reply, id, vector));
+  /// Stores a note's [vectors] (one per piece, first piece first), replacing
+  /// every vector the note had, and flushes them to disk before returning.
+  Future<void> upsertNote(String noteId, List<List<double>> vectors) =>
+      _ask<void>((reply) => _UpsertNote(reply, noteId, vectors));
 
-  Future<void> delete(String id) => _ask<void>((reply) => _Delete(reply, id));
+  /// A note with one vector.
+  Future<void> upsert(String noteId, List<double> vector) =>
+      upsertNote(noteId, [vector]);
+
+  /// Same as [deleteNote].
+  Future<void> delete(String noteId) => deleteNote(noteId);
+
+  /// Removes the note's vector and all its pieces.
+  Future<void> deleteNote(String noteId) =>
+      _ask<void>((reply) => _DeleteNote(reply, noteId));
 
   /// Removes all note vectors when switching accounts.
   Future<void> clear() => _ask<void>(_Clear.new);
@@ -108,10 +120,13 @@ class NoteVectorStore {
   /// stay in tostore's index (and hide live ones) after many deletes.
   Future<void> rebuild() => _ask<void>(_Rebuild.new);
 
-  /// Every stored id, for sweeping vectors whose note is gone.
+  /// Every stored vector id (pieces included), for sweeping vectors whose note
+  /// is gone.
   Future<Set<String>> ids() async => (await _ask<List>(_Ids.new)).cast<String>().toSet();
 
-  /// The [topK] nearest to [vector], best first. Score is similarity in 0..1.
+  /// The [topK] nearest vectors, best first. Score is similarity in 0..1. A
+  /// long note can fill several places: hits are pieces, and [allowedIds] are
+  /// note ids (every piece of an allowed note competes).
   Future<List<NoteVectorHit>> search(
     List<double> vector, {
     required int topK,
@@ -148,15 +163,15 @@ sealed class _Command {
   final SendPort reply;
 }
 
-class _Upsert extends _Command {
-  const _Upsert(super.reply, this.id, this.vector);
-  final String id;
-  final List<double> vector;
+class _UpsertNote extends _Command {
+  const _UpsertNote(super.reply, this.noteId, this.vectors);
+  final String noteId;
+  final List<List<double>> vectors;
 }
 
-class _Delete extends _Command {
-  const _Delete(super.reply, this.id);
-  final String id;
+class _DeleteNote extends _Command {
+  const _DeleteNote(super.reply, this.noteId);
+  final String noteId;
 }
 
 class _Rebuild extends _Command {
@@ -199,6 +214,11 @@ Future<void> _serve(
   final commands = ReceivePort();
   Timer? rebuildTimer;
 
+  /// note id → the ids of its later pieces. Built from the table on first use,
+  /// then kept in step with every write, so a delete or a scoped search never
+  /// scans the table to find a note's pieces.
+  Map<String, Set<String>>? pieces;
+
   /// Queues a rebuild behind whatever commands are already waiting.
   void scheduleRebuild() {
     rebuildTimer?.cancel();
@@ -217,39 +237,70 @@ Future<void> _serve(
   }
   init.ready.send(commands.sendPort);
 
+  Future<Map<String, Set<String>>> pieceIndex() async {
+    final known = pieces;
+    if (known != null) return known;
+    final built = <String, Set<String>>{};
+    final rows = await db.query(embeddingsTableName).select([embeddingsIdField]);
+    for (final r in rows.data) {
+      final id = r[embeddingsIdField] as String;
+      final note = noteIdOfVector(id);
+      if (note != id) built.putIfAbsent(note, () => {}).add(id);
+    }
+    return pieces = built;
+  }
+
+  /// Removes the note's vector and pieces; reports whether any existed.
+  Future<bool> removeNote(String noteId) async {
+    final index = await pieceIndex();
+    final ids = [noteId, ...?index[noteId]];
+    var any = false;
+    for (final id in ids) {
+      if (await _has(db, id)) {
+        await db.delete(embeddingsTableName).where(embeddingsIdField, '=', id);
+        any = true;
+      }
+    }
+    index.remove(noteId);
+    return any;
+  }
+
   await for (final message in commands) {
     final command = message as _Command;
     try {
       switch (command) {
-        case _Upsert(:final id, :final vector):
-          if (vector.isEmpty) throw ArgumentError('empty vector for $id');
+        case _UpsertNote(:final noteId, :final vectors):
+          if (vectors.isEmpty || vectors.any((v) => v.isEmpty)) {
+            throw ArgumentError('empty vector for $noteId');
+          }
           // tostore leaves the old entry in its search index when an existing id
           // is saved again, and when a row is deleted before a flush. Remove the
-          // old one first so a replaced vector is the one that gets searched.
-          if (await _has(db, id)) {
-            await db
-                .delete(embeddingsTableName)
-                .where(embeddingsIdField, '=', id);
+          // old ones first so the replaced vectors are the ones searched.
+          if (await removeNote(noteId)) {
             await db.flush();
             scheduleRebuild();
           }
-          await db.upsert(embeddingsTableName, {
-            embeddingsIdField: id,
-            embeddingsVectorField: vector,
-          });
-          // Flush so the new entry is searchable before this call returns.
+          final index = await pieceIndex();
+          for (var k = 0; k < vectors.length; k++) {
+            final id = pieceId(noteId, k);
+            await db.upsert(embeddingsTableName, {
+              embeddingsIdField: id,
+              embeddingsVectorField: vectors[k],
+            });
+            if (k > 0) index.putIfAbsent(noteId, () => {}).add(id);
+          }
+          // Flush so the new entries are searchable before this call returns.
           await db.flush();
           command.reply.send(null);
-        case _Delete(:final id):
-          await db
-              .delete(embeddingsTableName)
-              .where(embeddingsIdField, '=', id);
+        case _DeleteNote(:final noteId):
+          await removeNote(noteId);
           await db.flush();
           scheduleRebuild();
           command.reply.send(null);
         case _Clear():
           await db.clear(embeddingsTableName);
           await db.flush();
+          pieces = {};
           command.reply.send(null);
         case _Rebuild():
           final rows = (await db.query(embeddingsTableName)).data;
@@ -288,11 +339,15 @@ Future<void> _serve(
           } else {
             // Apply the Manas membership filter before vector ranking, so a
             // large unrelated library cannot crowd scoped notes out of top-K.
+            final index = await pieceIndex();
+            final wanted = <String>{
+              for (final note in allowedIds) ...[note, ...?index[note]],
+            };
             final rows = await db
                 .query(embeddingsTableName)
                 .select([embeddingsIdField, embeddingsVectorField])
-                .whereIn(embeddingsIdField, allowedIds.toList())
-                .limit(allowedIds.length);
+                .whereIn(embeddingsIdField, wanted.toList())
+                .limit(wanted.length);
             final query = VectorData.fromList(vector);
             final hits = <NoteVectorHit>[
               for (final row in rows.data)

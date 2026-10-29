@@ -66,10 +66,6 @@ void main() {
             modelAsset: EmbeddingService.modelAsset,
             tokenizerAsset: EmbeddingService.tokenizerAsset,
           )).called(1);
-      verify(() => gateway.installEmbedder(
-            modelAsset: EmbeddingService.shortModelAsset,
-            tokenizerAsset: EmbeddingService.tokenizerAsset,
-          )).called(1);
     });
   });
 
@@ -263,8 +259,8 @@ void main() {
       expect(calls, 4);
     });
 
-    test('a one-character input too long for both files stops after the '
-        'long file', () async {
+    test('a one-character input that is too long stops after one try',
+        () async {
       when(() => gateway.hasActiveEmbedder()).thenReturn(true);
       final model = FakeEmbeddingModel();
       when(() => gateway.getActiveEmbedder(preferredBackend: any(named: 'preferredBackend')))
@@ -276,7 +272,7 @@ void main() {
       });
 
       expect(await service.embed('z'), isEmpty);
-      expect(calls, 2);
+      expect(calls, 1);
     });
 
     test('a generateEmbedding failure degrades to [], not a throw', () async {
@@ -293,30 +289,69 @@ void main() {
     });
   });
 
-  group('short and long Gecko files (#266)', () {
-    late FakeEmbeddingModel shortModel;
-    late FakeEmbeddingModel longModel;
-    late List<String> installs;
+  group('embedNote (#296)', () {
+    late FakeEmbeddingModel model;
+    late List<String> seen;
 
     setUp(() {
-      shortModel = FakeEmbeddingModel(maxInputTokens: 256);
-      longModel = FakeEmbeddingModel(maxInputTokens: 1024);
-      installs = [];
-      var active = '';
-      when(() => gateway.installEmbedder(
-            modelAsset: any(named: 'modelAsset'),
-            tokenizerAsset: any(named: 'tokenizerAsset'),
-          )).thenAnswer((i) async {
-        active = i.namedArguments[#modelAsset] as String;
-        installs.add(active == EmbeddingService.shortModelAsset ? 'short' : 'long');
-      });
+      model = FakeEmbeddingModel(maxInputTokens: 256);
+      seen = [];
+      when(() => gateway.hasActiveEmbedder()).thenReturn(true);
       when(() => gateway.getActiveEmbedder(
             preferredBackend: any(named: 'preferredBackend'),
-          )).thenAnswer((_) async =>
-          active == EmbeddingService.shortModelAsset ? shortModel : longModel);
-      when(() => shortModel.calls.embed(any(), any())).thenAnswer((i) async {
+          )).thenAnswer((_) async => model);
+      when(() => model.calls.embed(any(), any())).thenAnswer((i) async {
+        seen.add(i.positionalArguments.first as String);
+        return [1.0, 0.0];
+      });
+    });
+
+    String sentences(int n) =>
+        List.generate(n, (i) => 'Sentence number $i is here.').join(' ');
+
+    test('a short note is one piece embedded as a document', () async {
+      expect(await service.embedNote('my bike service is on friday'), [
+        [1.0, 0.0],
+      ]);
+
+      verify(() => model.calls.embed(
+            'my bike service is on friday',
+            TaskType.retrievalDocument,
+          )).called(1);
+    });
+
+    test('a note of exactly the piece length stays one piece', () async {
+      expect(await service.embedNote('a' * EmbeddingService.notePieceChars),
+          hasLength(1));
+    });
+
+    test('a long note becomes pieces no longer than the limit, in order',
+        () async {
+      final text = sentences(60); // ~1,600 characters
+      final vecs = await service.embedNote(text);
+
+      expect(vecs.length, greaterThan(1));
+      expect(seen.length, vecs.length);
+      expect(seen.every((p) => p.length <= EmbeddingService.notePieceChars),
+          isTrue);
+      expect(seen.first, startsWith('Sentence number 0'));
+      expect(seen.last, endsWith('Sentence number 59 is here.'));
+    });
+
+    test('a note beyond the piece cap is cut at the cap', () async {
+      final vecs = await service.embedNote(sentences(2000));
+
+      expect(vecs, hasLength(EmbeddingService.maxNotePieces));
+    });
+
+    test('a piece the model finds too long is split in two, never cut',
+        () async {
+      var rejected = 0;
+      when(() => model.calls.embed(any(), any())).thenAnswer((i) async {
         final text = i.positionalArguments.first as String;
-        if (text.startsWith('LONG')) {
+        seen.add(text);
+        if (text.length > 300) {
+          rejected++;
           throw const EmbeddingInputTooLongException(
             'too long',
             maxInputTokens: 256,
@@ -325,116 +360,91 @@ void main() {
         }
         return [1.0, 0.0];
       });
-      when(() => longModel.calls.embed(any(), any()))
-          .thenAnswer((_) async => [0.0, 1.0]);
+      final text = 'word ' * 120; // 600 characters, one piece
+
+      final vecs = await service.embedNote(text.trim());
+
+      expect(rejected, 1);
+      expect(vecs.length, 2);
+      final accepted = seen.where((p) => p.length <= 300).join(' ');
+      expect(accepted.replaceAll(' ', '').length, text.replaceAll(' ', '').length,
+          reason: 'every word is embedded');
     });
 
-    test('init loads the short file', () async {
-      await service.init();
-
-      expect(service.isReady, isTrue);
-      expect(installs, ['short']);
-    });
-
-    test('a short text is embedded with the short file, no switch', () async {
-      expect(await service.embed('what is my bike service date?'), [1.0, 0.0]);
-      expect(await service.embed('another question'), [1.0, 0.0]);
-
-      expect(installs, ['short']);
-      verifyNever(() => longModel.calls.embed(any(), any()));
-    });
-
-    test('a text past the character limit goes straight to the long file',
+    test('a piece that can never fit gives up with [] after the split depth',
         () async {
-      final long = 'a' * (EmbeddingService.shortModelMaxChars + 1);
-
-      expect(await service.embed(long, isDocument: true), [0.0, 1.0]);
-
-      expect(installs, ['short', 'long']);
-      verifyNever(() => shortModel.calls.embed(long, any()));
-    });
-
-    test('a text at the character limit is tried on the short file', () async {
-      final atLimit = 'b' * EmbeddingService.shortModelMaxChars;
-
-      expect(await service.embed(atLimit), [1.0, 0.0]);
-      expect(installs, ['short']);
-    });
-
-    test('a text the short file rejects is embedded with the long file',
-        () async {
-      expect(await service.embed('LONG but few characters'), [0.0, 1.0]);
-
-      expect(installs, ['short', 'long']);
-      verify(() => longModel.calls.embed('LONG but few characters', any()))
-          .called(1);
-    });
-
-    test('after a long text the next short one switches back', () async {
-      await service.embed('LONG text');
-      expect(await service.embed('short again'), [1.0, 0.0]);
-
-      expect(installs, ['short', 'long', 'short']);
-    });
-
-    test('the long file failing to load answers [], not a throw', () async {
-      await service.init();
-      when(() => gateway.getActiveEmbedder(
-            preferredBackend: any(named: 'preferredBackend'),
-          )).thenThrow(Exception('cannot open the long file'));
-
-      expect(await service.embed('LONG text'), isEmpty);
-      expect(
-        await service.embed('c' * (EmbeddingService.shortModelMaxChars + 1)),
-        isEmpty,
+      when(() => model.calls.embed(any(), any())).thenThrow(
+        const EmbeddingInputTooLongException('x', maxInputTokens: 1),
       );
+
+      expect(await service.embedNote('hello there world'), isEmpty);
     });
 
-    test('a failed switch leaves the service not ready, so queued notes are '
-        'kept, and the next embed loads again', () async {
-      await service.init();
-      when(() => gateway.getActiveEmbedder(
-            preferredBackend: any(named: 'preferredBackend'),
-          )).thenThrow(Exception('out of memory'));
+    test('one failing piece fails the note: nothing half-embedded', () async {
+      var calls = 0;
+      when(() => model.calls.embed(any(), any())).thenAnswer((_) async {
+        calls++;
+        if (calls == 2) throw Exception('inference crashed');
+        return [1.0, 0.0];
+      });
 
-      expect(await service.embed('LONG text'), isEmpty);
-      expect(service.isReady, isFalse);
-
-      when(() => gateway.getActiveEmbedder(
-            preferredBackend: any(named: 'preferredBackend'),
-          )).thenAnswer((_) async => shortModel);
-      expect(await service.embed('short again'), [1.0, 0.0]);
-      expect(service.isReady, isTrue);
+      expect(await service.embedNote(sentences(60)), isEmpty);
     });
 
-    test('a failed install also leaves the service not ready', () async {
-      await service.init();
-      when(() => gateway.installEmbedder(
-            modelAsset: any(named: 'modelAsset'),
-            tokenizerAsset: any(named: 'tokenizerAsset'),
-          )).thenThrow(Exception('asset missing'));
+    test('model not loaded answers [] so the worker keeps the note', () async {
+      when(() => gateway.getActiveEmbedder(
+            preferredBackend: any(named: 'preferredBackend'),
+          )).thenThrow(Exception('no model'));
 
-      expect(
-        await service.embed('d' * (EmbeddingService.shortModelMaxChars + 1)),
-        isEmpty,
-      );
+      expect(await service.embedNote('anything at all'), isEmpty);
       expect(service.isReady, isFalse);
     });
 
-    test('dispose forgets the loaded file, the next embed loads it again',
+    test('an empty or blank note has no pieces', () async {
+      expect(await service.embedNote('   \n\n  '), isEmpty);
+    });
+
+    test('unicode, emoji and Devanagari notes are embedded like any other',
         () async {
-      await service.embed('first');
-      when(() => shortModel.calls.close()).thenAnswer((_) async {});
+      final text = List.generate(
+        80,
+        (i) => 'नमस्ते दुनिया $i 🌟 مرحبا।',
+      ).join(' ');
+
+      final vecs = await service.embedNote(text);
+
+      expect(vecs, isNotEmpty);
+      expect(seen.join(' ').contains('🌟'), isTrue);
+    });
+
+    test('a question waits for at most one piece of a long note', () async {
+      final order = <String>[];
+      when(() => model.calls.embed(any(), any())).thenAnswer((i) async {
+        order.add(i.positionalArguments.first as String);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        return [1.0, 0.0];
+      });
+
+      final note = service.embedNote(sentences(120));
+      await Future<void>.delayed(const Duration(milliseconds: 15));
+      await service.embed('what is my bike service date?');
+      await note;
+
+      final q = order.indexOf('what is my bike service date?');
+      expect(q, lessThan(order.length - 1),
+          reason: 'the question did not wait for the whole note');
+    });
+
+    test('dispose forgets the model, the next embed loads it again', () async {
+      await service.embedNote('first');
+      when(() => model.calls.close()).thenAnswer((_) async {});
 
       await service.dispose();
-      await service.embed('second');
+      await service.embedNote('second');
 
-      expect(installs, ['short', 'short']);
-    });
-
-    test('unicode and emoji text is embedded like any other', () async {
-      expect(await service.embed('नमस्ते दुनिया 🌟 مرحبا'), [1.0, 0.0]);
-      expect(installs, ['short']);
+      verify(() => gateway.getActiveEmbedder(
+            preferredBackend: any(named: 'preferredBackend'),
+          )).called(2);
     });
   });
 

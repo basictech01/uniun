@@ -415,19 +415,35 @@ void main() {
       verify(() => pending.remove('n1')).called(1);
     });
 
-    test('StoreNoteVectorUseCase upserts the id and vector', () async {
-      when(() => repo.upsert(any(), any())).thenAnswer((_) async {});
+    test('StoreNoteVectorUseCase stores every piece of the note', () async {
+      when(() => repo.upsertNote(any(), any())).thenAnswer((_) async {});
 
-      await StoreNoteVectorUseCase(repo).call(('n1', [0.1, 0.2]));
+      await StoreNoteVectorUseCase(repo).call((
+        'n1',
+        [
+          [0.1, 0.2],
+          [0.3, 0.4],
+        ],
+      ));
 
-      verify(() => repo.upsert('n1', [0.1, 0.2])).called(1);
+      verify(
+        () => repo.upsertNote('n1', [
+          [0.1, 0.2],
+          [0.3, 0.4],
+        ]),
+      ).called(1);
     });
 
     test('StoreNoteVectorUseCase lets a store failure throw', () async {
-      when(() => repo.upsert(any(), any())).thenThrow(StateError('stopped'));
+      when(() => repo.upsertNote(any(), any())).thenThrow(StateError('stopped'));
 
       expect(
-        () => StoreNoteVectorUseCase(repo).call(('n1', [0.1])),
+        () => StoreNoteVectorUseCase(repo).call((
+          'n1',
+          [
+            [0.1],
+          ],
+        )),
         throwsStateError,
       );
     });

@@ -536,7 +536,7 @@ Why a separate queue, not just unbounded concurrency:
 Why this is **not** wired into `InferenceScheduler`:
 
 - Embedding cannot block, preempt, or be preempted by the chat path.
-- Calls are short on a fast phone. On a Snapdragon 710 (vivo 1933) one embed measured **~2.2 s** with the 256-token Gecko file the app uses for most text, and **~11.5 s** with the 1024-token file used for long text (CPU/XNNPACK, constant per call, same for
+- Calls are short on a fast phone. On a Snapdragon 710 (vivo 1933) one embed measured **~2.2 s** with the only (256-token) Gecko file; a long note is several such embeds, one per ≤700-character piece (CPU/XNNPACK, constant per call, same for
   one at a time, 2 at a time and `generateEmbeddings`; see `embedding.md`), so on weak devices a call is
   not short; it still runs in the plugin's own worker isolate and cannot be
   preempted. Notes are embedded one at a time by `NoteEmbeddingWorker` from

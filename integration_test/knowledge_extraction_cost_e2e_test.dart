@@ -119,8 +119,8 @@ void main() {
           note(similar[1], 'We use a checklist when reviewing code changes.'),
         );
       });
-      await vectors.upsert(similar[0], near(0.05));
-      await vectors.upsert(similar[1], near(0.05));
+      await vectors.upsertNote(similar[0], [near(0.05)]);
+      await vectors.upsertNote(similar[1], [near(0.05)]);
 
       try {
         final idle = await _watch(

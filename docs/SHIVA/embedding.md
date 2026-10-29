@@ -45,7 +45,7 @@ flowchart TD
 | `NoteEmbeddingTrigger` | `lib/domain/services/` | Domain interface (`nudge()`); the worker implements it. |
 | `NoteEmbeddingWorker` | `lib/features/shiv/rag/indexing/` | Drains the table. |
 | `EmbeddingQueue` | `lib/data/datasources/llm/embedding_queue.dart` | The one gate: one embed in flight, interactive before background. |
-| `EmbeddingService` | `lib/features/shiv/rag/embedding/` | Loads Gecko (the 256-token file, the 1024-token file only for text that does not fit), runs every embed through the gate. |
+| `EmbeddingService` | `lib/features/shiv/rag/embedding/` | Loads Gecko (the 256-token file), embeds long notes in pieces, runs every embed through the gate. |
 | `NoteVectorStore` | `lib/data/datasources/note_vector_store.dart` | Where a note's vector is kept: the `tostore` store, in its own isolate, behind a message API. Opened at `tostore_<dim>d_v<N>` (#232). |
 
 ## Rules
@@ -85,76 +85,74 @@ nothing (1.58 → 1.65 s), with the chat model on the GPU and the embedder on th
 CPU (two alone samples, one contended: indicative only). The GPU backend is not
 an option: flutter_edge_ai runs these embedders on the CPU only.
 
-## Two Gecko files (#266)
+## One Gecko file, long notes in pieces (#296)
 
 Gecko comes as several files that differ only in their fixed input length
-(`litert-community/Gecko-110m-en` on Hugging Face; both bundled files match it
-byte for byte). The app bundles two and picks per text:
+(`litert-community/Gecko-110m-en`). The app bundles only
+`gecko_256_quant.tflite` (114 MB, ~1,100 characters per embed). It used to bundle
+the 1024-token file too (#266); dropping it made the app 145 MB smaller.
 
-- `gecko_256_quant.tflite` (114 MB): the default. Questions, PDF/DOCX chunks
-  (at most 700 characters) and most notes fit it.
-- `gecko_1024_quant.tflite` (145 MB): only for text the 256 file rejects. Text
-  over `EmbeddingService.shortModelMaxChars` (1,200 characters) goes straight
-  to it; shorter text that still has more than 256 tokens is rejected by the
-  256 file in about 15 ms (no wasted embed) and retried on the 1024 file.
-  Text too long even for 1024 is shortened and retried, as before.
+A long note is cut with `chunkSections` into pieces of at most 700 characters
+(`EmbeddingService.notePieceChars`), at most 24 pieces (`maxNotePieces`, so
+~16,800 characters; the rest is not indexed). `EmbeddingService.embedNote`
+embeds each piece as its own queue entry, so a question can run between two
+pieces. A piece the 256 file still rejects is split at whitespace near the
+middle and retried (depth 4). If any piece fails, the whole note returns no
+vectors and is retried later.
 
-The plugin keeps one embedder loaded, so a switch unloads one file and loads the
-other. The queue runs one embed at a time, so a switch never closes a model in
-use.
+Storage: the first piece is stored under the plain note id (so vectors written
+before this change stay valid), piece k under `<noteId>#k` (`note_vector_ids.dart`;
+`#` never occurs in a hex event id). Every place that touches vectors knows it:
 
-Measured on the vivo 1933 (Snapdragon 710), both files from app assets, two
-rounds back to back (`integration_test/embedding_variants_e2e_test.dart` keeps
-the guard; the measuring tests were removed after this was written down):
+| Place | Behaviour |
+|---|---|
+| `NoteVectorStore.upsertNote` | Removes the note's old pieces, then writes the new ones. |
+| Delete queue / `deleteNote` | Removes the base id and every `#k` piece. |
+| Launch sweep | Maps each stored id to its note (`noteIdOfVector`); a live note keeps all pieces. |
+| Search | Asks the store for `topK * 5`, keeps the best piece per note, so each note appears once and one note cannot crowd the rest out. |
+| Manas scope | Allowed note ids are expanded to their piece ids inside the store. |
+| Worker | Stores all pieces, removes the pending row last; extraction gets the first piece's vector. |
 
-| | 256 file | 512 file (not bundled) | 1024 file |
-|---|---|---|---|
-| One embed, any text that fits | **2.2 s** | 4.9 s | 11.7 s |
-| Switch to this file (install + load) | ~1.1 s | | ~1.1 s |
-| First install (copies the asset) | ~1.1 s, once | | |
-| Fits | ~1,100 characters | ~2,200 | ~4,500 |
+Measured on the vivo 1933 (Snapdragon 710), 14 notes of 1,000-2,000 characters
+(each with a fact near the start and one near the end), 16 short notes, 3 notes
+over 5,000 characters with a fact at the very end; 75 questions. The score of a
+note is its best piece. Right note first / in the top 3:
 
-- **Same vectors.** For the same text the 256, 512 and 1024 files give the same
-  vector (cosine 1.0000, 32 notes and questions). Searching 1024-file note
-  vectors with 256-file questions finds the right note first for 15/16 and in
-  the top 3 for 16/16, exactly as 1024 with 1024. So nothing stored had to be
-  re-embedded, and a mixed index is one vector space.
-- **The earlier noisy numbers** (2.1 s against 6.5 s for 256, and 11.8 s for a
-  512 run) came from the old measuring test: `ensureInstalled` skipped the
-  install whenever any embedder was active, so a run often kept the previous
-  file. The new readings were within a few milliseconds across rounds.
-- **Through the app** (guard test): a question 2.2 s, a 1,190-character note
-  2.2 s, a 3,500-character note 13.1 s (switch plus one 1024 embed), the next
-  question 3.4 s (switch back plus one 256 embed).
+| | Start of long note (28) | End of long note (28) | Short note (16) | End of very long (3) | Time to index long notes |
+|---|---|---|---|---|---|
+| 700-char pieces, 256 file (shipped) | **27**/28 · 28 | **27**/28 · 28 | 16/16 · 16 | 3/3 · 3 | 126 s (58 pieces) |
+| 1,000-char pieces, 256 file | 25 · 27 | 26 · 27 | 16 · 16 | 3 · 3 | 100 s (46 pieces) |
+| Whole note, 1024 file (before) | 24 · 27 | 20 · 25 | 16 · 16 | 2 · 3 | 199 s |
 
-### Chunking long notes was measured and not done
+700-character pieces match or beat the whole-note 1024 file on every row, and
+find the end of a note much more often. Limits of this measurement: the short
+questions were easy (16/16 on every variant), so an earlier 15/16 for chunks
+(an earlier corpus) did not reproduce but also was not ruled out; one phone;
+English only. `integration_test/embedding_pieces_e2e_test.dart` keeps the
+guard with the real service (thresholds 24/28, 24/28, 16/16, 3/3).
 
-The issue suggested cutting long notes into chunks so the fast file could take
-them. Measured with 14 notes of 950-2,000 characters, 16 short notes in the
-same index, and 44 questions (28 aimed at the start or the end of a long note):
+Scores with pieces (46-note library, 75 questions, 10 unrelated questions):
+the right note's best piece scored 0.67 at the lowest, 0.71 at the 10th
+percentile; the closest note to an unrelated question scored 0.62-0.81 (six of
+ten at 0.71 or more, since a 46-note library has some note near most topics).
+This is a bigger and denser library than the 8 notes behind
+`PromptBudget.smallModelMinScore` (0.72, answers 0.74-0.85, unrelated at most
+0.70), so the two are not comparable and the cut-off was left unchanged: no
+single threshold separates the two groups in a library this size.
+`integration_test/embedding_pieces_e2e_test.dart` prints these numbers.
 
-| | Long-note questions: first / top 3 | Short-note questions: first / top 3 | One note fills 2+ of the top 3 | Time to index |
-|---|---|---|---|---|
-| Whole note, 1024 file (today) | 25/28 · 28/28 | 13/16 · 16/16 | 0/44 | 352 s |
-| 700-character chunks, 256 file | 27/28 · 28/28 | 12/16 · **15/16** | **32/44** | 109 s |
-| 1,800-character chunks, 512 file | 25/28 · 28/28 | 13/16 · 16/16 | 4/44 | 156 s |
-
-Small chunks found parts of long notes better but pushed a short note out of
-the top 3 and let one note fill most of the top results, so they change
-ranking. Chunking would also have to change the delete queue, the launch sweep
-(which would otherwise delete every chunk, since a chunk id is not a note id),
-search de-duplication, the small-model cut-off, knowledge extraction and Manas
-scoping. Picking the file by length gets the speed without any of that: the
-vectors are the ones the 1024 file would have produced. Chunking only pays for
-notes over ~4,500 characters (their end is cut today), which are rare.
+An embed is ~2.2 s whatever the text, so a 1,100-character note is 2 pieces
+(~4.4 s) and a note at the 24-piece cap is ~53 s of background work, queued
+behind questions.
 
 ## Not covered
 
-- Notes saved before the queue existed that never got a vector, and a store format change (#232): both need a cheap "has a vector" check first (a note now costs ~2.2 s on the 256 file, 11.7 s if long).
+- Notes saved before the queue existed that never got a vector, and a store format change (#232): both need a cheap "has a vector" check first (a note costs ~2.2 s per 700-character piece).
+- Notes embedded whole on the 1024 file before #296 keep that one vector (their base id); they are not re-embedded in pieces.
 - A very large PDF/DOCX still keeps the embedder busy for a while, now ~2.2 s a chunk instead of ~11.5 s (a 40-chunk PDF: ~1.5 min instead of ~7.8 min).
-- Notes longer than ~4,500 characters are still shortened to fit the 1024 file.
+- Notes over 24 pieces (~16,800 characters) are indexed only up to that cap.
 
 ## Tests
 
 - CI: `test/domain/usecases/vector_usecases_test.dart`, `test/data/repositories/pending_embedding_repository_impl_test.dart`, `test/features/shiv/rag/indexing/note_embedding_worker_test.dart`, `test/data/datasources/llm/embedding_queue_test.dart`, `test/features/shiv/rag/embedding/embedding_service_test.dart`, `test/integration/note_embedding_flow_test.dart`, and the note-plus-PDF group in `test/integration/document_rag_flow_test.dart`.
-- Device (`integration_test/`, real model): `embedding_variants_e2e_test` (the two files agree; timings through the app), `note_embedding_queue_e2e_test`, `embedding_priority_e2e_test`, `note_save_timing_e2e_test` (runs unchanged on old and new code), `chat_embed_contention_e2e_test`, `embedding_benchmark_test` (run it in profile mode with `flutter drive --driver=test_driver/integration_test.dart --profile`).
+- Device (`integration_test/`, real model): `embedding_pieces_e2e_test` (retrieval quality of notes in pieces), `note_embedding_queue_e2e_test`, `embedding_priority_e2e_test`, `note_save_timing_e2e_test` (runs unchanged on old and new code), `chat_embed_contention_e2e_test`, `embedding_benchmark_test` (run it in profile mode with `flutter drive --driver=test_driver/integration_test.dart --profile`).

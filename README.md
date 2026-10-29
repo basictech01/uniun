@@ -235,7 +235,7 @@ Requirements:
 - Flutter SDK **3.44.2** (channel: stable) — the version CI builds with
   ([`tests.yml`](.github/workflows/tests.yml), [`builds.yml`](.github/workflows/builds.yml):
   `FLUTTER_VERSION`); the project needs Dart `>=3.12`. Verify with `flutter --version`.
-- **Git LFS** — the bundled embedding model (`assets/models/embedding/`, about 145 MB) is an LFS
+- **Git LFS** — the bundled embedding model (`assets/models/embedding/`, about 114 MB) is an LFS
   file. Run `git lfs install && git lfs pull` after cloning, or notes will not embed.
 - Dart SDK is bundled with Flutter — no separate install.
 - Platform toolchain for whichever target you're building (Android Studio + JDK for Android, Xcode

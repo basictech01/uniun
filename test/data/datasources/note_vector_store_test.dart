@@ -291,6 +291,84 @@ void main() {
     });
   });
 
+  group('notes in pieces (#296)', () {
+    test('every piece is stored and found, under the note id and #k', () async {
+      await store.upsertNote('long', [vec(1), vec(2), vec(3)]);
+
+      expect(await store.ids(), {'long', 'long#1', 'long#2'});
+      expect((await store.search(vec(3), topK: 1)).single.id, 'long#2');
+    });
+
+    test('saving a note again replaces all of its pieces', () async {
+      await store.upsertNote('long', [vec(1), vec(2), vec(3)]);
+
+      await store.upsertNote('long', [vec(4), vec(5)]);
+
+      expect(await store.ids(), {'long', 'long#1'});
+      final hits = await store.search(vec(3), topK: 5);
+      expect(hits.every((h) => h.score < 0.9), isTrue,
+          reason: 'the dropped third piece is no longer searchable');
+    });
+
+    test('deleting a note removes every piece and nothing else', () async {
+      await store.upsertNote('long', [vec(1), vec(2), vec(3)]);
+      await store.upsertNote('other', [vec(4), vec(5)]);
+      await store.upsert('longer', vec(6));
+
+      await store.deleteNote('long');
+
+      expect(await store.ids(), {'other', 'other#1', 'longer'});
+    });
+
+    test('deleting a note that has no vectors is a no-op', () async {
+      await store.upsertNote('a', [vec(1)]);
+
+      await store.deleteNote('ghost');
+
+      expect(await store.ids(), {'a'});
+    });
+
+    test('a scoped search lets every piece of an allowed note compete',
+        () async {
+      await store.upsertNote('in', [vec(1), vec(2)]);
+      await store.upsertNote('out', [vec(2), vec(3)]);
+
+      final hits = await store.search(vec(2), topK: 5, allowedIds: {'in'});
+
+      expect(hits.map((h) => h.id).toSet(), {'in', 'in#1'});
+      expect(hits.first.id, 'in#1');
+    });
+
+    test('pieces written before a reopen are still known to delete and scope',
+        () async {
+      await store.upsertNote('long', [vec(1), vec(2)]);
+      await store.close();
+      store = await NoteVectorStore.open(dir.path);
+
+      expect(
+        (await store.search(vec(2), topK: 3, allowedIds: {'long'})).first.id,
+        'long#1',
+      );
+      await store.deleteNote('long');
+      expect(await store.ids(), isEmpty);
+    });
+
+    test('clear forgets the pieces too', () async {
+      await store.upsertNote('long', [vec(1), vec(2)]);
+      await store.clear();
+
+      await store.upsertNote('long', [vec(3)]);
+
+      expect(await store.ids(), {'long'});
+    });
+
+    test('an empty list of vectors, or an empty vector, is refused', () async {
+      await expectLater(store.upsertNote('a', const []), throwsStateError);
+      await expectLater(store.upsertNote('a', [const []]), throwsStateError);
+      expect(await store.ids(), isEmpty);
+    });
+  });
+
   test('a path that cannot be opened is reported, not a hang', () async {
     await expectLater(
       NoteVectorStore.open('/proc/not/a/writable/place'),

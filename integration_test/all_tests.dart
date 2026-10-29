@@ -27,7 +27,7 @@ import 'gana_cloud_engine_e2e_test.dart' as gana_cloud_engine_e2e_test;
 import 'gana_cloud_pipeline_test.dart' as gana_cloud_pipeline_test;
 import 'note_save_timing_e2e_test.dart' as note_save_timing_e2e_test;
 import 'chat_embed_contention_e2e_test.dart' as chat_embed_contention_e2e_test;
-import 'embedding_variants_e2e_test.dart' as embedding_variants_e2e_test;
+import 'embedding_pieces_e2e_test.dart' as embedding_pieces_e2e_test;
 import 'embedding_priority_e2e_test.dart' as embedding_priority_e2e_test;
 import 'note_embedding_queue_e2e_test.dart' as note_embedding_queue_e2e_test;
 import 'note_vector_store_e2e_test.dart' as note_vector_store_e2e_test;
@@ -62,7 +62,7 @@ void main() {
   document_viewer_e2e_test.main();
   note_embedding_queue_e2e_test.main();
   note_vector_store_e2e_test.main();
-  embedding_variants_e2e_test.main();
+  embedding_pieces_e2e_test.main();
   embedding_priority_e2e_test.main();
   chat_embed_contention_e2e_test.main();
   note_save_timing_e2e_test.main();
