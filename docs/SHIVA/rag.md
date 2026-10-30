@@ -659,7 +659,7 @@ seconds without re-indexing.
 | Pipeline | `test/integration/document_rag_flow_test.dart` | everything above, assembled, PDF, DOCX and images | embedder, OCR |
 | Device | `integration_test/document_rag_e2e_test.dart` | **everything, incl. the real Gecko embedder and real ML Kit OCR** | nothing |
 
-The device tier exists because the embedder loads a 145 MB Git-LFS asset that
+The device tier exists because the embedder loads a 114 MB Git-LFS asset that
 CI does not check out, and `EmbeddingService.embed` returns `[]` instead of
 throwing when the model is missing — so a CI run would go green while embedding
 nothing. Run it by hand:

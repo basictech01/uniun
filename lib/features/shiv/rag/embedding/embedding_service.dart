@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import 'package:uniun/core/utils/llm_backend.dart';
 import 'package:uniun/data/datasources/llm/embedding_queue.dart';
 import 'package:uniun/data/datasources/llm/flutter_edge_ai_gateway.dart';
+import 'package:uniun/features/shiv/rag/extraction/chunk.dart';
 
 /// On-device text embedding using Gecko 110M (768-dim), run through
 /// flutter_edge_ai's LiteRT embedder.
@@ -19,20 +20,18 @@ import 'package:uniun/data/datasources/llm/flutter_edge_ai_gateway.dart';
 /// TensorFlow Lite in the binary and removes the conflict entirely.
 ///
 /// ## Bundled, not downloaded
-/// The models + tokenizer ship as app assets (see [shortModelAsset],
+/// The models + tokenizer ship as app assets (see
 /// [modelAsset], [tokenizerAsset]), so RAG works offline on first launch with
 /// no network fetch. `installEmbedder` copies an asset into flutter_edge_ai's
 /// managed storage once.
 ///
-/// ## Two files, one vector space (#266)
-/// Gecko comes as a 256-token and a 1024-token file with the same weights:
-/// for any text that fits both, they return the same vector (cosine 1.0000 on
-/// a phone). Every input is padded to the file's full length, so the short
-/// file is 5.4x faster (2.2 s against 11.7 s an embed on a Snapdragon 710).
-/// Questions, PDF/DOCX chunks and most notes fit it; only text that does not
-/// is embedded with the 1024 file. The plugin keeps one embedder loaded, so a
-/// switch costs about a second; the queue runs one embed at a time, so a
-/// switch never closes a model another embed is using.
+/// ## One file, long notes in pieces (#296)
+/// Gecko comes as a 256-token and a 1024-token file with the same weights, and
+/// every input is padded to the file's full length, so the 256 file is 5.4x
+/// faster (2.2 s against 11.7 s an embed on a Snapdragon 710). Only the 256
+/// file is bundled. It reads about 1,100 characters, so a longer note is cut
+/// into pieces of at most [notePieceChars] and each piece is embedded on its
+/// own ([embedNote]); search keeps the best piece per note.
 ///
 /// Output: 768-dimensional L2-normalised float vector.
 @lazySingleton
@@ -45,22 +44,21 @@ class EmbeddingService {
   static const int embeddingDim = 768;
 
   /// Bundled asset paths — also referenced by [EmbeddingModelDownloader] so the
-  /// install can be pre-warmed during the LLM download UX. [modelAsset] is the
-  /// 1024-token file, used only for text the short file cannot take.
-  static const String modelAsset = 'assets/models/embedding/gecko_1024_quant.tflite';
-  static const String shortModelAsset =
+  /// install can be pre-warmed during the LLM download UX.
+  static const String modelAsset =
       'assets/models/embedding/gecko_256_quant.tflite';
   static const String tokenizerAsset = 'assets/models/embedding/sentencepiece.model';
 
-  /// Longer text goes straight to the 1024 file. 256 tokens is roughly 1,100
-  /// characters of English; text up to this length is tried on the short file
-  /// first, which rejects a too-long input in about 15 ms without embedding.
-  static const int shortModelMaxChars = 1200;
+  /// The longest piece of a note. 256 tokens is roughly 1,100 characters of
+  /// English; 700 matched or beat a whole note on the 1024 file in the #296
+  /// measurement and is also the cap for document chunks.
+  static const int notePieceChars = kMaxChunkChars;
+
+  /// A note beyond this many pieces (about 16,800 characters) is cut: embedding
+  /// costs ~2.2 s a piece, and the head of a note says what it is about.
+  static const int maxNotePieces = 24;
 
   EmbeddingModel? _model;
-
-  /// The asset [_model] was loaded from.
-  String? _loadedAsset;
 
   bool get isReady => _model != null;
 
@@ -72,23 +70,20 @@ class EmbeddingService {
   Future<void> init() async {
     if (isReady) return;
     try {
-      await _load(shortModelAsset);
+      await _load();
     } catch (e) {
       debugPrint('🧠 Embedding: model load failed — $e');
     }
   }
 
-  /// Makes [asset] the loaded embedder. The plugin closes the previous one.
+  /// Installs and opens the embedder.
   ///
-  /// On failure nothing is left loaded: the previous model may already be
-  /// closed, and [isReady] must then say false so the note worker keeps its
-  /// queue instead of counting every note as failed.
-  Future<void> _load(String asset) async {
-    if (_model != null && _loadedAsset == asset) return;
-    _model = null;
-    _loadedAsset = null;
+  /// On failure nothing is left loaded, so [isReady] says false and the note
+  /// worker keeps its queue instead of counting every note as failed.
+  Future<void> _load() async {
+    if (_model != null) return;
     await _gateway.installEmbedder(
-      modelAsset: asset,
+      modelAsset: modelAsset,
       tokenizerAsset: tokenizerAsset,
     );
     // Prefer GPU, fall back to CPU on load failure so RAG still works
@@ -103,19 +98,16 @@ class EmbeddingService {
         preferredBackend: PreferredBackend.cpu,
       );
     }
-    _loadedAsset = asset;
   }
 
-  /// Copies both bundled Gecko files into flutter_edge_ai's storage, leaving
-  /// the short one active. Returns fast once an embedder is installed.
+  /// Copies the bundled Gecko file into flutter_edge_ai's storage. Returns fast
+  /// once an embedder is installed.
   Future<void> ensureInstalled() async {
     if (_gateway.hasActiveEmbedder()) return;
-    for (final asset in const [modelAsset, shortModelAsset]) {
-      await _gateway.installEmbedder(
-        modelAsset: asset,
-        tokenizerAsset: tokenizerAsset,
-      );
-    }
+    await _gateway.installEmbedder(
+      modelAsset: modelAsset,
+      tokenizerAsset: tokenizerAsset,
+    );
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -150,34 +142,13 @@ class EmbeddingService {
     if (!isReady) return [];
     final taskType =
         isDocument ? TaskType.retrievalDocument : TaskType.retrievalQuery;
-    try {
-      await _load(
-        text.length > shortModelMaxChars ? modelAsset : shortModelAsset,
-      );
-    } catch (e) {
-      debugPrint('🧠 Embedding: could not load the embedder — $e');
-      return [];
-    }
     var input = text;
     for (var attempt = 0; attempt < _maxFitAttempts; attempt++) {
       try {
-        final vec = await _model!.embed(
-          EmbeddingInput.text(input),
-          taskType: taskType,
+        return _l2Normalize(
+          await _model!.embed(EmbeddingInput.text(input), taskType: taskType),
         );
-        return _l2Normalize(vec);
       } on EmbeddingInputTooLongException catch (e) {
-        // Too long for the short file: the long one gives the same vector.
-        if (_loadedAsset == shortModelAsset) {
-          try {
-            await _load(modelAsset);
-          } catch (loadError) {
-            debugPrint('🧠 Embedding: could not load the long file — $loadError');
-            return [];
-          }
-          attempt--;
-          continue;
-        }
         final ratio = e.actualTokens != null && e.actualTokens! > 0
             ? e.maxInputTokens / e.actualTokens!
             : 0.5;
@@ -198,10 +169,60 @@ class EmbeddingService {
     return [];
   }
 
+  /// Embeds a note as documents: one vector per piece, first piece first, so a
+  /// long note is searchable all the way to its end. `[]` when the model is not
+  /// loaded or any piece fails (nothing is stored for a half-embedded note).
+  ///
+  /// Each piece is its own queue entry, so a question waits for at most one
+  /// piece. A piece that is still too long for the model (dense scripts take
+  /// more tokens per character) is split in two, never cut.
+  Future<List<List<double>>> embedNote(String text) async {
+    final pieces = chunkSections(
+      [(label: '', text: text)],
+      maxChars: notePieceChars,
+    ).map((c) => c.text).take(maxNotePieces).toList();
+    final out = <List<double>>[];
+    for (final piece in pieces) {
+      final vectors = await _embedPiece(piece);
+      if (vectors.isEmpty) return const [];
+      out.addAll(vectors);
+    }
+    return out;
+  }
+
+  Future<List<List<double>>> _embedPiece(String piece, {int depth = 0}) async {
+    final taskType = TaskType.retrievalDocument;
+    final result = await _queue.run<Object>(() async {
+      if (!isReady) await init();
+      if (!isReady) return const <double>[];
+      try {
+        return _l2Normalize(
+          await _model!.embed(EmbeddingInput.text(piece), taskType: taskType),
+        );
+      } on EmbeddingInputTooLongException {
+        return _TooLong();
+      } catch (e) {
+        debugPrint('🧠 Embedding: generate failed — $e');
+        return const <double>[];
+      }
+    }, priority: EmbedPriority.background);
+    if (result is List<double>) return result.isEmpty ? const [] : [result];
+    // Too long: split at the whitespace nearest the middle and embed both.
+    if (depth >= _maxSplitDepth || piece.length < 2) return const [];
+    final mid = piece.length ~/ 2;
+    var cut = piece.lastIndexOf(RegExp(r'\s'), mid);
+    if (cut <= 0) cut = mid;
+    final left = await _embedPiece(piece.substring(0, cut), depth: depth + 1);
+    if (left.isEmpty) return const [];
+    final right = await _embedPiece(piece.substring(cut), depth: depth + 1);
+    return right.isEmpty ? const [] : [...left, ...right];
+  }
+
+  static const int _maxSplitDepth = 4;
+
   Future<void> dispose() async {
     await _model?.close();
     _model = null;
-    _loadedAsset = null;
   }
 
   // ── L2 normalisation ──────────────────────────────────────────────────────
@@ -214,3 +235,6 @@ class EmbeddingService {
     return vec.map((v) => v / norm).toList();
   }
 }
+
+/// Marker returned from a queued embed whose input did not fit the model.
+class _TooLong {}

@@ -33,9 +33,9 @@ class _Vectors implements VectorRepository {
   Object? failWith;
 
   @override
-  Future<void> upsert(String id, List<double> vector) async {
+  Future<void> upsertNote(String noteId, List<List<double>> vectors) async {
     if (failWith != null) throw failWith!;
-    stored[id] = vector;
+    stored[noteId] = vectors.first;
   }
 
   @override
@@ -223,11 +223,19 @@ void main() {
       await drained();
 
       expect(vectors.stored.keys.toSet(), {'hi', 'ar', 'emoji', 'long'});
-      expect(asked.map((a) => a.$1), contains(long));
+      // The 20,000-character note went through in pieces up to the cap.
+      final pieces = asked.map((a) => a.$1).where((t) => t.startsWith('xx'));
+      expect(pieces.length, greaterThan(1));
+      expect(pieces.every((p) => p.length <= EmbeddingService.notePieceChars),
+          isTrue);
+      expect(
+        pieces.fold<int>(0, (n, p) => n + p.length),
+        EmbeddingService.maxNotePieces * EmbeddingService.notePieceChars,
+      );
     });
 
     test('every length from the 4-character minimum to 200,000 characters is '
-        'embedded whole', () async {
+        'embedded in pieces up to the cap', () async {
       final lengths = {
         'min': 4,
         'short': 5,
@@ -245,10 +253,17 @@ void main() {
       for (final entry in lengths.entries) {
         expect(
           asked.map((a) => a.$1.length),
-          contains(entry.value),
-          reason: '${entry.key} must reach the embedder uncut',
+          contains(entry.value <= EmbeddingService.notePieceChars
+              ? entry.value
+              : EmbeddingService.notePieceChars),
+          reason: '${entry.key} must reach the embedder in whole pieces',
         );
       }
+      // The 200,000-character note stops at the piece cap, not minutes later.
+      expect(
+        asked.where((a) => a.$1.length == EmbeddingService.notePieceChars).length,
+        lessThanOrEqualTo(EmbeddingService.maxNotePieces * 3),
+      );
     });
 
     test('a note that is only a long URL or only whitespace never reaches the '

@@ -79,6 +79,17 @@ void main() {
       expect(await queued(), 0);
     });
 
+    test('a queued note loses every piece of its vector', () async {
+      await store.upsertNote('long', [vec(1), vec(2), vec(3)]);
+      await store.upsert('keep', vec(9));
+      await queue(['long']);
+
+      await worker.drain();
+
+      expect(await store.ids(), {'keep'});
+      expect(await queued(), 0);
+    });
+
     test('an id that has no vector is still cleared from the queue', () async {
       await queue(['never-stored']);
 
@@ -143,6 +154,18 @@ void main() {
 
       expect(removed, 2);
       expect(await store.ids(), {'note', 'saved', 'waiting'});
+    });
+
+    test('keeps every piece of a live note and removes all pieces of a gone '
+        'one (#296)', () async {
+      await seedNoteRow(isar, 'live');
+      await store.upsertNote('live', [vec(1), vec(2), vec(3)]);
+      await store.upsertNote('gone', [vec(4), vec(5)]);
+
+      final removed = await worker.sweepOrphans();
+
+      expect(removed, 1, reason: 'one note, however many pieces');
+      expect(await store.ids(), {'live', 'live#1', 'live#2'});
     });
 
     test('a removed saved row does not keep its vector alive', () async {

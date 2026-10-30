@@ -45,7 +45,7 @@ void main() {
     embedding = _MockEmbedding();
     vector = _MockVector();
     extract = _MockExtract();
-    when(() => vector.upsert(any(), any())).thenAnswer((_) async {});
+    when(() => vector.upsertNote(any(), any())).thenAnswer((_) async {});
     when(() => extract.call(any())).thenAnswer((_) async {});
     scheduler = InferenceScheduler();
     worker = aNoteEmbeddingWorker(
@@ -73,8 +73,8 @@ void main() {
   }
 
   void embeds([List<double> vec = const [0.1, 0.2]]) => when(
-    () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
-  ).thenAnswer((_) async => vec);
+    () => embedding.embedNote(any()),
+  ).thenAnswer((_) async => vec.isEmpty ? [] : [vec]);
 
   test('an empty table does nothing and never touches the embedder', () async {
     worker.nudge();
@@ -89,11 +89,11 @@ void main() {
     final entered = Completer<void>();
     final release = Completer<void>();
     when(
-      () => embedding.embed('old account text', isDocument: true),
+      () => embedding.embedNote('old account text'),
     ).thenAnswer((_) async {
       entered.complete();
       await release.future;
-      return [0.1, 0.2];
+      return [[0.1, 0.2]];
     });
 
     worker.nudge();
@@ -137,6 +137,34 @@ void main() {
     expect(reads, 1);
   });
 
+  test('a long note stores one vector per piece and extracts with the first',
+      () async {
+    when(() => embedding.embedNote(any())).thenAnswer(
+      (_) async => [
+        [0.1, 0.2],
+        [0.3, 0.4],
+        [0.5, 0.6],
+      ],
+    );
+    await pending.enqueue('long', 'a very long note');
+
+    worker.nudge();
+    await settle();
+
+    verify(
+      () => vector.upsertNote('long', [
+        [0.1, 0.2],
+        [0.3, 0.4],
+        [0.5, 0.6],
+      ]),
+    ).called(1);
+    final captured =
+        verify(() => extract.call(captureAny())).captured.single
+            as (String, String, List<double>);
+    expect(captured.$3, [0.1, 0.2]);
+    expect((await pending.count()).getOrElse(() => -1), 0);
+  });
+
   test(
     'embeds a queued note, stores the vector, clears the row and extracts',
     () async {
@@ -146,8 +174,8 @@ void main() {
       worker.nudge();
       await settle();
 
-      verify(() => embedding.embed('hello world', isDocument: true)).called(1);
-      verify(() => vector.upsert('n1', [0.1, 0.2])).called(1);
+      verify(() => embedding.embedNote('hello world')).called(1);
+      verify(() => vector.upsertNote('n1', [[0.1, 0.2]])).called(1);
       expect((await pending.count()).getOrElse(() => -1), 0);
       final captured =
           verify(() => extract.call(captureAny())).captured.single
@@ -163,7 +191,7 @@ void main() {
     embeds();
     await pending.enqueue('n1', 'hello world');
     var rowsWhenStoring = -1;
-    when(() => vector.upsert(any(), any())).thenAnswer((_) async {
+    when(() => vector.upsertNote(any(), any())).thenAnswer((_) async {
       rowsWhenStoring = (await pending.count()).getOrElse(() => -1);
     });
 
@@ -177,7 +205,7 @@ void main() {
   test('handles the newest note first, then the backlog', () async {
     embeds();
     final order = <String>[];
-    when(() => vector.upsert(any(), any())).thenAnswer((i) async {
+    when(() => vector.upsertNote(any(), any())).thenAnswer((i) async {
       order.add(i.positionalArguments.first as String);
     });
     await pending.enqueue('old', 'old note text');
@@ -202,9 +230,9 @@ void main() {
       await settle();
 
       expect((await pending.count()).getOrElse(() => -1), 2);
-      verifyNever(() => vector.upsert(any(), any()));
+      verifyNever(() => vector.upsertNote(any(), any()));
       verify(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+        () => embedding.embedNote(any()),
       ).called(1);
     },
   );
@@ -212,13 +240,13 @@ void main() {
   test(
     'a note queued while a pass is running is picked up by that pass',
     () async {
-      final gate = Completer<List<double>>();
+      final gate = Completer<List<List<double>>>();
       var calls = 0;
       when(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+        () => embedding.embedNote(any()),
       ).thenAnswer((_) {
         calls++;
-        return calls == 1 ? gate.future : Future.value([0.5]);
+        return calls == 1 ? gate.future : Future.value([[0.5]]);
       });
       await pending.enqueue('first', 'first note');
 
@@ -226,11 +254,11 @@ void main() {
       await settle();
       await pending.enqueue('second', 'second note');
       worker.nudge();
-      gate.complete([0.1]);
+      gate.complete([[0.1]]);
       await settle();
 
-      verify(() => vector.upsert('first', any())).called(1);
-      verify(() => vector.upsert('second', any())).called(1);
+      verify(() => vector.upsertNote('first', any())).called(1);
+      verify(() => vector.upsertNote('second', any())).called(1);
       expect((await pending.count()).getOrElse(() => -1), 0);
     },
   );
@@ -238,13 +266,13 @@ void main() {
   test('many nudges never run two embeds at once', () async {
     var inFlight = 0, maxInFlight = 0;
     when(
-      () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+      () => embedding.embedNote(any()),
     ).thenAnswer((_) async {
       inFlight++;
       if (inFlight > maxInFlight) maxInFlight = inFlight;
       await Future<void>.delayed(const Duration(milliseconds: 20));
       inFlight--;
-      return [0.1];
+      return [[0.1]];
     });
     for (var i = 0; i < 4; i++) {
       await pending.enqueue('n$i', 'note number $i');
@@ -262,7 +290,7 @@ void main() {
 
   test('a failed vector store keeps the row for the next pass', () async {
     embeds();
-    when(() => vector.upsert(any(), any())).thenThrow(Exception('disk full'));
+    when(() => vector.upsertNote(any(), any())).thenThrow(Exception('disk full'));
     await pending.enqueue('n1', 'hello world');
 
     worker.nudge();
@@ -275,7 +303,7 @@ void main() {
   test('a vector store that keeps failing never costs the note its place, '
       'however many passes fail', () async {
     embeds();
-    when(() => vector.upsert(any(), any())).thenThrow(Exception('store down'));
+    when(() => vector.upsertNote(any(), any())).thenThrow(Exception('store down'));
     await pending.enqueue('n1', 'hello world');
 
     for (var i = 0; i < NoteEmbeddingWorker.maxAttempts + 3; i++) {
@@ -296,7 +324,7 @@ void main() {
       'cleared', () async {
     embeds();
     var down = true;
-    when(() => vector.upsert(any(), any())).thenAnswer((_) async {
+    when(() => vector.upsertNote(any(), any())).thenAnswer((_) async {
       if (down) throw StateError('the note vector store has stopped');
     });
     await pending.enqueue('n1', 'hello world');
@@ -315,25 +343,25 @@ void main() {
   test('while the store is down the pass stops at the first note instead of '
       'spinning through the queue', () async {
     embeds();
-    when(() => vector.upsert(any(), any())).thenThrow(Exception('store down'));
+    when(() => vector.upsertNote(any(), any())).thenThrow(Exception('store down'));
     await pending.enqueue('a', 'first note body');
     await pending.enqueue('b', 'second note body');
 
     worker.nudge();
     await settle();
 
-    verify(() => vector.upsert(any(), any())).called(1);
+    verify(() => vector.upsertNote(any(), any())).called(1);
     expect((await pending.count()).getOrElse(() => -1), 2);
   });
 
   test('a note that keeps throwing is dropped after the attempt limit and the '
       'rest go through', () async {
     when(
-      () => embedding.embed('bad note', isDocument: true),
+      () => embedding.embedNote('bad note'),
     ).thenThrow(Exception('tokenizer exploded'));
     when(
-      () => embedding.embed('good note', isDocument: true),
-    ).thenAnswer((_) async => [0.3]);
+      () => embedding.embedNote('good note'),
+    ).thenAnswer((_) async => [[0.3]]);
     await pending.enqueue('good', 'good note');
     await Future<void>.delayed(const Duration(milliseconds: 5));
     await pending.enqueue('bad', 'bad note'); // newest, so it goes first
@@ -344,9 +372,9 @@ void main() {
     }
 
     verify(
-      () => embedding.embed('bad note', isDocument: true),
+      () => embedding.embedNote('bad note'),
     ).called(NoteEmbeddingWorker.maxAttempts);
-    verify(() => vector.upsert('good', [0.3])).called(1);
+    verify(() => vector.upsertNote('good', [[0.3]])).called(1);
     expect((await pending.count()).getOrElse(() => -1), 0);
   });
 
@@ -371,8 +399,8 @@ void main() {
     w.nudge();
     await settle(of: w);
 
-    verify(() => vector.upsert('a', any())).called(1);
-    verify(() => vector.upsert('b', any())).called(1);
+    verify(() => vector.upsertNote('a', any())).called(1);
+    verify(() => vector.upsertNote('b', any())).called(1);
     expect(racing.rows, isEmpty);
   });
 
@@ -390,18 +418,18 @@ void main() {
       2,
       reason: 'attempt counted',
     );
-    verifyNever(() => vector.upsert(any(), any()));
+    verifyNever(() => vector.upsertNote(any(), any()));
   });
 
   test('a note the loaded embedder keeps failing on is dropped and the notes '
       'behind it are embedded', () async {
     when(() => embedding.isReady).thenReturn(true);
     when(
-      () => embedding.embed('bad', isDocument: true),
-    ).thenAnswer((_) async => <double>[]);
+      () => embedding.embedNote('bad'),
+    ).thenAnswer((_) async => <List<double>>[]);
     when(
-      () => embedding.embed('fine', isDocument: true),
-    ).thenAnswer((_) async => [0.5]);
+      () => embedding.embedNote('fine'),
+    ).thenAnswer((_) async => [[0.5]]);
     await pending.enqueue('fine', 'fine');
     await Future<void>.delayed(const Duration(milliseconds: 5));
     await pending.enqueue('bad', 'bad'); // newest, so it goes first
@@ -411,7 +439,7 @@ void main() {
       await settle();
     }
 
-    verify(() => vector.upsert('fine', [0.5])).called(1);
+    verify(() => vector.upsertNote('fine', [[0.5]])).called(1);
     expect((await pending.count()).getOrElse(() => -1), 0);
   });
 
@@ -446,7 +474,7 @@ void main() {
       timed.nudge();
       async.flushMicrotasks();
       verify(
-        () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+        () => embedding.embedNote(any()),
       ).called(1);
       expect(fake.rows, isNotEmpty);
 
@@ -454,7 +482,7 @@ void main() {
       async.elapse(NoteEmbeddingWorker.retryDelay);
       async.flushMicrotasks();
 
-      verify(() => vector.upsert('n1', any())).called(1);
+      verify(() => vector.upsertNote('n1', any())).called(1);
       expect(fake.rows, isEmpty);
     });
   });
@@ -476,13 +504,13 @@ void main() {
         embeds();
         w.nudge();
         async.flushMicrotasks();
-        verifyNever(() => vector.upsert(any(), any()));
+        verifyNever(() => vector.upsertNote(any(), any()));
 
         broken.failNext = false;
         async.elapse(NoteEmbeddingWorker.retryDelay);
         async.flushMicrotasks();
 
-        verify(() => vector.upsert('n1', any())).called(1);
+        verify(() => vector.upsertNote('n1', any())).called(1);
       });
     },
   );
@@ -520,7 +548,7 @@ void main() {
         worker.nudge();
         await settle(untilIdle: false);
         verifyNever(
-          () => embedding.embed(any(), isDocument: any(named: 'isDocument')),
+          () => embedding.embedNote(any()),
         );
         expect((await pending.count()).getOrElse(() => -1), 1);
 
@@ -528,7 +556,7 @@ void main() {
         await chat;
         await settle();
 
-        verify(() => vector.upsert('n1', any())).called(1);
+        verify(() => vector.upsertNote('n1', any())).called(1);
         expect((await pending.count()).getOrElse(() => -1), 0);
       },
     );
@@ -548,7 +576,7 @@ void main() {
         worker.nudge();
         await settle();
 
-        verify(() => vector.upsert('n1', any())).called(1);
+        verify(() => vector.upsertNote('n1', any())).called(1);
         gate.complete();
         await job;
       });

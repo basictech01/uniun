@@ -9,16 +9,18 @@ import 'package:uniun/domain/entities/shiv/scored_note.dart';
 /// When switching to a dedicated vector DB (e.g. tostore), only this
 /// implementation changes — nothing above it is affected.
 abstract class VectorRepository {
-  /// Store or update the embedding vector for [id].
+  /// Store the embedding vectors of note [noteId], replacing any it had. A
+  /// short note has one; a long note has one per piece, first piece first.
   /// Covers both saved (bookmarked) notes and own authored notes.
-  Future<void> upsert(String id, List<double> vector);
+  Future<void> upsertNote(String noteId, List<List<double>> vectors);
 
-  /// Remove the embedding vector for [id] (e.g. when a note is unsaved).
-  Future<void> delete(String id);
+  /// Remove every vector of note [noteId], pieces included (e.g. when a note
+  /// is deleted).
+  Future<void> delete(String noteId);
 
-  /// Return up to [topK] notes whose cosine similarity to [queryVector]
-  /// is at or above [minScore], sorted highest-first. When [allowedNoteIds]
-  /// is provided, only those notes compete for top-K.
+  /// Return up to [topK] notes whose best piece has cosine similarity to
+  /// [queryVector] at or above [minScore], sorted highest-first, each note
+  /// once. When [allowedNoteIds] is provided, only those notes compete.
   Future<List<ScoredNote>> search(
     List<double> queryVector, {
     int topK = 5,

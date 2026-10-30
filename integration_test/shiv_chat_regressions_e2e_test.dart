@@ -138,9 +138,9 @@ void main() {
               ),
             ),
           );
-          await vectors.upsert(
+          await vectors.upsertNote(
             noteId,
-            await getIt<EmbeddingService>().embed(noteText, isDocument: true),
+            await getIt<EmbeddingService>().embedNote(noteText),
           );
           addTearDown(() async {
             await vectors.delete(noteId);

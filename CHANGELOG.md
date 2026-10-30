@@ -15,6 +15,16 @@ user-facing changelog.
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **The app is about 145 MB smaller, and long notes are searched through their whole text.** A
+  long note is now cut into pieces of up to 700 characters that Shiv searches one by one, so a
+  fact at the end of a note is found as well as one at the start. Each piece takes about 2 s to
+  index (#296).
+
+---
+
 ## [3.2.0] — 2026-10-19
 
 Closes milestone [V3.2](https://github.com/basictech01/uniun/milestone/5). **Shiv is faster

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:isar_community/isar.dart';
+import 'package:uniun/core/notes/note_vector_ids.dart';
 import 'package:uniun/data/datasources/app_settings_store.dart';
 import 'package:uniun/data/datasources/note_vector_store.dart';
 import 'package:uniun/data/datasources/tostore_module.dart';
@@ -118,7 +119,7 @@ class NoteVectorCleanupWorker {
       final done = <int>[];
       try {
         for (final row in batch) {
-          await _store.delete(row.eventId);
+          await _store.deleteNote(row.eventId);
           done.add(row.id);
         }
       } catch (e) {
@@ -136,7 +137,7 @@ class NoteVectorCleanupWorker {
     return removed;
   }
 
-  /// Deletes vectors whose note no longer exists. Returns how many.
+  /// Deletes the vectors of notes that no longer exist. Returns how many notes.
   ///
   /// A vector is live while its note is in the notes table, saved, or still
   /// waiting to be embedded. It never runs when there are no notes at all but
@@ -158,10 +159,15 @@ class NoteVectorCleanupWorker {
     };
     if (live.isEmpty) return 0;
 
+    // A piece (`<noteId>#<k>`) is live while its note is. One delete takes a
+    // note's pieces together, so each gone note is deleted once.
+    final gone = {
+      for (final id in ids)
+        if (!live.contains(noteIdOfVector(id))) noteIdOfVector(id),
+    };
     var removed = 0;
-    for (final id in ids) {
-      if (live.contains(id)) continue;
-      await _store.delete(id);
+    for (final noteId in gone) {
+      await _store.deleteNote(noteId);
       removed++;
     }
     if (removed > 0) debugPrint('🧹 NoteVectorCleanupWorker: swept $removed');

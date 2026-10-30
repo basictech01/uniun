@@ -1234,8 +1234,8 @@ class _RecordingNoteVectors extends _FakeNoteVectors {
   final Map<String, List<double>> stored = {};
 
   @override
-  Future<void> upsert(String id, List<double> vector) async =>
-      stored[id] = vector;
+  Future<void> upsertNote(String noteId, List<List<double>> vectors) async =>
+      stored[noteId] = vectors.first;
 }
 
 class _MockExtractKnowledge extends Mock implements ExtractKnowledgeUseCase {
@@ -1268,6 +1268,11 @@ class _GatedEmbedding extends _StubEmbedding {
           : EmbedPriority.interactive,
     );
   }
+
+  @override
+  Future<List<List<double>>> embedNote(String text) async => [
+    await embed(text, isDocument: true),
+  ];
 }
 
 class _FakeNoteVectors implements VectorRepository {
@@ -1282,7 +1287,7 @@ class _FakeNoteVectors implements VectorRepository {
   }) async => results;
 
   @override
-  Future<void> upsert(String id, List<double> vector) async {}
+  Future<void> upsertNote(String noteId, List<List<double>> vectors) async {}
 
   @override
   Future<void> delete(String id) async {}
@@ -1323,6 +1328,9 @@ class _StubEmbedding implements EmbeddingService {
   @override
   Future<List<double>> embed(String text, {bool isDocument = false}) async =>
       vectorFor(text);
+
+  @override
+  Future<List<List<double>>> embedNote(String text) async => [vectorFor(text)];
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

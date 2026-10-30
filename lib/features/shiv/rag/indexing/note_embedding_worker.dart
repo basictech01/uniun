@@ -17,8 +17,8 @@ import 'package:uniun/features/shiv/rag/embedding/embedding_service.dart';
 /// is open: the embedder already runs in the plugin's own worker isolate.
 ///
 /// One note at a time because batching and two-at-a-time measured no faster
-/// (~11.5 s a note on a Snapdragon 710, whatever the text length). Waits while
-/// a Shiv chat reply is being generated.
+/// (~2.2 s a piece on a Snapdragon 710; a note over ~700 characters is several
+/// pieces, #296). Waits while a Shiv chat reply is being generated.
 @LazySingleton(as: NoteEmbeddingTrigger)
 class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
   NoteEmbeddingWorker(
@@ -114,13 +114,14 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
         await Future<void>.delayed(chatPollInterval);
       }
       if (_stopping) return false;
-      final List<double> vec;
+      final List<List<double>> vecs;
       try {
-        // `embed` answers [] both when the model is not loaded (try later, keep
-        // the note) and when it failed on this text (count it, or one bad note
-        // would block the queue).
-        vec = await _embedding.embed(item.text, isDocument: true);
-        if (vec.isEmpty) {
+        // `embedNote` answers [] both when the model is not loaded (try later,
+        // keep the note) and when it failed on this text (count it, or one bad
+        // note would block the queue). A long note comes back as one vector per
+        // piece, all or nothing.
+        vecs = await _embedding.embedNote(item.text);
+        if (vecs.isEmpty) {
           if (!_embedding.isReady) {
             debugPrint(
               '⚠️ NoteEmbeddingWorker: embedder not ready, keeping '
@@ -148,7 +149,7 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
       }
 
       try {
-        await _storeVector.call((item.eventId, vec));
+        await _storeVector.call((item.eventId, vecs));
       } catch (e) {
         // A storage problem is not this note's fault: keep it, don't count it,
         // and try again later.
@@ -164,7 +165,8 @@ class NoteEmbeddingWorker implements NoteEmbeddingTrigger {
             debugPrint('⚠️ NoteEmbeddingWorker: could not clear $shortId: $f'),
       );
       debugPrint('✅ NoteEmbeddingWorker: embedded $shortId');
-      await _extract.call((item.eventId, item.text, vec));
+      // The first piece stands for the note: its beginning says what it is.
+      await _extract.call((item.eventId, item.text, vecs.first));
     }
     return false;
   }
