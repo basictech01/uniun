@@ -612,7 +612,7 @@ void main() {
     );
 
     test('a picture with no text is kept but not searchable', () async {
-      final blank = await tempFile('sky.png', await _renderBlank());
+      final blank = await tempFile('blank.png', await _renderBlank());
 
       final sha = await index(
         blank.path,
@@ -1239,12 +1239,14 @@ Future<List<int>> _renderText(
   return png!.buffer.asUint8List();
 }
 
-/// A plain sky-blue square: a photo with nothing to read.
+/// A plain olive square: nothing to read and nothing ML Kit labels. Most plain
+/// colours get a label over the cut-off (sky blue is "Sky" at 0.79, black
+/// "Sky" 0.84, grey "Sky" 0.79); olive's best, "Sky", scores 0.50 (vivo 1933).
 Future<List<int>> _renderBlank() async {
   final recorder = ui.PictureRecorder();
   ui.Canvas(recorder).drawRect(
     const ui.Rect.fromLTWH(0, 0, 800, 600),
-    ui.Paint()..color = const ui.Color(0xFF87CEEB),
+    ui.Paint()..color = const ui.Color(0xFF6B6B2A),
   );
   final image = await recorder.endRecording().toImage(800, 600);
   final png = await image.toByteData(format: ui.ImageByteFormat.png);
