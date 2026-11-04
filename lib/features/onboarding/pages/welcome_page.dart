@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:uniun/core/l10n/app_language.dart';
@@ -50,7 +51,8 @@ class WelcomePage extends StatelessWidget {
                       const SizedBox(height: 44),
 
                       // ── Primary — Create Your Avatar ─────────────────────────
-                      _PrimaryButton(
+                      UniunButton(
+                        variant: UniunButtonVariant.hero,
                         onPressed: () {
                           // Generate keypair here so both AboutYou and KeysPage
                           // can receive them as route arguments.
@@ -66,52 +68,27 @@ class WelcomePage extends StatelessWidget {
                             },
                           );
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_rounded,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              l10n.welcomeCreateIdentity,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                        icon: Icon(
+                          Icons.add_rounded,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          size: 22,
                         ),
+                        label: l10n.welcomeCreateIdentity,
                       ),
 
                       const SizedBox(height: 14),
 
                       // ── Secondary — Restore existing key ─────────────────────
-                      _SecondaryButton(
+                      UniunButton(
+                        variant: UniunButtonVariant.secondary,
                         onPressed: () =>
                             context.pushNamed(AppRoutes.importIdentity),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.vpn_key_outlined,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              l10n.welcomeImportKey,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                        icon: Icon(
+                          Icons.vpn_key_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
                         ),
+                        label: l10n.welcomeImportKey,
                       ),
 
                       const SizedBox(height: 28),
@@ -368,84 +345,6 @@ class _Pillar extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ── Button widgets ────────────────────────────────────────────────────────────
-
-/// Gradient primary — primary action.
-class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({required this.onPressed, required this.child});
-
-  final VoidCallback onPressed;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 58,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primaryContainer,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.28),
-              blurRadius: 32,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Center(child: child),
-      ),
-    );
-  }
-}
-
-/// White card with subtle border — secondary action.
-class _SecondaryButton extends StatelessWidget {
-  const _SecondaryButton({required this.onPressed, required this.child});
-
-  final VoidCallback onPressed;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 58,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.4),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(child: child),
       ),
     );
   }
