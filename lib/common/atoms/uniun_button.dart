@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 
 /// Which of the app's button looks to draw. Each one reproduces a look the app
 /// already had, so moving a screen onto [UniunButton] does not change it.
@@ -30,6 +31,7 @@ class UniunButton extends StatelessWidget {
     this.trailing,
     this.loading = false,
     this.expand = true,
+    this.large = false,
   });
 
   final String label;
@@ -48,12 +50,16 @@ class UniunButton extends StatelessWidget {
   /// Fill the available width; otherwise wrap the content.
   final bool expand;
 
+  /// [UniunButtonVariant.primary] at 52 px with a 16 px bold label instead of
+  /// 48 px / 15 px semi-bold: page-level submits.
+  final bool large;
+
   bool get _enabled => onPressed != null && !loading;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final look = _Look.of(variant, scheme, enabled: _enabled);
+    final look = _Look.of(variant, scheme, enabled: _enabled, loading: loading, large: large);
     final content = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -62,10 +68,7 @@ class UniunButton extends StatelessWidget {
               SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: look.foreground,
-                ),
+                child: DropLoadingIndicator(size: 20, color: look.foreground),
               ),
             ]
           : [
@@ -129,21 +132,27 @@ class _Look {
     UniunButtonVariant variant,
     ColorScheme scheme, {
     required bool enabled,
+    required bool loading,
+    required bool large,
   }) {
     switch (variant) {
       case UniunButtonVariant.primary:
         final fg = scheme.onPrimary;
         return _Look(
           foreground: fg,
-          height: 48,
+          height: large ? 52 : 48,
           radius: BorderRadius.circular(12),
           textStyle: TextStyle(
             color: fg,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
+            fontSize: large ? 16 : 15,
+            fontWeight: large ? FontWeight.w700 : FontWeight.w600,
           ),
           decoration: BoxDecoration(
-            color: enabled ? scheme.primary : scheme.outlineVariant,
+            color: enabled
+                ? scheme.primary
+                : loading
+                    ? scheme.primary.withValues(alpha: 0.5)
+                    : scheme.outlineVariant,
             borderRadius: BorderRadius.circular(12),
           ),
         );

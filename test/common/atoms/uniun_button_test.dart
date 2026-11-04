@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uniun/common/atoms/uniun_button.dart';
+import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 
 /// Covers: every variant renders its label, taps, disabled and loading states,
 /// icon/trailing slots, expand vs wrap, long and unicode labels.
@@ -61,7 +62,7 @@ void main() {
       host(UniunButton(label: 'Go', loading: true, onPressed: () => taps++)),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(DropLoadingIndicator), findsOneWidget);
     expect(find.text('Go'), findsNothing);
     await t.tap(find.byType(UniunButton));
     expect(taps, 0);
@@ -169,5 +170,26 @@ void main() {
       await t.pumpWidget(host(UniunButton(label: s, onPressed: () {})));
       expect(find.text(s), findsOneWidget);
     }
+  });
+
+  testWidgets('primary loading is a faded primary, not the disabled grey',
+      (t) async {
+    await t.pumpWidget(
+      host(UniunButton(label: 'Go', loading: true, onPressed: () {})),
+    );
+    final scheme = Theme.of(t.element(find.byType(UniunButton))).colorScheme;
+
+    expect(decorationOf(t).color, scheme.primary.withValues(alpha: 0.5));
+  });
+
+  testWidgets('large primary is 52 px with a 16 px bold label', (t) async {
+    await t.pumpWidget(
+      host(UniunButton(label: 'Go', large: true, onPressed: () {})),
+    );
+
+    expect(t.getSize(find.byType(UniunButton)).height, 52);
+    final style = t.widget<Text>(find.text('Go')).style!;
+    expect(style.fontSize, 16);
+    expect(style.fontWeight, FontWeight.w700);
   });
 }
