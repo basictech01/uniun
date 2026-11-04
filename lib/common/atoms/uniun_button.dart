@@ -69,7 +69,7 @@ class UniunButton extends StatelessWidget {
               ),
             ]
           : [
-              if (icon != null) ...[icon!, const SizedBox(width: 8)],
+              if (icon != null) ...[icon!, const SizedBox(width: 10)],
               Flexible(
                 child: Text(
                   label,
@@ -183,7 +183,7 @@ class _Look {
           textStyle: TextStyle(
             color: fg,
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
           decoration: BoxDecoration(
             color: scheme.surfaceContainerLowest,
