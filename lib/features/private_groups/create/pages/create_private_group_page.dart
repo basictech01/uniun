@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/advanced_section.dart';
-import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/common/widgets/relay_selector_field.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/features/private_groups/create/bloc/create_private_group_bloc.dart';
@@ -173,38 +173,11 @@ class _CreatePrivateGroupViewState extends State<_CreatePrivateGroupView> {
                     const SizedBox(height: 28),
 
                     // Primary action.
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: state.isSubmitting ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                          disabledBackgroundColor:
-                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: state.isSubmitting
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: DropLoadingIndicator(
-                                  size: 20,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              )
-                            : Text(
-                                l10n.createPrivateGroupAction,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
+                    UniunButton(
+                      large: true,
+                      label: l10n.createPrivateGroupAction,
+                      loading: state.isSubmitting,
+                      onPressed: _submit,
                     ),
                   ],
                 ),

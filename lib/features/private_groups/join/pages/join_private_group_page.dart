@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/qr/uniun_qr_payload.dart';
 import 'package:uniun/common/widgets/advanced_section.dart';
-import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/common/widgets/relay_selector_field.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/core/router/nav_extensions.dart';
@@ -257,39 +257,11 @@ class _JoinPrivateGroupViewState extends State<_JoinPrivateGroupView> {
 
                     // ── Request to join ────────────────────────────────────
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: state.isSubmitting ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                          disabledBackgroundColor:
-                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                          disabledForegroundColor: Theme.of(context).colorScheme.onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: state.isSubmitting
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: DropLoadingIndicator(
-                                  size: 20,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              )
-                            : Text(
-                                l10n.joinPrivateGroupAction,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
-                              ),
-                      ),
+                    UniunButton(
+                      large: true,
+                      label: l10n.joinPrivateGroupAction,
+                      loading: state.isSubmitting,
+                      onPressed: _submit,
                     ),
                   ],
                 ),
