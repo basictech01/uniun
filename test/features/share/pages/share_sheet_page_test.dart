@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/common/widgets/composer/uniun_composer.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/domain/inputs/share_note_input.dart';
 import 'package:uniun/domain/repositories/profile_repository.dart';
@@ -201,7 +202,7 @@ void main() {
     when(() => bloc.state).thenReturn(loaded());
     await open(t);
 
-    final button = t.widget<ElevatedButton>(find.byType(ElevatedButton));
+    final button = t.widget<UniunButton>(find.byType(UniunButton));
     expect(button.onPressed, isNull);
   });
 
@@ -226,7 +227,7 @@ void main() {
     );
     await open(t);
 
-    await t.tap(find.byType(ElevatedButton));
+    await t.tap(find.byType(UniunButton));
     await t.pump();
 
     final submit = verify(() => bloc.add(captureAny())).captured
@@ -243,9 +244,9 @@ void main() {
     );
     await open(t);
 
-    expect(t.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed,
+    expect(t.widget<UniunButton>(find.byType(UniunButton)).onPressed,
         isNull);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(DropLoadingIndicator), findsOneWidget);
   });
 
   testWidgets('typing in the composer reports the text', (t) async {

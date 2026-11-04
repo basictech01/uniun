@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/router/app_routes.dart';
@@ -535,14 +536,11 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: onCta,
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
+          UniunButton(
+            expand: false,
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(ctaLabel),
+            label: ctaLabel,
+            onPressed: onCta,
           ),
         ],
       ),

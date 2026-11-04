@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/composer/media_pick_helper.dart';
 import 'package:uniun/common/widgets/composer/reference_picker_page.dart';
@@ -322,36 +323,13 @@ class _ShareBar extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         border: Border(top: BorderSide(color: context.custom.borderSubtle)),
       ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 50,
-        child: ElevatedButton.icon(
-          onPressed: enabled ? onShare : null,
-          icon: submitting
-              ? SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                )
-              : const Icon(Icons.send_rounded, size: 18),
-          label: Text(l10n.shareActionShare),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            disabledBackgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-            disabledForegroundColor: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.7),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-            textStyle:
-                const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
+      child: UniunButton(
+               large: true,
+               icon: const Icon(Icons.send_rounded, size: 18),
+               label: l10n.shareActionShare,
+               loading: submitting,
+               onPressed: enabled ? onShare : null,
+             ),
     );
   }
 }
