@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:uniun/common/atoms/uniun_button.dart';
+import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/enum/report_type.dart';
 import 'package:uniun/features/moderation/cubit/report_sheet_cubit.dart';
 import 'package:uniun/features/moderation/widgets/submit_button.dart';
@@ -61,7 +62,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(DropLoadingIndicator), findsOneWidget);
     await t.tap(find.byType(UniunButton));
     verifyNever(() => cubit.submit());
   });
