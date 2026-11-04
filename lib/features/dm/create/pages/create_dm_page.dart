@@ -179,10 +179,12 @@ class _CreateDmViewState extends State<_CreateDmView> {
           SizedBox(
             width: double.infinity,
             height: 50,
-            child: OutlinedButton.icon(
-              onPressed: state.isSubmitting ? null : _scanByQr,
+            child: UniunButton(
+              variant: UniunButtonVariant.outlined,
+              height: 50,
               icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
-              label: Text(l10n.createDmScanQr),
+              label: l10n.createDmScanQr,
+              onPressed: state.isSubmitting ? null : _scanByQr,
             ),
           ),
           const SizedBox(height: 24),
@@ -239,7 +241,7 @@ class _CreateDmViewState extends State<_CreateDmView> {
 
           // ── Start chat (bottom CTA) ───────────────────────────────────────
           UniunButton(
-            large: true,
+            size: UniunButtonSize.large,
             label: l10n.createDmAction,
             loading: state.isSubmitting,
             onPressed: _onSubmit,

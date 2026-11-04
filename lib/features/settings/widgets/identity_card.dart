@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
@@ -177,8 +178,8 @@ class _KeysSheetState extends State<_KeysSheet> {
           if (!_nsecVisible)
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _nsecLoading ? null : _revealNsec,
+              child: UniunButton(
+                variant: UniunButtonVariant.soft,
                 icon: _nsecLoading
                     ? SizedBox(
                         width: 16,
@@ -189,15 +190,8 @@ class _KeysSheetState extends State<_KeysSheet> {
                         ),
                       )
                     : const Icon(Icons.visibility_rounded, size: 18),
-                label: Text(l10n.identityRevealPrivateKey),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                  side: BorderSide.none,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
+                label: l10n.identityRevealPrivateKey,
+                onPressed: _nsecLoading ? null : _revealNsec,
               ),
             )
           else ...[
@@ -514,25 +508,13 @@ class _RelaysSheetState extends State<_RelaysSheet> {
                 const SizedBox(width: 8),
                 SizedBox(
                   height: 46,
-                  child: FilledButton(
-                    onPressed: _saving ? null : _submitAdd,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      disabledBackgroundColor:
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 18),
-                    ),
-                    child: _saving
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: DropLoadingIndicator(
-                                size: 18, color: Theme.of(context).colorScheme.onPrimary),
-                          )
-                        : Text(l10n.relayAddDialogAction),
+                  child: UniunButton(
+                    expand: false,
+                    size: UniunButtonSize.compact,
+                    height: 46,
+                    loading: _saving,
+                    label: l10n.relayAddDialogAction,
+                    onPressed: _submitAdd,
                   ),
                 ),
               ],

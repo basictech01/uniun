@@ -324,12 +324,12 @@ class _ShareBar extends StatelessWidget {
         border: Border(top: BorderSide(color: context.custom.borderSubtle)),
       ),
       child: UniunButton(
-               large: true,
-               icon: const Icon(Icons.send_rounded, size: 18),
-               label: l10n.shareActionShare,
-               loading: submitting,
-               onPressed: enabled ? onShare : null,
-             ),
+        size: UniunButtonSize.large,
+        icon: const Icon(Icons.send_rounded, size: 18),
+        label: l10n.shareActionShare,
+        loading: submitting,
+        onPressed: enabled ? onShare : null,
+      ),
     );
   }
 }

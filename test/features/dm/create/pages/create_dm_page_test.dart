@@ -55,8 +55,8 @@ void main() {
     await pump(t, CreateDmState());
     await t.enterText(find.byType(TextField).first, 'abc123');
 
-    await t.ensureVisible(find.byType(UniunButton));
-    await t.tap(find.byType(UniunButton));
+    await t.ensureVisible(find.byType(UniunButton).last);
+    await t.tap(find.byType(UniunButton).last);
 
     final event = verify(() => bloc.add(captureAny())).captured
         .whereType<SubmitDmEvent>()
@@ -68,8 +68,8 @@ void main() {
     await pump(t, CreateDmState(isSubmitting: true));
 
     expect(find.byType(DropLoadingIndicator), findsWidgets);
-    await t.ensureVisible(find.byType(UniunButton));
-    await t.tap(find.byType(UniunButton), warnIfMissed: false);
+    await t.ensureVisible(find.byType(UniunButton).last);
+    await t.tap(find.byType(UniunButton).last, warnIfMissed: false);
 
     verifyNever(() => bloc.add(any(that: isA<SubmitDmEvent>())));
   });

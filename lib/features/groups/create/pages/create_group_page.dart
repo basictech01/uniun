@@ -218,7 +218,7 @@ class _CreateGroupViewState extends State<_CreateGroupView> {
 
           // ── Create (bottom CTA) ───────────────────────────────────────────
           UniunButton(
-            large: true,
+            size: UniunButtonSize.large,
             label: l10n.createGroupAction,
             loading: state.isSubmitting,
             onPressed: _onSubmit,

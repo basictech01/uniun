@@ -258,7 +258,7 @@ class _JoinPrivateGroupViewState extends State<_JoinPrivateGroupView> {
                     // ── Request to join ────────────────────────────────────
                     const SizedBox(height: 24),
                     UniunButton(
-                      large: true,
+                      size: UniunButtonSize.large,
                       label: l10n.joinPrivateGroupAction,
                       loading: state.isSubmitting,
                       onPressed: _submit,

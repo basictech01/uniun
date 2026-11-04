@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/domain/entities/llm/llm_backend_type.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/features/shiv/model_select/cubit/select_ai_model_cubit.dart';
@@ -141,41 +142,16 @@ class ModelSelectionFooter extends StatelessWidget {
                     ? Icons.check_circle_outline_rounded
                     : Icons.download_rounded;
 
-                return FilledButton(
+                return UniunButton(
+                  height: 52,
+                  borderRadius: 14,
+                  backgroundColor:
+                      isAlreadyActive ? Theme.of(context).colorScheme.outline : null,
+                  label: label,
+                  trailing: Icon(icon, size: 18),
                   onPressed: selectedId == null
                       ? null
-                      : () => context
-                            .read<SelectAIModelCubit>()
-                            .downloadAndActivate(),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    backgroundColor: isAlreadyActive
-                        ? Theme.of(context).colorScheme.outline
-                        : Theme.of(context).colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        icon,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    ],
-                  ),
+                      : () => context.read<SelectAIModelCubit>().downloadAndActivate(),
                 );
               },
             ),

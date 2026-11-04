@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/constants/app_constants.dart';
@@ -234,23 +235,12 @@ class _RelaySelectorFieldState extends State<RelaySelectorField> {
                       child: SizedBox(
                         width: double.infinity,
                         height: 50,
-                        child: ElevatedButton(
+                        child: UniunButton(
+                          size: UniunButtonSize.large,
+                          height: 50,
+                          borderRadius: 999,
+                          label: l10n.actionDone,
                           onPressed: () => Navigator.of(sheetContext).pop(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                          child: Text(
-                            l10n.actionDone,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
                         ),
                       ),
                     ),

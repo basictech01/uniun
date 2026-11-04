@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/router/deep_link.dart';
@@ -336,16 +337,13 @@ class _ManageSheetState extends State<_ManageSheet> with WidgetsBindingObserver 
                 ),
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _openPricing,
+              UniunButton(
+                variant: UniunButtonVariant.outlined,
+                borderColor: scheme.primary.withValues(alpha: 0.4),
+                height: 40,
                 icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                label: Text(l10n.cloudProviderUpgrade),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: scheme.primary,
-                  side: BorderSide(color: scheme.primary.withValues(alpha: 0.4)),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  minimumSize: const Size.fromHeight(40),
-                ),
+                label: l10n.cloudProviderUpgrade,
+                onPressed: _openPricing,
               ),
               const SizedBox(height: 6),
               Text(

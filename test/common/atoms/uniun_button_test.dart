@@ -184,12 +184,111 @@ void main() {
 
   testWidgets('large primary is 52 px with a 16 px bold label', (t) async {
     await t.pumpWidget(
-      host(UniunButton(label: 'Go', large: true, onPressed: () {})),
+      host(UniunButton(label: 'Go', size: UniunButtonSize.large, onPressed: () {})),
     );
 
     expect(t.getSize(find.byType(UniunButton)).height, 52);
     final style = t.widget<Text>(find.text('Go')).style!;
     expect(style.fontSize, 16);
     expect(style.fontWeight, FontWeight.w700);
+  });
+
+  testWidgets('compact is 36 px with a 14 px label', (t) async {
+    await t.pumpWidget(
+      host(
+        UniunButton(
+          label: 'Go',
+          size: UniunButtonSize.compact,
+          onPressed: () {},
+        ),
+      ),
+    );
+
+    expect(t.getSize(find.byType(UniunButton)).height, 36);
+    expect(t.widget<Text>(find.text('Go')).style!.fontSize, 14);
+  });
+
+  testWidgets('outlined has a border and no fill; soft has the tint',
+      (t) async {
+    await t.pumpWidget(
+      host(
+        UniunButton(
+          label: 'Go',
+          variant: UniunButtonVariant.outlined,
+          onPressed: () {},
+        ),
+      ),
+    );
+    final scheme = Theme.of(t.element(find.byType(UniunButton))).colorScheme;
+    expect(decorationOf(t).color, isNull);
+    expect(decorationOf(t).border, Border.all(color: scheme.outline));
+
+    await t.pumpWidget(
+      host(
+        UniunButton(
+          label: 'Go',
+          variant: UniunButtonVariant.soft,
+          onPressed: () {},
+        ),
+      ),
+    );
+    expect(decorationOf(t).color, scheme.primary.withValues(alpha: 0.08));
+  });
+
+  testWidgets('a disabled non-primary variant is dimmed', (t) async {
+    await t.pumpWidget(
+      host(
+        const UniunButton(
+          label: 'Go',
+          variant: UniunButtonVariant.outlined,
+          onPressed: null,
+        ),
+      ),
+    );
+
+    expect(t.widget<Opacity>(find.byType(Opacity)).opacity, 0.5);
+  });
+
+  testWidgets('overrides win over the variant and size', (t) async {
+    await t.pumpWidget(
+      host(
+        UniunButton(
+          label: 'Go',
+          onPressed: () {},
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.yellow,
+          borderColor: Colors.green,
+          borderRadius: 999,
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          textStyle: const TextStyle(fontSize: 20),
+        ),
+      ),
+    );
+
+    final d = decorationOf(t);
+    expect(d.color, Colors.red);
+    expect(d.border, Border.all(color: Colors.green));
+    expect(d.borderRadius, BorderRadius.circular(999));
+    expect(t.getSize(find.byType(UniunButton)).height, 60);
+    final style = t.widget<Text>(find.text('Go')).style!;
+    expect(style.color, Colors.yellow);
+    expect(style.fontSize, 20);
+  });
+
+  testWidgets('a background override replaces the hero gradient', (t) async {
+    await t.pumpWidget(
+      host(
+        UniunButton(
+          label: 'Go',
+          variant: UniunButtonVariant.hero,
+          backgroundColor: Colors.black,
+          onPressed: () {},
+        ),
+      ),
+    );
+
+    expect(decorationOf(t).gradient, isNull);
+    expect(decorationOf(t).color, Colors.black);
   });
 }

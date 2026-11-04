@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nostr_core_dart/nostr.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/snackbar.dart';
@@ -366,33 +367,22 @@ class _FollowButton extends StatelessWidget {
         : () => context.read<UserProfileBloc>().add(const ToggleFollowEvent());
 
     if (isFollowing) {
-      return OutlinedButton.icon(
-        onPressed: onPressed,
+      return UniunButton(
+        variant: UniunButtonVariant.outlined,
+        height: 40,
+        borderRadius: 22,
+        borderColor: Theme.of(context).colorScheme.primary,
         icon: const Icon(Icons.check_rounded, size: 18),
-        label: Text(l10n.userProfileFollowing),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.primary,
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          side: BorderSide(color: Theme.of(context).colorScheme.primary),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-        ),
+        label: l10n.userProfileFollowing,
+        onPressed: onPressed,
       );
     }
-    return ElevatedButton.icon(
-      onPressed: onPressed,
+    return UniunButton(
+      height: 40,
+      borderRadius: 22,
       icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-      label: Text(l10n.userProfileFollow),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-        ),
-      ),
+      label: l10n.userProfileFollow,
+      onPressed: onPressed,
     );
   }
 }
@@ -405,20 +395,17 @@ class _MessageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return OutlinedButton.icon(
+    return UniunButton(
+      variant: UniunButtonVariant.outlined,
+      height: 40,
+      borderRadius: 22,
+      foregroundColor: Theme.of(context).colorScheme.onSurface,
+      borderColor: Theme.of(context).colorScheme.outlineVariant,
+      icon: const Icon(Icons.mail_outline_rounded, size: 18),
+      label: l10n.userProfileMessage,
       onPressed: () => context.pushNamed(
         AppRoutes.createDm,
         extra: pubkeyHex,
-      ),
-      icon: const Icon(Icons.mail_outline_rounded, size: 18),
-      label: Text(l10n.userProfileMessage),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-        ),
       ),
     );
   }

@@ -192,7 +192,7 @@ class _JoinGroupViewState extends State<_JoinGroupView> {
                     ),
                     const SizedBox(height: 24),
                     UniunButton(
-                      large: true,
+                      size: UniunButtonSize.large,
                       label: l10n.joinGroupAction,
                       loading: state.isSubmitting,
                       onPressed: _submitJoin,

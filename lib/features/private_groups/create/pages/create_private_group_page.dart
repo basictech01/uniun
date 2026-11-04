@@ -174,7 +174,7 @@ class _CreatePrivateGroupViewState extends State<_CreatePrivateGroupView> {
 
                     // Primary action.
                     UniunButton(
-                      large: true,
+                      size: UniunButtonSize.large,
                       label: l10n.createPrivateGroupAction,
                       loading: state.isSubmitting,
                       onPressed: _submit,

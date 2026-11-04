@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/widgets/drop_icon.dart';
 import 'package:uniun/core/enum/message_role.dart';
 import 'package:uniun/core/utils/formatters.dart';
@@ -161,22 +162,14 @@ class NodeActionPanel extends StatelessWidget {
           // Open Branch — switches to this branch and returns to chat
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onOpenBranch,
+            child: UniunButton(
+              height: 52,
+              borderRadius: 20,
+              foregroundColor: Colors.white,
+              textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
               icon: const Icon(Icons.open_in_new_rounded, size: 18),
-              label: Text(l10n.shivNodeOpenBranch),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                textStyle: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
+              label: l10n.shivNodeOpenBranch,
+              onPressed: onOpenBranch,
             ),
           ),
         ],
