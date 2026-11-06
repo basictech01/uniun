@@ -39,6 +39,7 @@ phone, a vivo 1933 (Snapdragon 710, Android 11).
 - **Two device tests fail on a phone that already holds data**: the Vishnu feed case of `manas_membership_e2e_test` (#300, a test that assumes an empty feed) and the blank-picture case of `document_rag_e2e_test` (#301, a blank image gets indexed; cause not diagnosed). Neither is a regression of 3.2.
 - **The DM and private-group repository refactor (#163) was checked by unit and flow tests and by the unread and logout device tests**, not by a live two-account DM or group conversation on a device. Behaviour was kept on purpose, including that a private-group message whose id is already stored stays in the queue.
 - **The domain layer still imports `features/` and `flutter/foundation` in other files**; #163 only removed Isar and `data/` from the three DM and Marmot files.
+- **Buttons (#153)**: filled, outlined and soft buttons now go through `UniunButton`, but the migration is not total. About 40 `TextButton`s remain (dialog actions and inline links, left on purpose); `graph_compose_page.dart` still has a `FilledButton` and the Gana form's secondary action an `OutlinedButton`; `nataraj_deck_page.dart` and `shiv_chat_page.dart` build their own back arrow instead of `UniunBackButton`; a few hardcoded `Color(0x…)` values and tap-target sizes sit outside the theme. The migrated screens were checked by widget tests, and only the welcome and how-it-works pages by a pixel-for-pixel phone comparison; the rest have not been looked at on a device.
 
 ---
 

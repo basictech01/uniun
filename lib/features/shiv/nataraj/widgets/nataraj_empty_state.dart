@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/features/shiv/nataraj/bloc/nataraj_bloc.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 
@@ -104,18 +105,14 @@ class _CtaButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton(
+    return UniunButton(
+      expand: false,
+      height: 48,
+      borderRadius: 14,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+      label: label,
       onPressed: onTap,
-      style: FilledButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-      ),
     );
   }
 }

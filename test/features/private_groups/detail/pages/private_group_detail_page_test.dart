@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/widgets/chat/new_notes_divider.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/common/widgets/note_card/cubit/note_card_cubit.dart';
@@ -14,6 +15,7 @@ import 'package:uniun/core/error/failures.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/common/widgets/note_card/note_card.dart';
 import 'package:uniun/domain/entities/note/note_entity.dart';
+import 'package:uniun/domain/entities/private_group/private_group_join_request_entity.dart';
 import 'package:uniun/domain/usecases/unread_usecases.dart';
 import 'package:uniun/domain/usecases/user_usecases.dart';
 import 'package:uniun/features/private_groups/detail/bloc/private_group_detail_bloc.dart';
@@ -65,6 +67,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(MarkAllPrivateGroupSeenEvent());
+    registerFallbackValue(ApproveJoinRequestEvent(''));
     VisibilityDetectorController.instance.updateInterval = Duration.zero;
   });
 
@@ -318,5 +321,72 @@ void main() {
 
     expect(markAllCalls(), greaterThanOrEqualTo(1));
     await states.close();
+  });
+
+  group('join requests sheet', () {
+    PrivateGroupDetailState adminState({bool approving = false}) =>
+        PrivateGroupDetailState(
+          groupId: gid,
+          group: aPrivateGroup(groupId: gid, mlsGroupId: 'mls'),
+          isAdmin: true,
+          isApproving: approving,
+          joinRequests: [
+            PrivateGroupJoinRequestEntity(
+              id: 1,
+              eventId: 'e1',
+              groupId: gid,
+              senderPubkey: 'a' * 64,
+              keyPackageB64: 'kp-1',
+              timestamp: DateTime.utc(2026),
+            ),
+          ],
+        );
+
+    Future<void> openSheet(WidgetTester t, PrivateGroupDetailState s) async {
+      when(() => bloc.state).thenReturn(s);
+      await t.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const PrivateGroupDetailPage(groupId: gid),
+        ),
+      );
+      await t.pump();
+      // The unread badge sits over the icon's centre, so tap its left edge.
+      await t.tapAt(
+        t.getTopLeft(find.widgetWithIcon(IconButton, Icons.group_add_rounded)) +
+            const Offset(6, 24),
+      );
+      // The drop loader animates forever, so settle by time, not by idle.
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 500));
+    }
+
+    testWidgets('Approve sends the request key package', (t) async {
+      await openSheet(t, adminState());
+
+      await t.tap(find.byType(UniunButton));
+
+      final event = verify(() => bloc.add(captureAny())).captured
+          .whereType<ApproveJoinRequestEvent>()
+          .single;
+      expect(event.userKeyPackageB64, 'kp-1');
+    });
+
+    testWidgets('while approving the button shows the loader and ignores taps',
+        (t) async {
+      await openSheet(t, adminState(approving: true));
+
+      expect(
+        find.descendant(
+          of: find.byType(UniunButton),
+          matching: find.byType(DropLoadingIndicator),
+        ),
+        findsOneWidget,
+      );
+      await t.tap(find.byType(UniunButton));
+      verifyNever(() => bloc.add(any(that: isA<ApproveJoinRequestEvent>())));
+    });
   });
 }

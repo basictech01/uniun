@@ -125,7 +125,13 @@ class _NoManasesCta extends StatelessWidget {
                 fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
-          FilledButton.icon(
+          UniunButton(
+            expand: false,
+            size: UniunButtonSize.compact,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            icon: const Icon(Icons.add, size: 18),
+            label: l10n.ganaFormManasCreateNew,
             onPressed: () async {
               final created =
                   await context.pushNamed<bool>(AppRoutes.brahmaManasForm);
@@ -134,14 +140,6 @@ class _NoManasesCta extends StatelessWidget {
                 bloc.add(const GanaFormRefreshManasesEvent());
               }
             },
-            icon: const Icon(Icons.add, size: 18),
-            label: Text(l10n.ganaFormManasCreateNew),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            ),
           ),
         ],
       ),

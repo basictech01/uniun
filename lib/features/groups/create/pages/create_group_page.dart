@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/features/groups/create/bloc/create_group_bloc.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/advanced_section.dart';
-import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/common/widgets/relay_selector_field.dart';
 import 'package:uniun/features/settings/widgets/section_label.dart';
 import 'package:uniun/l10n/app_localizations.dart';
@@ -217,35 +217,11 @@ class _CreateGroupViewState extends State<_CreateGroupView> {
           const SizedBox(height: 40),
 
           // ── Create (bottom CTA) ───────────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: state.isSubmitting ? null : _onSubmit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: state.isSubmitting
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: DropLoadingIndicator(
-                        size: 20,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                    )
-                  : Text(
-                      l10n.createGroupAction,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
+          UniunButton(
+            size: UniunButtonSize.large,
+            label: l10n.createGroupAction,
+            loading: state.isSubmitting,
+            onPressed: _onSubmit,
           ),
         ],
       ),

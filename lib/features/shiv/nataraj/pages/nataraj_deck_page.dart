@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/router/app_routes.dart';
@@ -704,22 +705,14 @@ class _ErrorBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            UniunButton(
+              expand: false,
+              height: 48,
+              borderRadius: 14,
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              label: l10n.aiSelectModel,
               onPressed: onChangeModel,
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              ),
-              child: Text(
-                l10n.aiSelectModel,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -778,22 +771,14 @@ class _NoIdeaBody extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            FilledButton(
+            UniunButton(
+              expand: false,
+              height: 48,
+              borderRadius: 14,
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              label: l10n.natarajRetry,
               onPressed: onRetry,
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              ),
-              child: Text(
-                l10n.natarajRetry,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
             ),
           ],
         ),

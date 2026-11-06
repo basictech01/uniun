@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/floating_nav.dart';
@@ -398,37 +399,26 @@ class _EmptyFeedView extends StatelessWidget {
               children: [
                 // Re-reads Isar: followed accounts' notes land here once the
                 // gateway has synced them, even if they predate this session.
-                ElevatedButton.icon(
+                UniunButton(
+                  expand: false,
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: l10n.vishnuFeedEmptyRefresh,
                   onPressed: () => context
                       .read<VishnuFeedBloc>()
                       .add(const RefreshFeedEvent()),
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: Text(l10n.vishnuFeedEmptyRefresh),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: () => context.pushNamed(AppRoutes.scanQr),
+                UniunButton(
+                  variant: UniunButtonVariant.outlined,
+                  expand: false,
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  borderColor:
+                      Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
                   icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
-                  label: Text(l10n.vishnuFeedEmptyCta),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.primary,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  label: l10n.vishnuFeedEmptyCta,
+                  onPressed: () => context.pushNamed(AppRoutes.scanQr),
                 ),
               ],
             ),

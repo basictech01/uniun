@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/composer/cubit/reference_picker_cubit.dart';
 import 'package:uniun/common/widgets/composer/uniun_composer.dart';
@@ -154,24 +155,14 @@ class _ReferencePickerViewState extends State<_ReferencePickerView> {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context, _selected),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  minimumSize: const Size(0, 36),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: Text(count > 0
+              child: UniunButton(
+                expand: false,
+                size: UniunButtonSize.compact,
+                borderRadius: 999,
+                label: count > 0
                     ? '${l10n.composerReferenceAdd} ($count)'
-                    : l10n.composerReferenceAdd),
+                    : l10n.composerReferenceAdd,
+                onPressed: () => Navigator.pop(context, _selected),
               ),
             ),
           ],

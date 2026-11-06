@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
@@ -273,17 +274,13 @@ class _Body extends StatelessWidget {
           ],
         if (isEdit) ...[
           const SizedBox(height: 32),
-          OutlinedButton.icon(
-            onPressed: () => _confirmDelete(context),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
+          UniunButton(
+            variant: UniunButtonVariant.outlined,
+            foregroundColor: Theme.of(context).colorScheme.error,
+            borderColor: Theme.of(context).colorScheme.error.withValues(alpha: 0.5),
             icon: const Icon(Icons.delete_outline, size: 18),
-            label: Text(l10n.manasFormDeleteAction),
+            label: l10n.manasFormDeleteAction,
+            onPressed: () => _confirmDelete(context),
           ),
         ],
       ],

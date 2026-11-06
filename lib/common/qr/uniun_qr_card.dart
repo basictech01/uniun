@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/qr/uniun_qr_payload.dart';
 import 'package:uniun/common/widgets/user_avatar.dart';
 import 'package:uniun/core/router/deep_link.dart';
@@ -292,14 +293,11 @@ class _UniunQrCardState extends State<UniunQrCard> {
                 ),
               ),
               const SizedBox(height: 18),
-              FilledButton.icon(
-                onPressed: () => _shareEntry(entry),
+              UniunButton(
+                expand: false,
                 icon: const Icon(Icons.ios_share_rounded, size: 18),
-                label: Text(l10n.qrShareAction),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                ),
+                label: l10n.qrShareAction,
+                onPressed: () => _shareEntry(entry),
               ),
             ],
           ),

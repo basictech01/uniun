@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nostr_core_dart/nostr.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/atoms/uniun_back_button.dart';
 import 'package:uniun/common/widgets/chat/boundary_chat_list.dart';
 import 'package:uniun/common/widgets/chat/bottom_read_mixin.dart';
@@ -595,46 +596,17 @@ class _JoinRequestsSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: isApproving
-                                ? null
-                                : () {
-                                    onApprove(req.keyPackageB64 as String);
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              foregroundColor: Theme.of(
-                                context,
-                              ).colorScheme.onPrimary,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: isApproving
-                                ? SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: DropLoadingIndicator(
-                                      size: 14,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimary,
-                                    ),
-                                  )
-                                : Text(
-                                    l10n.pendingRequestsApprove,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                          UniunButton(
+                            expand: false,
+                            size: UniunButtonSize.compact,
+                            borderRadius: 10,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            loading: isApproving,
+                            label: l10n.pendingRequestsApprove,
+                            onPressed: () {
+                              onApprove(req.keyPackageB64 as String);
+                            },
                           ),
                         ],
                       ),

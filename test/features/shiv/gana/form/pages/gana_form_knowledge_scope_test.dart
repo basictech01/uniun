@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/core/theme/app_theme.dart';
 import 'package:uniun/domain/entities/llm/llm_backend_type.dart';
 import 'package:uniun/domain/entities/manas/manas_entity.dart';
@@ -153,5 +154,27 @@ void main() {
         findsNothing,
       );
     }
+  });
+
+  testWidgets('Save sends the submit event when the Gana can be saved',
+      (t) async {
+    registerFallbackValue(const GanaFormSubmitEvent());
+    await show(
+      t,
+      ready().copyWith(triggerIntervalMinutes: 30, maxOutputs: 10),
+    );
+
+    await t.tap(find.byType(UniunButton).last);
+
+    verify(() => bloc.add(any(that: isA<GanaFormSubmitEvent>()))).called(1);
+  });
+
+  testWidgets('Save does nothing while the Gana is incomplete', (t) async {
+    registerFallbackValue(const GanaFormSubmitEvent());
+    await show(t, ready().copyWith(name: ''));
+
+    await t.tap(find.byType(UniunButton).last, warnIfMissed: false);
+
+    verifyNever(() => bloc.add(any(that: isA<GanaFormSubmitEvent>())));
   });
 }

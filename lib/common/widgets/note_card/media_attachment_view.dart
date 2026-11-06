@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/snackbar.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
@@ -193,18 +194,17 @@ class _AttachmentTileState extends State<_AttachmentTile> {
               height: 32,
               child: DropLoadingIndicator(size: 32),
             )
-          : ElevatedButton.icon(
-              onPressed: _download,
-              icon: const Icon(Icons.cloud_download_outlined, size: 18),
-              label: Text(l10n.noteCardDownloadMedia),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 8),
-              ),
-            ),
+          : UniunButton(
+            expand: false,
+            size: UniunButtonSize.compact,
+            backgroundColor: Colors.white,
+            foregroundColor: Theme.of(context).colorScheme.primary,
+            borderRadius: 999,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            icon: const Icon(Icons.cloud_download_outlined, size: 18),
+            label: l10n.noteCardDownloadMedia,
+            onPressed: _download,
+          ),
     );
   }
 

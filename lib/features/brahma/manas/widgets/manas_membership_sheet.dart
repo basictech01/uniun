@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/locator.dart';
 import 'package:uniun/common/widgets/drop_loading_indicator.dart';
 import 'package:uniun/core/router/app_routes.dart';
@@ -312,14 +313,11 @@ class _Empty extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: onCreate,
+          UniunButton(
+            expand: false,
             icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l10n.manasMembershipSheetEmptyCta),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
+            label: l10n.manasMembershipSheetEmptyCta,
+            onPressed: onCreate,
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/widgets/drop_icon.dart';
 import 'package:uniun/core/router/app_routes.dart';
 import 'package:uniun/features/brahma/utils/manas_icons.dart';
@@ -183,12 +184,19 @@ class _HowItWorksPageState extends State<HowItWorksPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _PrimaryButton(
+                  UniunButton(
+                    variant: UniunButtonVariant.hero,
                     onPressed: () => isLast ? _close(context) : _next(),
                     label: isLast
                         ? l10n.howItWorksGetStarted
                         : l10n.howItWorksNext,
-                    showArrow: !isLast,
+                    trailing: isLast
+                        ? null
+                        : Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 20,
+                          ),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -555,67 +563,6 @@ class _Dots extends StatelessWidget {
           ),
         );
       }),
-    );
-  }
-}
-
-// ── Bottom button ─────────────────────────────────────────────────────────────
-
-/// Gradient primary — mirrors the Welcome screen's primary button idiom.
-class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({
-    required this.onPressed,
-    required this.label,
-    required this.showArrow,
-  });
-
-  final VoidCallback onPressed;
-  final String label;
-  final bool showArrow;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 58,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.primaryContainer],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.28),
-              blurRadius: 32,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (showArrow) ...[
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded,
-                    color: Theme.of(context).colorScheme.onPrimary, size: 20),
-              ],
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

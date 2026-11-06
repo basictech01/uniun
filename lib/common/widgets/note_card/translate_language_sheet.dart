@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/core/i18n/translation_language.dart';
 import 'package:uniun/l10n/app_localizations.dart';
 
@@ -163,9 +164,9 @@ class _TranslateLanguageSheetState extends State<TranslateLanguageSheet> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               child: SizedBox(
                 width: double.infinity,
-                child: FilledButton(
+                child: UniunButton(
+                  label: l10n.translateSheetAction,
                   onPressed: () => Navigator.pop(context, _selected),
-                  child: Text(l10n.translateSheetAction),
                 ),
               ),
             ),

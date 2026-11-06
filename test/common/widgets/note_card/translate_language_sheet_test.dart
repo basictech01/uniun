@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uniun/common/atoms/uniun_button.dart';
 import 'package:uniun/common/widgets/note_card/translate_language_sheet.dart';
 import 'package:uniun/core/i18n/translation_language.dart';
 import 'package:uniun/l10n/app_localizations.dart';
@@ -119,7 +120,7 @@ void main() {
     await t.tap(find.text(hindi.nativeName));
     await t.pump();
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    await t.tap(find.widgetWithText(FilledButton, l10n.translateSheetAction));
+    await t.tap(find.widgetWithText(UniunButton, l10n.translateSheetAction));
     await t.pumpAndSettle();
 
     expect(result?.code, 'hi');

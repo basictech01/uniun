@@ -279,25 +279,17 @@ class _SaveBar extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 height: 52,
-                child: FilledButton(
+                child: UniunButton(
+                  height: 52,
+                  borderRadius: 14,
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  label: l10n.ganaFormSaveAction,
                   onPressed: state.canSave
                       ? () => context
                           .read<GanaFormBloc>()
                           .add(const GanaFormSubmitEvent())
                       : null,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    disabledBackgroundColor:
-                        Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text(
-                    l10n.ganaFormSaveAction,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
                 ),
               ),
             ),
