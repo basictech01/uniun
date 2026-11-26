@@ -188,21 +188,16 @@ flutter pub run build_runner build --delete-conflicting-outputs   # if models/fr
 
 Output: `build\windows\x64\runner\Release\`
 
-**Build the installer** using [Inno Setup](https://jrsoftware.org/isdl.php) (install once,
-free). The script is at `installer\uniun_installer.iss`. Open the file and update **two things**
-before compiling:
-1. `#define MyAppVersion "X.Y.Z"` — set to the new version (e.g. `"3.2.0"`).
-2. If a Flutter plugin DLL was renamed (e.g. `flutter_gemma_plugin.dll` → `flutter_edge_ai_plugin.dll`),
-   update the matching `Source:` line under `; Flutter plugin DLLs`. After building, run
-   `Get-ChildItem build\windows\x64\runner\Release\*.dll` to see the exact names.
-
-Then compile:
+**The installer is built in CI** when the release PR is merged (see
+[Automatic GitHub release](#automatic-github-release)). To build it by hand, install
+[Inno Setup](https://jrsoftware.org/isdl.php) and run:
 
 ```powershell
-& "C:\Users\<you>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer\uniun_installer.iss
+& "C:\Users\<you>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" /DMyAppVersion=X.Y.Z installer\uniun_installer.iss
 ```
 
-Output: `installer\output\uniun-setup-vX.Y.Z.exe` — a single installer file (~160 MB).
+Output: `installer\output\uniun-setup-vX.Y.Z.exe`. The script packs the whole Release folder,
+so a renamed plugin DLL needs no edit.
 
 > The installer uses `windows\runner\resources\app_icon.ico` as its icon. Inno Setup is
 > installed per-user at `AppData\Local\Programs\Inno Setup 6\` on most machines — adjust
@@ -211,6 +206,22 @@ Output: `installer\output\uniun-setup-vX.Y.Z.exe` — a single installer file (~
 ---
 
 ## 5. Upload & tag
+
+### Automatic GitHub release
+
+Open the release PR from a branch named `release/vX.Y.Z` (bumped `pubspec.yaml` and a
+`## [X.Y.Z]` section in `CHANGELOG.md`). When it is merged into main,
+`.github/workflows/release.yml`:
+
+1. checks the branch name, that tag `VX.Y.Z` does not exist yet, that `pubspec.yaml` says
+   `X.Y.Z+<build>` and that the changelog has the section;
+2. builds the Windows app and `uniun-setup-vX.Y.Z.exe` on a Windows runner (with the real
+   LFS embedding model);
+3. tags the merge commit `VX.Y.Z` and publishes the GitHub Release with the installer, its
+   SHA-256, and the changelog section plus store links as notes.
+
+If a job fails, fix the cause and use **Re-run failed jobs** on that run. Steps 1 and 2 below
+(the stores) are still manual, and so are steps 3 and 4 when the workflow did not run.
 
 1. **Android** → Google Play Console → create a new release on the target track
    (internal / closed / production), upload the `.aab`, paste the changelog into "What's New".
@@ -236,7 +247,6 @@ Output: `installer\output\uniun-setup-vX.Y.Z.exe` — a single installer file (~
 - [ ] `flutter build ipa --release` succeeds.
 - [ ] `flutter build appbundle --release` succeeds.
 - [ ] `flutter build windows --release` succeeds (Windows machine).
-- [ ] `#define MyAppVersion` in `installer\uniun_installer.iss` matches the new version.
-- [ ] Inno Setup compiles `installer\uniun_installer.iss` → `installer\output\uniun-setup-vX.Y.Z.exe`.
+- [ ] Release PR branch is `release/vX.Y.Z`; after merge the Release workflow published `VX.Y.Z` with the installer.
 - [ ] Artifacts uploaded; release notes match the changelog.
 - [ ] Commit tagged `vX.Y.Z` and pushed.

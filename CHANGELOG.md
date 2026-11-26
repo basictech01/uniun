@@ -17,11 +17,49 @@ user-facing changelog.
 
 ## [Unreleased]
 
+---
+
+## [3.3.0] — 2026-11-06
+
+Closes milestone [V3.3.0](https://github.com/basictech01/uniun/milestone/6). **The app is
+about 145 MB smaller, Shiv searches the whole of a long note, and every button in the app now
+comes from one component.**
+
 ### Changed
 - **The app is about 145 MB smaller, and long notes are searched through their whole text.** A
   long note is now cut into pieces of up to 700 characters that Shiv searches one by one, so a
   fact at the end of a note is found as well as one at the start. Each piece takes about 2 s to
   index (#296).
+- **One button everywhere (#153).** Onboarding, the group, private-group and DM forms, the
+  share sheet, the Manas actions, the feed, the user profile, Nataraj, Gana, the model picker,
+  the settings cards, the QR card and the report sheet now use the same `UniunButton`
+  (`lib/common/atoms/uniun_button.dart`) with one set of sizes, colours and loading state. A
+  few buttons moved slightly: the join-group button is no longer a pill, the join
+  private-group corners went from 16 to 12, and a button that is busy now fades and shows the
+  drop loader instead of turning grey. Dialog buttons, icon-only buttons and text links are
+  unchanged.
+
+### Tests
+- The Manas device test finds the right note menu when the feed already holds notes (#300), and
+  the blank-picture document test uses an image ML Kit cannot label (#301). Both were test
+  problems, not app bugs.
+- Every changed line of the button work is covered by a widget test.
+
+---
+
+## [3.2.1] — 2026-11-01
+
+A small fix release, published as [V3.2.1](https://github.com/basictech01/uniun/releases/tag/V3.2.1)
+(milestone [V3.2.1](https://github.com/basictech01/uniun/milestone/7)).
+
+### Fixed
+- **The reply count and reference count on direct-message notes now update** (#304).
+- **A draft can be opened in the thread view, and you can reply to it with a draft** (#209).
+- The build no longer fails on the `json_annotation` constraint, and the dependency lockfiles
+  are in sync (#308).
+
+### Tests
+- Line coverage is back above 85 % (#311).
 
 ---
 
