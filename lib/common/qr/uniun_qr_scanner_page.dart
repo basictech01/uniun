@@ -46,6 +46,11 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
   final ImagePicker _imagePicker = ImagePicker();
   bool _handled = false;
 
+  /// The last code that failed to decode. The camera reports the same code
+  /// many times a second while it stays in view; without this, every frame
+  /// queued another error and the error stayed up long after (#305).
+  String? _lastRejected;
+
   @override
   void dispose() {
     _scannerController.dispose();
@@ -58,16 +63,19 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
     try {
       payload = UniunQrPayload.decode(raw);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(
-              context,
-            )!.qrScannerInvalidCode('${e is FormatException ? e.message : e}'),
+      _lastRejected = raw;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.qrScannerInvalidCode('${e is FormatException ? e.message : e}'),
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
       return;
     }
     _handled = true;
@@ -218,7 +226,7 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
               final raw = capture.barcodes.isEmpty
                   ? null
                   : capture.barcodes.first.rawValue?.trim();
-              if (raw == null || raw.isEmpty) return;
+              if (raw == null || raw.isEmpty || raw == _lastRejected) return;
               _handleRaw(raw);
             },
           ),
