@@ -2,11 +2,28 @@
   <img src="assets/images/uniun-logo.png" alt="UNIUN" width="120" />
 </p>
 
-# UNIUN
+<h1 align="center">UNIUN</h1>
 
-[![Tests](https://github.com/basictech01/uniun/actions/workflows/tests.yml/badge.svg)](https://github.com/basictech01/uniun/actions/workflows/tests.yml)
-[![Builds](https://github.com/basictech01/uniun/actions/workflows/builds.yml/badge.svg)](https://github.com/basictech01/uniun/actions/workflows/builds.yml)
-[![codecov](https://codecov.io/gh/basictech01/uniun/graph/badge.svg)](https://codecov.io/gh/basictech01/uniun)
+<p align="center">
+  <a href="https://github.com/basictech01/uniun/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/basictech01/uniun/actions/workflows/tests.yml/badge.svg"></a>
+  <a href="https://github.com/basictech01/uniun/actions/workflows/builds.yml"><img alt="Builds" src="https://github.com/basictech01/uniun/actions/workflows/builds.yml/badge.svg"></a>
+  <a href="https://codecov.io/gh/basictech01/uniun"><img alt="Coverage" src="https://codecov.io/gh/basictech01/uniun/graph/badge.svg"></a>
+  <a href="https://github.com/basictech01/uniun/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/basictech01/uniun"></a>
+  <a href="LICENSE"><img alt="GPL-3.0 licence" src="https://img.shields.io/badge/licence-GPL--3.0-blue.svg"></a>
+  <br>
+  <img alt="Platforms" src="https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20windows-lightgrey">
+  <img alt="Flutter" src="https://img.shields.io/badge/flutter-3.44.2-02569B">
+  <img alt="Nostr" src="https://img.shields.io/badge/protocol-nostr-8E44AD">
+  <img alt="On-device AI" src="https://img.shields.io/badge/AI-on--device-2E8B57">
+  <a href="https://github.com/basictech01/uniun/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"><img alt="Good first issues" src="https://img.shields.io/github/issues/basictech01/uniun/good%20first%20issue?label=good%20first%20issues&color=7057ff"></a>
+</p>
+
+<p align="center">
+  <a href="https://apps.apple.com/in/app/uniun/id6778077321">App Store</a> ·
+  <a href="https://play.google.com/store/apps/details?id=in.uniun.app">Google Play</a> ·
+  <a href="https://github.com/basictech01/uniun/releases/latest">Windows</a> ·
+  <a href="https://www.uniun.in/">uniun.in</a>
+</p>
 
 > *Your notes, your network, your identity.*
 >
