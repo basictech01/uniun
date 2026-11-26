@@ -1,5 +1,8 @@
 #define MyAppName "UNIUN"
-#define MyAppVersion "3.2.0"
+; CI passes /DMyAppVersion=X.Y.Z (.github/workflows/release.yml); this is the local default.
+#ifndef MyAppVersion
+  #define MyAppVersion "3.3.0"
+#endif
 #define MyAppPublisher "UNIUN"
 #define MyAppURL "https://www.uniun.in"
 #define MyAppExeName "uniun.exe"
@@ -36,58 +39,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Files]
-; Main executable
-Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-
-; Flutter runtime
-Source: "{#SourceDir}\flutter_windows.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; AI / LiteRT engine DLLs
-Source: "{#SourceDir}\LiteRt.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\LiteRtDispatch.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\LiteRtLm.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\LiteRtTopKWebGpuSampler.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\LiteRtWebGpuAccelerator.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libLiteRt.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libLiteRtTopKWebGpuSampler.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libLiteRtWebGpuAccelerator.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libwebgpu_dawn.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\webgpu_dawn.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\dxcompiler.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\dxil.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\GemmaModelConstraintProvider.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libGemmaModelConstraintProvider.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\StreamProxy.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; OpenVINO NPU
-Source: "{#SourceDir}\openvino.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\openvino_intel_npu_compiler.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\openvino_intel_npu_compiler_loader.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\openvino_intel_npu_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\openvino_tensorflow_lite_frontend.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; TBB (Intel Threading)
-Source: "{#SourceDir}\tbb12.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\tbbbind_2_5.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\tbbmalloc.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\tbbmalloc_proxy.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; Flutter plugin DLLs
-Source: "{#SourceDir}\bonsoir_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\connectivity_plus_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\file_selector_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\flutter_edge_ai_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\flutter_gemma_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\flutter_secure_storage_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\isar_community_flutter_libs_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\openmls_frb.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\pdfium.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\share_plus_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\url_launcher_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\libisar.dll"; DestDir: "{app}"; Flags: ignoreversion
-
-; Flutter assets (data folder — recursive)
-Source: "{#SourceDir}\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Everything flutter build windows puts in the Release folder: the exe, the
+; Flutter, engine and plugin DLLs, and data\. Listing DLLs by name broke every
+; time a plugin renamed one.
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

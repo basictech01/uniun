@@ -1,0 +1,142 @@
+name: Release
+
+# Merging a pull request from a branch named release/vX.Y.Z into main releases
+# that version: it checks the version and changelog, builds the Windows
+# installer, tags the merge commit VX.Y.Z and publishes the GitHub Release with
+# the installer attached. Store builds (Play, App Store) stay manual, see
+# docs/RELEASING.md.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.44.2"
+
+jobs:
+  prepare:
+    # Every pull request closed on main starts this workflow; only a merged
+    # release branch from this repo goes further.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+    env:
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Version from the branch name
+        id: v
+        run: |
+          v=${HEAD_REF#release/v}
+          [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::branch must be release/vX.Y.Z, got $HEAD_REF"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "tag=V$v" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Tag is new, pubspec and changelog name the version
+        run: |
+          v=${{ steps.v.outputs.version }}; tag=${{ steps.v.outputs.tag }}
+          ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null || { echo "::error::tag $tag already exists"; exit 1; }
+          grep -q "^version: $v+" pubspec.yaml || { echo "::error::pubspec.yaml version is not $v+<build>"; exit 1; }
+          grep -q "^## \[$v\]" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## [$v]' section"; exit 1; }
+
+      - name: Release notes from the changelog section
+        run: |
+          v=${{ steps.v.outputs.version }}
+          {
+            echo "# UNIUN v$v"
+            echo
+            awk -v h="## [$v]" 'index($0,h)==1{f=1;next} f&&/^## \[/{exit} f' CHANGELOG.md | sed '/^---$/d'
+            echo
+            echo "## Download"
+            echo
+            echo "| Platform | Link |"
+            echo "|---|---|"
+            echo "| Windows | \`uniun-setup-v$v.exe\` below |"
+            echo "| iOS (App Store) | https://apps.apple.com/in/app/uniun/id6778077321 |"
+            echo "| Android (Play Store) | https://play.google.com/store/apps/details?id=in.uniun.app |"
+          } > release_notes.md
+          cat release_notes.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release_notes.md
+
+  windows:
+    needs: prepare
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      # LFS on: the bundled embedding model must be the real file, not a
+      # pointer, or the installed app cannot embed notes.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          lfs: true
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: dart run build_runner build --delete-conflicting-outputs
+
+      - run: flutter build windows --release
+
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ needs.prepare.outputs.version }}" installer\uniun_installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: installer/output/uniun-setup-v${{ needs.prepare.outputs.version }}.exe
+          if-no-files-found: error
+
+  release:
+    needs: [prepare, windows]
+    runs-on: ubuntu-latest
+    # One release at a time; a queued one is never cancelled.
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksum
+        run: cd dist && sha256sum *.exe > SHA256SUMS && cat SHA256SUMS
+
+      - name: Publish the GitHub Release
+        run: |
+          v=${{ needs.prepare.outputs.version }}; tag=${{ needs.prepare.outputs.tag }}
+          gh release create "$tag" dist/*.exe dist/SHA256SUMS \
+            --target "${{ github.event.pull_request.merge_commit_sha }}" \
+            --title "$tag" \
+            --notes-file dist/release_notes.md
