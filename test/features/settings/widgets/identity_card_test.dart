@@ -29,7 +29,7 @@ class _MockDeleteRelay extends Mock implements DeleteRelayUseCase {}
 
 /// Covers: the keys sheet's reveal button (loads the private key, hides it
 /// again) and the relays sheet's add button (saves the typed relay, shows the
-/// error when saving fails).
+/// error when saving or removing fails, as the plain failure message).
 void main() {
   late _MockActiveUser activeUser;
   late _MockGetRelays getRelays;
@@ -150,6 +150,28 @@ void main() {
     await t.pumpAndSettle();
 
     expect(find.byType(TextField), findsOneWidget);
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('Could not add relay: boom'), findsOneWidget);
+    expect(find.textContaining('Failure.'), findsNothing);
+  });
+
+  testWidgets('a failed remove shows only the failure message', (t) async {
+    final deleteRelay = _MockDeleteRelay();
+    when(() => deleteRelay.call(any())).thenAnswer(
+      (_) async => const Left(Failure.errorFailure('boom')),
+    );
+    when(() => getRelays.call()).thenAnswer((_) async => Right([aRelay()]));
+    GetIt.instance
+      ..unregister<DeleteRelayUseCase>()
+      ..registerFactory<DeleteRelayUseCase>(() => deleteRelay);
+    await pump(t);
+    await openRow(t, Icons.cell_tower_rounded);
+
+    await t.tap(find.byIcon(Icons.delete_outline_rounded));
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(TextButton, 'Remove'));
+    await t.pumpAndSettle();
+
+    expect(find.text('boom'), findsOneWidget);
+    expect(find.textContaining('Failure.'), findsNothing);
   });
 }

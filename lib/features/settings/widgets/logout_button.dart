@@ -123,7 +123,7 @@ class LogoutButton extends StatelessWidget {
     if (!context.mounted) return;
     Navigator.of(context, rootNavigator: true).pop();
     result.fold(
-      (f) => messenger.showSnackBar(SnackBar(content: Text(f.toString()))),
+      (f) => messenger.showSnackBar(SnackBar(content: Text(f.toMessage()))),
       (_) => router.goNamed(AppRoutes.welcome),
     );
   }

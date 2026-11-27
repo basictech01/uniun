@@ -110,7 +110,7 @@ class _RelaySelectorFieldState extends State<RelaySelectorField> {
               if (!mounted) return;
               result.fold(
                 (f) => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.relayAddDialogError(f.toString()))),
+                  SnackBar(content: Text(l10n.relayAddDialogError(f.toMessage()))),
                 ),
                 (_) async {
                   final next = await _fetchAvailable();

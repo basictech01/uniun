@@ -117,7 +117,7 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
     result.fold(
       (f) => ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.qrLoginFailed(f.toString())))),
+      ).showSnackBar(SnackBar(content: Text(l10n.qrLoginFailed(f.toMessage())))),
       (_) => ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.qrLoginApproved))),
@@ -155,7 +155,7 @@ class _UniunQrScannerPageState extends State<UniunQrScannerPage> {
       result.fold(
         (f) => ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(f.toString()))),
+        ).showSnackBar(SnackBar(content: Text(f.toMessage()))),
         (_) => ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.followActionSuccess),
