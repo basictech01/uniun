@@ -386,7 +386,7 @@ class _RelaysSheetState extends State<_RelaysSheet> {
       (f) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.relayAddDialogError(f.toString()))),
+          SnackBar(content: Text(l10n.relayAddDialogError(f.toMessage()))),
         );
       },
       (_) {
@@ -426,7 +426,7 @@ class _RelaysSheetState extends State<_RelaysSheet> {
     if (!mounted) return;
     result.fold(
       (f) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(f.toString())),
+        SnackBar(content: Text(f.toMessage())),
       ),
       (_) => _loadRelays(),
     );

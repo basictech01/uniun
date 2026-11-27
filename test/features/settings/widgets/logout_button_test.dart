@@ -147,6 +147,8 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Welcome screen'), findsNothing);
+    expect(find.text('cleanup failed'), findsOneWidget);
+    expect(find.textContaining('Failure.'), findsNothing);
     verifyNever(() => users.logout());
   });
 }
